@@ -1,0 +1,85 @@
+{
+  "pair": {
+    "enter_device_info": {
+      "title": "Enter Device Information",
+      "description": "Please enter your Tuya device credentials",
+      "device_id": "Device ID",
+      "local_key": "Local Key",
+      "ip_address": "IP Address",
+      "protocol_version": "Protocol Version",
+      "continue": "Continue"
+    }
+  },
+  "cop_method": {
+    "direct_thermal": "Direct Thermal",
+    "power_module": "Power Module",
+    "power_estimation": "Power Estimation",
+    "refrigerant_circuit": "Refrigerant Circuit",
+    "carnot_estimation": "Carnot Estimation",
+    "valve_correlation": "Valve Correlation",
+    "temperature_difference": "Temperature Difference",
+    "insufficient_data": "!"
+  },
+  "cop_method_description": {
+    "direct_thermal": "Direct thermal calculation using water flow and temperature difference (±5% accuracy)",
+    "power_module": "Power module estimation using internal sensors and external validation (±8% accuracy)",
+    "power_estimation": "Power consumption estimation using compressor and fan data (±10% accuracy)",
+    "refrigerant_circuit": "Refrigerant circuit analysis using pressure and temperature sensors (±12% accuracy)",
+    "carnot_estimation": "Carnot-based estimation using compressor frequency and ambient temperature (±15% accuracy)",
+    "valve_correlation": "Valve position correlation using expansion valve data (±20% accuracy)",
+    "temperature_difference": "Temperature difference estimation using empirical relationships (±30% accuracy)",
+    "insufficient_data": "Insufficient data available for any COP calculation method"
+  },
+  "scop_status": {
+    "initializing": "Initializing...",
+    "collecting": "Collecting data",
+    "insufficient_data": "7+ days of data needed",
+    "calculating": "Calculating..."
+  },
+  "trend_descriptions": {
+    "strong_improvement": "Strong Efficiency Gain",
+    "moderate_improvement": "Moderate Efficiency Gain",
+    "slight_improvement": "Slight Efficiency Gain",
+    "significant_decline": "Major Efficiency Drop",
+    "moderate_decline": "Moderate Efficiency Drop",
+    "slight_decline": "Slight Efficiency Drop",
+    "stable": "Stable Performance"
+  },
+  "cop_diagnostics": {
+    "no_power_measurement": "No Power Data",
+    "no_thermal_measurement": "No Thermal Data",
+    "no_water_flow": "No Flow Data",
+    "no_temperature_difference": "No Temp Delta",
+    "no_compressor_data": "No Compressor Data",
+    "insufficient_sensor_data": "Multiple Failures",
+    "enable_power_monitoring": "Enable Power Monitor",
+    "check_temperature_sensors": "Check Temp Sensors",
+    "check_flow_sensor": "Check Flow Sensor",
+    "check_compressor_communication": "Check Compressor Link",
+    "check_multiple_sensors": "Check All Sensors"
+  },
+  "COP calculation disabled": "COP calculation disabled",
+  "connection_status": {
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "reconnecting": "Reconnecting",
+    "error": "Error"
+  },
+  "building_model": {
+    "thermal_mass_title": "ML Thermal Mass",
+    "heat_loss_title": "ML Heat Loss",
+    "time_constant_title": "ML Time Constant",
+    "solar_gain_title": "ML Solar Gain Factor",
+    "internal_gains_title": "ML Internal Gains",
+    "status_learned": "LEARNING",
+    "status_default": "DEFAULT",
+    "status_blocked": "BLOCKED",
+    "blocked_no_indoor_temp": "No indoor temp",
+    "blocked_no_outdoor_temp": "No outdoor temp",
+    "blocked_no_power": "No power data",
+    "blocked_disabled": "Disabled",
+    "period_night": "Night",
+    "period_day": "Day",
+    "period_evening": "Evening"
+  }
+}

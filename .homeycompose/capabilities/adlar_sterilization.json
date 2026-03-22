@@ -1,0 +1,21 @@
+{
+  "id": "adlar_sterilization",
+  "type": "boolean",
+  "title": {
+    "en": "Sterilization mode active",
+    "nl": "Sterilisatiemodus actief"
+  },
+  "icon": "/assets/adlar-icon-white.svg",
+  "uiComponent": "sensor",
+  "getable": true,
+  "setable": false,
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Sterilization mode started",
+    "nl": "Sterilisatiemodus gestart"
+  },
+  "insightsTitleFalse": {
+    "en": "Sterilization mode stopped",
+    "nl": "Sterilisatiemodus gestopt"
+  }
+}

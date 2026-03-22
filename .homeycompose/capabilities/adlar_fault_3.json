@@ -1,0 +1,21 @@
+{
+  "id": "adlar_fault_3",
+  "type": "boolean",
+  "title": {
+    "en": "Fault register 3 active",
+    "nl": "Foutregister 3 actief"
+  },
+  "icon": "/assets/adlar-icon-white.svg",
+  "uiComponent": "sensor",
+  "getable": true,
+  "setable": false,
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Fault register 3 triggered",
+    "nl": "Foutregister 3 actief"
+  },
+  "insightsTitleFalse": {
+    "en": "Fault register 3 cleared",
+    "nl": "Foutregister 3 opgeheven"
+  }
+}

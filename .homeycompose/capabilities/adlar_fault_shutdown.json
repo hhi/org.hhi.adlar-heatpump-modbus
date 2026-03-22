@@ -1,0 +1,21 @@
+{
+  "id": "adlar_fault_shutdown",
+  "type": "boolean",
+  "title": {
+    "en": "Fault shutdown",
+    "nl": "Fout - unit gestopt"
+  },
+  "icon": "/assets/adlar-icon-white.svg",
+  "uiComponent": "sensor",
+  "getable": true,
+  "setable": false,
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Unit shut down due to fault",
+    "nl": "Unit gestopt door fout"
+  },
+  "insightsTitleFalse": {
+    "en": "Fault shutdown cleared",
+    "nl": "Fout-stop opgeheven"
+  }
+}

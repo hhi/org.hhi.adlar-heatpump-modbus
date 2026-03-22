@@ -1,0 +1,21 @@
+{
+  "id": "adlar_defrosting",
+  "type": "boolean",
+  "title": {
+    "en": "Defrosting",
+    "nl": "Ontdooien"
+  },
+  "icon": "/assets/adlar-icon-white.svg",
+  "uiComponent": "sensor",
+  "getable": true,
+  "setable": false,
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Defrosting started",
+    "nl": "Ontdooien gestart"
+  },
+  "insightsTitleFalse": {
+    "en": "Defrosting stopped",
+    "nl": "Ontdooien gestopt"
+  }
+}

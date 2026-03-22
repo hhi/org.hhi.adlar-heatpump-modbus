@@ -1,0 +1,16 @@
+{
+  "id": "adlar_fan_speed",
+  "type": "number",
+  "title": {
+    "en": "Fan speed",
+    "nl": "Ventilatorsnelheid"
+  },
+  "icon": "/assets/adlar-icon-white.svg",
+  "uiComponent": "sensor",
+  "getable": true,
+  "setable": false,
+  "units": "RPM",
+  "decimals": 0,
+  "min": 0,
+  "max": 3000
+}

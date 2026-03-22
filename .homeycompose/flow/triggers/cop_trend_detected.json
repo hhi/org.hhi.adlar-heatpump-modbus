@@ -1,0 +1,113 @@
+{
+  "id": "cop_trend_detected",
+  "title": {
+    "en": "COP trend detected",
+    "nl": "COP trend gedetecteerd",
+    "de": "COP-Trend erkannt",
+    "fr": "Tendance COP détectée"
+  },
+  "titleFormatted": {
+    "en": "COP trend detected: [[trend_type]]",
+    "nl": "COP trend gedetecteerd: [[trend_type]]",
+    "de": "COP-Trend erkannt: [[trend_type]]",
+    "fr": "Tendance COP détectée: [[trend_type]]"
+  },
+  "hint": {
+    "en": "Triggers when COP shows a significant improving or degrading trend over the last 24 hours",
+    "nl": "Wordt geactiveerd wanneer COP een significante verbeterende of verslechterende trend toont over de laatste 24 uur",
+    "de": "Wird ausgelöst, wenn COP über die letzten 24 Stunden einen signifikanten Verbesserungs- oder Verschlechterungstrend zeigt",
+    "fr": "Se déclenche lorsque le COP montre une tendance significative à l'amélioration ou à la dégradation au cours des dernières 24 heures"
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=intelligent-heatpump-modbus&capabilities=adlar_cop_trend"
+    },
+    {
+      "type": "dropdown",
+      "name": "trend_type",
+      "title": {
+        "en": "Trend type",
+        "nl": "Trend type",
+        "de": "Trend-Typ",
+        "fr": "Type de tendance"
+      },
+      "values": [
+        {
+          "id": "improving",
+          "title": {
+            "en": "improving",
+            "nl": "verbeterend",
+            "de": "Verbesserung",
+            "fr": "amélioration"
+          }
+        },
+        {
+          "id": "degrading",
+          "title": {
+            "en": "degrading",
+            "nl": "verslechterend",
+            "de": "Verschlechterung",
+            "fr": "détérioration"
+          }
+        },
+        {
+          "id": "any",
+          "title": {
+            "en": "any trend change",
+            "nl": "elke trendverandering",
+            "de": "jede Trendänderung",
+            "fr": "tout changement de tendance"
+          }
+        }
+      ]
+    }
+  ],
+  "tokens": [
+    {
+      "type": "string",
+      "name": "trend_direction",
+      "title": {
+        "en": "Trend direction",
+        "nl": "Trend richting",
+        "de": "Trend-Richtung",
+        "fr": "Direction de la tendance"
+      },
+      "example": "improving"
+    },
+    {
+      "type": "number",
+      "name": "trend_strength",
+      "title": {
+        "en": "Trend strength",
+        "nl": "Trend sterkte",
+        "de": "Trend-Stärke",
+        "fr": "Force de la tendance"
+      },
+      "example": 0.25
+    },
+    {
+      "type": "string",
+      "name": "trend_description",
+      "title": {
+        "en": "Trend description",
+        "nl": "Trend beschrijving",
+        "de": "Trend-Beschreibung",
+        "fr": "Description de la tendance"
+      },
+      "example": "Strong improvement in efficiency"
+    },
+    {
+      "type": "number",
+      "name": "current_daily_cop",
+      "title": {
+        "en": "Current daily COP",
+        "nl": "Huidige dagelijkse COP",
+        "de": "Aktueller täglicher COP",
+        "fr": "COP quotidien actuel"
+      },
+      "example": 3.4
+    }
+  ]
+}

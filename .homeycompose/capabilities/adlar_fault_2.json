@@ -1,0 +1,21 @@
+{
+  "id": "adlar_fault_2",
+  "type": "boolean",
+  "title": {
+    "en": "Fault register 2 active",
+    "nl": "Foutregister 2 actief"
+  },
+  "icon": "/assets/adlar-icon-white.svg",
+  "uiComponent": "sensor",
+  "getable": true,
+  "setable": false,
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Fault register 2 triggered",
+    "nl": "Foutregister 2 actief"
+  },
+  "insightsTitleFalse": {
+    "en": "Fault register 2 cleared",
+    "nl": "Foutregister 2 opgeheven"
+  }
+}

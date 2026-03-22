@@ -1,0 +1,21 @@
+{
+  "id": "adlar_compressor_on",
+  "type": "boolean",
+  "title": {
+    "en": "Compressor active",
+    "nl": "Compressor actief"
+  },
+  "icon": "/assets/adlar-icon-white.svg",
+  "uiComponent": "sensor",
+  "getable": true,
+  "setable": false,
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Compressor started",
+    "nl": "Compressor gestart"
+  },
+  "insightsTitleFalse": {
+    "en": "Compressor stopped",
+    "nl": "Compressor gestopt"
+  }
+}

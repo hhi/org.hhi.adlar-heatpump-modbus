@@ -1,0 +1,10 @@
+comments.*
+README.md
+CLAUDE.md
+AGENTS.md
+docs/*
+*.code-workspace
+todo/*
+plans/*
+.claude/*
+.github/*
