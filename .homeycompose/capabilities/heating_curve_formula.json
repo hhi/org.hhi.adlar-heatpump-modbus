@@ -1,0 +1,11 @@
+{
+  "id": "heating_curve_formula",
+  "type": "string",
+  "title": {
+    "en": "Heating Curve Formula",
+    "nl": "Verwarmingscurve Formule"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": null
+}

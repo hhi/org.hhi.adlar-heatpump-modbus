@@ -1,0 +1,11 @@
+{
+  "id": "heating_curve_ref_outdoor",
+  "type": "number",
+  "title": {
+    "en": "Reference Outdoor Temperature",
+    "nl": "Referentie Buitentemperatuur"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": null
+}

@@ -5,6 +5,8 @@ import Homey from 'homey';
 import { DataSnapshot } from '../../lib/modbus/adlar2-modbus-service';
 import { Logger, LogLevel } from '../../lib/logger';
 import { ServiceCoordinator } from '../../lib/services/service-coordinator';
+import { RollingCOPCalculator, type COPDataPoint } from '../../lib/services/rolling-cop-calculator';
+import { SCOPCalculator, type COPMeasurement } from '../../lib/services/scop-calculator';
 
 // ============================================================================
 // FAULT CODE DESCRIPTIONS (48 codes)
@@ -87,6 +89,9 @@ class AdlarModbusDevice extends Homey.Device {
 
   private coordinator: ServiceCoordinator | null = null;
   private logger!: Logger;
+  private rollingCOP: RollingCOPCalculator | null = null;
+  private scopCalc: SCOPCalculator | null = null;
+  private lastCOPUpdateMs: number = 0;
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
@@ -106,6 +111,96 @@ class AdlarModbusDevice extends Homey.Device {
     );
 
     this.logger.info('Device initializing:', this.getName());
+
+    this._initCOPCalculators();
+    await this._restoreCOPData();
+
+    // Migration: Add Fase 3/4 capabilities to existing devices
+    const newCapabilities = [
+      // Fase 4 — Adaptive Control
+      'adlar_simulated_target',
+      'target_temperature.indoor',
+      'measure_temperature.indoor',
+      // Fase 3 — Connection status
+      'adlar_connection_status',
+      'adlar_connection_active',
+      'adlar_daily_disconnect_count',
+      // Fase 3 — COP/SCOP
+      'adlar_cop_daily',
+      'adlar_cop_weekly',
+      'adlar_cop_monthly',
+      'adlar_cop_trend',
+      'adlar_cop_method',
+      'adlar_scop',
+      'adlar_scop_quality',
+      // Fase 3 — External sensors
+      'adlar_external_power',
+      'adlar_external_flow',
+      'adlar_external_ambient',
+      'adlar_external_solar_power',
+      'adlar_external_solar_radiation',
+      'adlar_external_wind_speed',
+      'adlar_external_indoor_temperature',
+      'adlar_external_energy_daily',
+      'adlar_external_energy_total',
+      'adlar_last_indoor_temp_received',
+      'adlar_last_outdoor_temp_received',
+      'adlar_last_solar_power_received',
+      'adlar_last_solar_radiation_received',
+      'adlar_last_wind_received',
+      // Fase 3 — Energy pricing
+      'adlar_energy_price_current',
+      'adlar_energy_price_next',
+      'adlar_energy_price_category',
+      'adlar_price_forecast_4h',
+      'adlar_price_forecast_24h',
+      'adlar_cheapest_block_start',
+      'adlar_price_savings_potential',
+      'adlar_energy_cost_daily',
+      'adlar_energy_cost_hourly',
+      'energy_prices_data',
+      // Fase 4 — Adaptive outputs
+      'adlar_forecast_advice',
+      'adlar_forecast_cop_correction',
+      'adlar_optimal_delay',
+      'adlar_building_ua',
+      'adlar_building_tau',
+      'adlar_building_g',
+      'adlar_building_c',
+      'adlar_building_pint',
+      'building_model_diagnostics',
+      'cop_optimizer_diagnostics',
+      'adaptive_control_diagnostics',
+      'building_insight_insulation',
+      'building_insight_preheating',
+      'building_insight_profile',
+      'building_insight_thermal_storage',
+      'building_insights_diagnostics',
+      'adlar_performance_report',
+      'adlar_performance_score',
+      // Status / diagnostics
+      'adlar_state_compressor_state',
+      'adlar_state_defrost_state',
+      'adlar_state_backwater',
+      'defrost_active_power',
+      'adlar_defrost_count_24h',
+      'adlar_defrost_minutes_24h',
+      'adlar_openmeteo_last_fetch',
+      'adlar_hotwater',
+      'adlar_fault',
+      'heating_curve_formula',
+      'heating_curve_slope',
+      'heating_curve_intercept',
+      'heating_curve_ref_outdoor',
+      'heating_curve_ref_temp',
+    ];
+    for (const cap of newCapabilities) {
+      if (!this.hasCapability(cap)) {
+        // eslint-disable-next-line no-await-in-loop
+        await this.addCapability(cap).catch((e: Error) => this.logger.warn(`Migration: Failed to add ${cap}:`, e.message));
+        this.logger.info(`Migration: Added ${cap} capability`);
+      }
+    }
 
     this.coordinator = new ServiceCoordinator({
       device: this,
@@ -153,12 +248,15 @@ class AdlarModbusDevice extends Homey.Device {
 
   async onUninit() {
     this.logger.info('Device uninitializing');
+    await this._saveCOPData();
     await this._destroyCoordinator();
+    this._destroyCOPCalculators();
   }
 
   async onDeleted() {
     this.logger.info('Device deleted');
     await this._destroyCoordinator();
+    this._destroyCOPCalculators();
   }
 
   // ── Coordinator lifecycle ──────────────────────────────────────────────────
@@ -254,6 +352,11 @@ class AdlarModbusDevice extends Homey.Device {
     // COP
     if (snap.cop.valid) {
       set('adlar_cop', snap.cop.cop);
+      set('adlar_cop_method', 'direct_thermal');
+      this._addCOPMeasurement(snap);
+      this._maybeUpdateRollingCOPCapabilities(set);
+    } else {
+      set('adlar_cop_method', 'insufficient_data');
     }
 
     // Mechanical sensors
@@ -282,6 +385,120 @@ class AdlarModbusDevice extends Homey.Device {
     );
   }
 
+  // ── COP Calculators ────────────────────────────────────────────────────────
+
+  private _initCOPCalculators(): void {
+    this.rollingCOP = new RollingCOPCalculator({
+      logger: (msg, ...args) => this.logger.debug(msg, ...args),
+    });
+    this.scopCalc = new SCOPCalculator(this);
+    this.logger.debug('COP calculators initialized');
+  }
+
+  private _destroyCOPCalculators(): void {
+    if (this.rollingCOP) {
+      this.rollingCOP.destroy();
+      this.rollingCOP = null;
+    }
+    if (this.scopCalc) {
+      this.scopCalc.destroy();
+      this.scopCalc = null;
+    }
+  }
+
+  private async _restoreCOPData(): Promise<void> {
+    try {
+      const rollingData = await this.getStoreValue('rolling_cop_data');
+      if (rollingData && this.rollingCOP) {
+        this.rollingCOP.importData(rollingData);
+        this.logger.debug('Restored rolling COP data');
+      }
+      const scopData = await this.getStoreValue('scop_data');
+      if (scopData && this.scopCalc) {
+        this.scopCalc.importData(scopData);
+        this.logger.debug('Restored SCOP data');
+      }
+    } catch (e) {
+      this.logger.warn('Failed to restore COP data:', (e as Error).message);
+    }
+  }
+
+  private async _saveCOPData(): Promise<void> {
+    try {
+      if (this.rollingCOP) {
+        await this.setStoreValue('rolling_cop_data', this.rollingCOP.exportData());
+      }
+      if (this.scopCalc) {
+        await this.setStoreValue('scop_data', this.scopCalc.exportData());
+      }
+    } catch (e) {
+      this.logger.warn('Failed to save COP data:', (e as Error).message);
+    }
+  }
+
+  private _addCOPMeasurement(snap: DataSnapshot): void {
+    const cop = snap.cop.cop;
+    const ambientTemp = snap.sensors.ambientT1?.value ?? 0;
+    const now = Date.now();
+
+    if (this.rollingCOP) {
+      const dp: COPDataPoint = {
+        timestamp: now,
+        cop,
+        method: 'direct_thermal',
+        confidence: 'high',
+        electricalPower: snap.power.inputPowerKw * 1000,
+        thermalOutput: snap.cop.thermalPowerKw * 1000,
+        ambientTemperature: ambientTemp,
+      };
+      this.rollingCOP.addDataPoint(dp);
+    }
+
+    if (this.scopCalc) {
+      const compFreq = snap.sensors.compRunningFreq?.value ?? 0;
+      const loadRatio = Math.min(1, compFreq / 60); // normalise 0–1
+      const measurement: COPMeasurement = {
+        cop,
+        method: 'direct_thermal',
+        timestamp: now,
+        ambientTemperature: ambientTemp,
+        loadRatio,
+        confidence: 'high',
+      };
+      this.scopCalc.addCOPMeasurement(measurement);
+    }
+  }
+
+  private _maybeUpdateRollingCOPCapabilities(set: (cap: string, val: unknown) => void): void {
+    const COP_UPDATE_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+    const now = Date.now();
+    if (now - this.lastCOPUpdateMs < COP_UPDATE_INTERVAL_MS) return;
+    this.lastCOPUpdateMs = now;
+
+    if (this.rollingCOP) {
+      const daily = this.rollingCOP.getDailyCOP();
+      if (daily) {
+        set('adlar_cop_daily', +daily.averageCOP.toFixed(2));
+        const trend = this.rollingCOP.getTrendAnalysis(24);
+        if (trend) {
+          set('adlar_cop_trend', trend.trend);
+        }
+      }
+      const weekly = this.rollingCOP.getWeeklyCOP();
+      if (weekly) set('adlar_cop_weekly', +weekly.averageCOP.toFixed(2));
+      const monthly = this.rollingCOP.getMonthlyCOP();
+      if (monthly) set('adlar_cop_monthly', +monthly.averageCOP.toFixed(2));
+    }
+
+    if (this.scopCalc) {
+      const scopResult = this.scopCalc.calculateSCOP();
+      if (scopResult) {
+        set('adlar_scop', +scopResult.scop.toFixed(2));
+        set('adlar_scop_quality', scopResult.dataQuality);
+      }
+    }
+  }
+
   // ── Capability listeners ───────────────────────────────────────────────────
 
   private _registerCapabilityListeners(): void {
@@ -295,6 +512,8 @@ class AdlarModbusDevice extends Homey.Device {
       this.logger.debug('Set heating setpoint:', value);
       if (!this.coordinator) return;
       await this.coordinator.setTemperature('heating', value);
+      // Persist target for adaptive control simulated-target sync on restart
+      this.coordinator.getAdaptiveControl().storeTargetValue(value).catch(() => {});
     });
 
     this.registerCapabilityListener('target_temperature.cooling', async (value: number) => {

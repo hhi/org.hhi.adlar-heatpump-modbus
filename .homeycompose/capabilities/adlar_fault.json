@@ -1,0 +1,27 @@
+{
+  "id": "adlar_fault",
+  "title": {
+    "en": "Fault Code",
+    "nl": "Foutcode",
+    "de": "Fehlercode",
+    "fr": "Code de défaut"
+  },
+  "type": "number",
+  "min": 0,
+  "max": 30,
+  "uiComponent": "sensor",
+  "icon": "/assets/fault.svg",
+  "getable": true,
+  "setable": false,
+  "insights": true,
+  "insightsTitle": {
+    "en": "Fault Status Code",
+    "nl": "Foutstatus Code",
+    "de": "Fehlerstatuscode",
+    "fr": "Code d'état de défaut"
+  },
+
+  "description": {
+    "nl": "dp 15 : fault - Fault"
+  }
+}

@@ -1,0 +1,20 @@
+{
+    "id": "building_insight_preheating",
+    "type": "string",
+    "title": {
+        "en": "Pre-heating duration (comfort)",
+        "nl": "Voorverwarming duur (comfort)",
+        "de": "Vorheizdauer (Komfort)",
+        "fr": "Durée de préchauffage (confort)"
+    },
+    "desc": {
+        "en": "Pre-heating recommendations based on thermal response speed",
+        "nl": "Voorverwarmingsaanbevelingen gebaseerd op thermische responstijd",
+        "de": "Vorheizempfehlungen basierend auf thermischer Reaktionsgeschwindigkeit",
+        "fr": "Recommandations de préchauffage basées sur la vitesse de réponse thermique"
+    },
+    "getable": true,
+    "setable": false,
+    "uiComponent": "sensor",
+    "icon": "/assets/insight-preheating.svg"
+}

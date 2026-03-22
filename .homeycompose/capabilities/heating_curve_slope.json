@@ -1,0 +1,11 @@
+{
+  "id": "heating_curve_slope",
+  "type": "number",
+  "title": {
+    "en": "Heating Curve Slope",
+    "nl": "Verwarmingscurve Helling"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": null
+}

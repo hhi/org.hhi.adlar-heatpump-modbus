@@ -1,0 +1,30 @@
+{
+    "id": "adlar_optimal_delay",
+    "type": "number",
+    "title": {
+        "en": "Optimal delay",
+        "nl": "Optimale wachttijd",
+        "de": "Optimale Wartezeit",
+        "fr": "Délai optimal"
+    },
+    "units": {
+        "en": "h",
+        "nl": "u",
+        "de": "h",
+        "fr": "h"
+    },
+    "getable": true,
+    "setable": false,
+    "uiComponent": "sensor",
+    "insights": true,
+    "insightsTitle": {
+        "en": "Optimal delay",
+        "nl": "Optimale wachttijd",
+        "de": "Optimale Wartezeit",
+        "fr": "Délai optimal"
+    },
+    "icon": "/assets/timer.svg",
+    "decimals": 1,
+    "min": -48,
+    "max": 48
+}
