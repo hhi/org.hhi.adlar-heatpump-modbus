@@ -1,0 +1,11 @@
+{
+  "id": "heating_curve_ref_temp",
+  "type": "number",
+  "title": {
+    "en": "Reference Temperature",
+    "nl": "Referentie Temperatuur"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": null
+}

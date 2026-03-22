@@ -1,0 +1,33 @@
+{
+  "id": "adlar_hotwater",
+  "title": {
+    "en": "Hot Water Set Temp",
+    "nl": "Warmwater stel temperatuur",
+    "de": "Warmwasser Solltemperatur",
+    "fr": "Température de consigne eau chaude"
+  },
+  "type": "number",
+  "getable": true,
+  "setable": true,
+  "uiComponent": "slider",
+  "units": {
+    "en": "℃",
+    "nl": "℃",
+    "de": "℃",
+    "fr": "℃"
+  },
+  "min": 10,
+  "max": 75,
+  "step": 1,
+  "insights": true,
+  "insightsTitle": {
+    "en": "Hot Water Set Temp",
+    "nl": "Warmwater stel temperatuur",
+    "de": "Warmwasser Solltemperatur",
+    "fr": "Température de consigne eau chaude"
+  },
+
+  "description": {
+    "nl": "dp 101 : minitemp_set - Hot Water Set Temp"
+  }
+}

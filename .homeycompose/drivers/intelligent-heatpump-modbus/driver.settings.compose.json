@@ -1,0 +1,185 @@
+[
+  {
+    "id": "modbus_connection",
+    "type": "group",
+    "label": {
+      "en": "Modbus Connection",
+      "nl": "Modbus Verbinding"
+    },
+    "children": [
+      {
+        "id": "modbus_host",
+        "type": "text",
+        "label": {
+          "en": "IP Address (Elfin EW11A or Modbus gateway)",
+          "nl": "IP-adres (Elfin EW11A of Modbus gateway)"
+        },
+        "value": ""
+      },
+      {
+        "id": "modbus_port",
+        "type": "number",
+        "label": {
+          "en": "TCP Port",
+          "nl": "TCP-poort"
+        },
+        "value": 502,
+        "attr": {
+          "min": 1,
+          "max": 65535
+        }
+      },
+      {
+        "id": "modbus_unit_id",
+        "type": "number",
+        "label": {
+          "en": "Modbus Unit ID",
+          "nl": "Modbus Unit ID"
+        },
+        "value": 1,
+        "attr": {
+          "min": 1,
+          "max": 247
+        }
+      }
+    ]
+  },
+  {
+    "id": "flow_meter",
+    "type": "group",
+    "label": {
+      "en": "Water Flow Meter",
+      "nl": "Waterdebietmeter"
+    },
+    "children": [
+      {
+        "id": "has_flow_meter",
+        "type": "checkbox",
+        "label": {
+          "en": "External flow meter connected",
+          "nl": "Externe debietmeter aangesloten"
+        },
+        "value": false,
+        "hint": {
+          "en": "Enable if a physical flow meter is connected to the heat pump.",
+          "nl": "Inschakelen als er een fysieke debietmeter op de warmtepomp is aangesloten."
+        }
+      },
+      {
+        "id": "default_flow_lpm",
+        "type": "number",
+        "label": {
+          "en": "Default flow rate (L/min)",
+          "nl": "Standaard debiet (L/min)"
+        },
+        "value": 20,
+        "hint": {
+          "en": "Used for COP calculation when no flow meter is connected.",
+          "nl": "Gebruikt voor COP-berekening als er geen debietmeter is."
+        },
+        "attr": {
+          "min": 1,
+          "max": 100
+        }
+      }
+    ]
+  },
+  {
+    "id": "polling",
+    "type": "group",
+    "label": {
+      "en": "Polling Intervals",
+      "nl": "Poll-intervallen"
+    },
+    "children": [
+      {
+        "id": "poll_fast_s",
+        "type": "number",
+        "label": {
+          "en": "Fast poll interval (seconds)",
+          "nl": "Snel poll-interval (seconden)"
+        },
+        "value": 10,
+        "attr": {
+          "min": 5,
+          "max": 60
+        }
+      },
+      {
+        "id": "poll_medium_s",
+        "type": "number",
+        "label": {
+          "en": "Medium poll interval (seconds)",
+          "nl": "Medium poll-interval (seconden)"
+        },
+        "value": 30,
+        "attr": {
+          "min": 15,
+          "max": 300
+        }
+      },
+      {
+        "id": "poll_slow_s",
+        "type": "number",
+        "label": {
+          "en": "Slow poll interval (seconds)",
+          "nl": "Langzaam poll-interval (seconden)"
+        },
+        "value": 300,
+        "attr": {
+          "min": 60,
+          "max": 3600
+        }
+      }
+    ]
+  },
+  {
+    "id": "diagnostics",
+    "type": "group",
+    "label": {
+      "en": "Diagnostics",
+      "nl": "Diagnostiek"
+    },
+    "children": [
+      {
+        "id": "log_level",
+        "type": "dropdown",
+        "label": {
+          "en": "Log Level",
+          "nl": "Logniveau"
+        },
+        "value": "error",
+        "values": [
+          {
+            "id": "error",
+            "label": {
+              "en": "ERROR (recommended)",
+              "nl": "ERROR (aanbevolen)"
+            }
+          },
+          {
+            "id": "warn",
+            "label": {
+              "en": "WARN",
+              "nl": "WARN"
+            }
+          },
+          {
+            "id": "info",
+            "label": {
+              "en": "INFO",
+              "nl": "INFO"
+            }
+          },
+          {
+            "id": "debug",
+            "label": {
+              "en": "DEBUG (verbose)",
+              "nl": "DEBUG (uitgebreid)"
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "id": "adlar_state_backwater",
+  "title": {
+    "en": "Backwater state",
+    "nl": "Retourwater status",
+    "de": "Rücklaufstatus",
+    "fr": "État du retour"
+  },
+  "type": "boolean",
+  "setable": false,
+  "getable": true,
+  "uiComponent": "sensor",
+  "icon": "/assets/backwater-state.svg",
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Backwater is ON",
+    "nl": "Retourwater is AAN",
+    "de": "Rücklauf ist EIN",
+    "fr": "Retour est ALLUMÉ"
+  },
+  "insightsTitleFalse": {
+    "en": "Backwater is OFF",
+    "nl": "Retourwater is UIT",
+    "de": "Rücklauf ist AUS",
+    "fr": "Retour est ÉTEINT"
+  },
+
+  "description": {
+    "nl": "dp 31 : backwater - Backwater state"
+  }
+}

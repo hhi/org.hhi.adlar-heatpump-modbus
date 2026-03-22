@@ -8,6 +8,7 @@ import { CapabilityHealthService } from './capability-health-service';
 import { EnergyTrackingService } from './energy-tracking-service';
 import { ModbusConnectionService, ModbusConnectionConfig } from './modbus-connection-service';
 import { FlowCardManagerService } from './flow-card-manager-service';
+import { AdaptiveControlService } from './adaptive-control-service';
 import { DataSnapshot } from '../modbus/adlar2-modbus-service';
 
 export interface ServiceCoordinatorOptions {
@@ -32,6 +33,7 @@ export class ServiceCoordinator {
   private energyTracking!: EnergyTrackingService;
   private modbusConnection!: ModbusConnectionService;
   private flowCardManager!: FlowCardManagerService;
+  private adaptiveControl!: AdaptiveControlService;
 
   // Service state
   private serviceHealth = new Map<string, boolean>();
@@ -61,10 +63,20 @@ export class ServiceCoordinator {
     this.capabilityHealth = new CapabilityHealthService(opts);
     this.energyTracking = new EnergyTrackingService(opts);
 
+    this.adaptiveControl = new AdaptiveControlService({
+      ...opts,
+    });
+
     this.flowCardManager = new FlowCardManagerService({
       ...opts,
       onExternalPowerData: this.energyTracking.receiveExternalPowerData.bind(this.energyTracking),
-      onExternalPricesData: async () => { /* adaptive control: fase 4 */ },
+      onExternalPricesData: async (prices: Record<string, number>) => {
+        this.adaptiveControl.getEnergyOptimizer().setExternalPrices(prices);
+        await this.device.setStoreValue('external_energy_prices', prices);
+        this.logger('ServiceCoordinator: External prices forwarded to AdaptiveControlService', {
+          count: Object.keys(prices).length,
+        });
+      },
     });
 
     this.modbusConnection = new ModbusConnectionService({
@@ -80,6 +92,7 @@ export class ServiceCoordinator {
     this.serviceHealth.set('energy', true);
     this.serviceHealth.set('modbus', false);
     this.serviceHealth.set('flowcard', true);
+    this.serviceHealth.set('adaptive', false);
 
     this.logger('ServiceCoordinator: Services created');
   }
@@ -154,6 +167,17 @@ export class ServiceCoordinator {
       await this.flowCardManager.initialize();
       this.logger('ServiceCoordinator: FlowCardManager initialized');
 
+      // Initialize AdaptiveControlService (non-critical — failure does not block device)
+      try {
+        await this.adaptiveControl.initialize();
+        this.serviceHealth.set('adaptive', true);
+        this.logger('ServiceCoordinator: AdaptiveControl initialized');
+      } catch (err) {
+        this.logger('ServiceCoordinator: AdaptiveControl init failed (non-critical)', err);
+        result.failedServices.push('adaptive');
+        result.errors.push(err as Error);
+      }
+
       // Connect Modbus last (most likely to fail transiently)
       try {
         await this.modbusConnection.connect(config);
@@ -225,6 +249,7 @@ export class ServiceCoordinator {
     this.energyTracking.setConnectionState(true).catch((e) => {
       this.logger('ServiceCoordinator: setConnectionState(true) failed', e);
     });
+    this._setConnectionCapabilities(true, null);
   }
 
   private _handleDisconnected(reason: string): void {
@@ -233,6 +258,31 @@ export class ServiceCoordinator {
     this.energyTracking.setConnectionState(false).catch((e) => {
       this.logger('ServiceCoordinator: setConnectionState(false) failed', e);
     });
+    this._setConnectionCapabilities(false, reason);
+    this._incrementDailyDisconnectCount();
+  }
+
+  private _setConnectionCapabilities(connected: boolean, reason: string | null): void {
+    const now = new Date();
+    const day = now.getDate();
+    const month = now.toLocaleString('en-US', { month: 'short' });
+    const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const timestamp = `${day}-${month} ${time}`;
+    const status = connected ? `Connected: ${timestamp}` : `Disconnected: ${timestamp}${reason ? ` (${reason})` : ''}`;
+
+    if (this.device.hasCapability('adlar_connection_active')) {
+      this.device.setCapabilityValue('adlar_connection_active', connected).catch(() => {});
+    }
+    if (this.device.hasCapability('adlar_connection_status')) {
+      this.device.setCapabilityValue('adlar_connection_status', status).catch(() => {});
+    }
+  }
+
+  private _incrementDailyDisconnectCount(): void {
+    if (!this.device.hasCapability('adlar_daily_disconnect_count')) return;
+
+    const current = (this.device.getCapabilityValue('adlar_daily_disconnect_count') as number | null) ?? 0;
+    this.device.setCapabilityValue('adlar_daily_disconnect_count', current + 1).catch(() => {});
   }
 
   private _handleError(err: Error, context: string): void {
@@ -250,6 +300,10 @@ export class ServiceCoordinator {
     if (this.energyTracking) {
       await this.energyTracking.onSettings(oldSettings, newSettings, changedKeys);
     }
+  }
+
+  getAdaptiveControl(): AdaptiveControlService {
+    return this.adaptiveControl;
   }
 
   async updateFlowCards(): Promise<void> {
@@ -303,6 +357,7 @@ export class ServiceCoordinator {
       this.capabilityHealth.destroy();
       this.energyTracking.destroy();
       this.flowCardManager.destroy();
+      this.adaptiveControl.destroy();
       await this.modbusConnection.destroy();
     } catch (err) {
       this.logger('ServiceCoordinator: Error during cleanup', err);

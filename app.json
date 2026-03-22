@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "org.hhi.adlar-heatpump-modbus",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "compatibility": ">=12.2.0",
   "sdk": 3,
   "platforms": [
@@ -7603,7 +7603,76 @@
         "adlar_fault_1",
         "adlar_fault_2",
         "adlar_fault_3",
-        "adlar_fault_active"
+        "adlar_fault_active",
+        "adlar_simulated_target",
+        "target_temperature.indoor",
+        "measure_temperature.indoor",
+        "adlar_connection_status",
+        "adlar_connection_active",
+        "adlar_cop_daily",
+        "adlar_cop_weekly",
+        "adlar_cop_monthly",
+        "adlar_cop_trend",
+        "adlar_cop_method",
+        "adlar_scop",
+        "adlar_scop_quality",
+        "adlar_external_power",
+        "adlar_external_flow",
+        "adlar_external_ambient",
+        "adlar_external_solar_power",
+        "adlar_external_solar_radiation",
+        "adlar_external_wind_speed",
+        "adlar_external_indoor_temperature",
+        "adlar_external_energy_daily",
+        "adlar_external_energy_total",
+        "adlar_last_indoor_temp_received",
+        "adlar_last_outdoor_temp_received",
+        "adlar_last_solar_power_received",
+        "adlar_last_solar_radiation_received",
+        "adlar_last_wind_received",
+        "adlar_energy_price_current",
+        "adlar_energy_price_next",
+        "adlar_energy_price_category",
+        "adlar_price_forecast_4h",
+        "adlar_price_forecast_24h",
+        "adlar_cheapest_block_start",
+        "adlar_price_savings_potential",
+        "adlar_energy_cost_daily",
+        "adlar_energy_cost_hourly",
+        "energy_prices_data",
+        "adlar_forecast_advice",
+        "adlar_forecast_cop_correction",
+        "adlar_optimal_delay",
+        "adlar_building_ua",
+        "adlar_building_tau",
+        "adlar_building_g",
+        "adlar_building_c",
+        "adlar_building_pint",
+        "building_model_diagnostics",
+        "cop_optimizer_diagnostics",
+        "adaptive_control_diagnostics",
+        "building_insight_insulation",
+        "building_insight_preheating",
+        "building_insight_profile",
+        "building_insight_thermal_storage",
+        "building_insights_diagnostics",
+        "adlar_performance_report",
+        "adlar_performance_score",
+        "adlar_state_compressor_state",
+        "adlar_state_defrost_state",
+        "adlar_state_backwater",
+        "defrost_active_power",
+        "adlar_defrost_count_24h",
+        "adlar_defrost_minutes_24h",
+        "adlar_daily_disconnect_count",
+        "adlar_openmeteo_last_fetch",
+        "adlar_hotwater",
+        "adlar_fault",
+        "heating_curve_formula",
+        "heating_curve_slope",
+        "heating_curve_intercept",
+        "heating_curve_ref_outdoor",
+        "heating_curve_ref_temp"
       ],
       "capabilitiesOptions": {
         "target_temperature": {
@@ -7980,6 +8049,34 @@
     }
   ],
   "capabilities": {
+    "adaptive_control_diagnostics": {
+      "id": "adaptive_control_diagnostics",
+      "type": "string",
+      "title": {
+        "en": "Adaptive Control Diagnostics",
+        "nl": "Adaptieve Controle Diagnostiek",
+        "de": "Adaptive Steuerungsdiagnostik",
+        "fr": "Diagnostics de contrôle adaptatif"
+      },
+      "desc": {
+        "en": "Real-time breakdown of weighted decision making as JSON (comfort/efficiency/cost contributions)",
+        "nl": "Real-time breakdown van gewogen besluitvorming als JSON (comfort/efficiëntie/kosten bijdragen)",
+        "de": "Echtzeit-Aufschlüsselung der gewichteten Entscheidungsfindung als JSON (Komfort/Effizienz/Kosten Beiträge)",
+        "fr": "Répartition en temps réel de la prise de décision pondérée en JSON (contributions confort/efficacité/coût)"
+      },
+      "units": {
+        "en": "",
+        "nl": "",
+        "de": "",
+        "fr": ""
+      },
+      "chartType": "stepLine",
+      "decimals": 2,
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "icon": "/assets/adaptive-control-diagnostics.svg"
+    },
     "adlar_antifreeze": {
       "id": "adlar_antifreeze",
       "type": "boolean",
@@ -8000,6 +8097,201 @@
         "en": "Antifreeze protection deactivated",
         "nl": "Antivriesbeveiliging uitgeschakeld"
       }
+    },
+    "adlar_building_c": {
+      "id": "adlar_building_c",
+      "type": "number",
+      "title": {
+        "en": "Thermal Mass",
+        "nl": "Thermische Massa",
+        "de": "Thermische Masse",
+        "fr": "Masse Thermique"
+      },
+      "units": {
+        "en": "kWh/°C",
+        "nl": "kWh/°C",
+        "de": "kWh/°C",
+        "fr": "kWh/°C"
+      },
+      "desc": {
+        "en": "Learned thermal mass of the building (kWh/°C)",
+        "nl": "Geleerde thermische massa van het gebouw (kWh/°C)",
+        "de": "Gelernte thermische Masse des Gebäudes (kWh/°C)",
+        "fr": "Masse thermique apprise du bâtiment (kWh/°C)"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "chartType": "spline",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Building Thermal Mass",
+        "nl": "Gebouw Thermische Massa",
+        "de": "Gebäude Thermische Masse",
+        "fr": "Masse Thermique du Bâtiment"
+      },
+      "icon": "/assets/building-thermal-mass.svg"
+    },
+    "adlar_building_g": {
+      "id": "adlar_building_g",
+      "type": "number",
+      "title": {
+        "en": "Solar Gain Factor",
+        "nl": "Zonnewinst Factor",
+        "de": "Solarer Gewinnfaktor",
+        "fr": "Facteur de Gain Solaire"
+      },
+      "units": {
+        "en": "",
+        "nl": "",
+        "de": "",
+        "fr": ""
+      },
+      "desc": {
+        "en": "Learned solar gain factor of the building (dimensionless)",
+        "nl": "Geleerde zonnewinst factor van het gebouw (dimensieloos)",
+        "de": "Gelernter solarer Gewinnfaktor des Gebäudes (dimensionslos)",
+        "fr": "Facteur de gain solaire appris du bâtiment (sans dimension)"
+      },
+      "decimals": 4,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "chartType": "spline",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Building Solar Gain Factor",
+        "nl": "Gebouw Zonnewinst Factor",
+        "de": "Gebäude Solarer Gewinnfaktor",
+        "fr": "Facteur de Gain Solaire du Bâtiment"
+      },
+      "icon": "/assets/building-solar-gain.svg"
+    },
+    "adlar_building_pint": {
+      "id": "adlar_building_pint",
+      "type": "number",
+      "title": {
+        "en": "Internal Heat Gains",
+        "nl": "Interne Warmtewinst",
+        "de": "Interne Wärmegewinne",
+        "fr": "Gains de Chaleur Internes"
+      },
+      "units": {
+        "en": "kW",
+        "nl": "kW",
+        "de": "kW",
+        "fr": "kW"
+      },
+      "desc": {
+        "en": "Learned internal heat gains from occupants, lighting, and appliances (kW)",
+        "nl": "Geleerde interne warmtewinst van bewoners, verlichting en apparaten (kW)",
+        "de": "Gelernte interne Wärmegewinne von Bewohnern, Beleuchtung und Geräten (kW)",
+        "fr": "Gains de chaleur internes appris des occupants, de l'éclairage et des appareils (kW)"
+      },
+      "decimals": 2,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "chartType": "spline",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Building Internal Heat Gains",
+        "nl": "Gebouw Interne Warmtewinst",
+        "de": "Gebäude Interne Wärmegewinne",
+        "fr": "Gains de Chaleur Internes du Bâtiment"
+      },
+      "icon": "/assets/building-internal-gains.svg"
+    },
+    "adlar_building_tau": {
+      "id": "adlar_building_tau",
+      "type": "number",
+      "title": {
+        "en": "ML Time Constant",
+        "nl": "ML Tijdsconstante",
+        "de": "ML Zeitkonstante",
+        "fr": "Constante de Temps ML"
+      },
+      "units": {
+        "en": "hours",
+        "nl": "uren",
+        "de": "Stunden",
+        "fr": "heures"
+      },
+      "desc": {
+        "en": "Learned thermal time constant of the building (hours)",
+        "nl": "Geleerde thermische tijdsconstante van het gebouw (uren)",
+        "de": "Gelernte thermische Zeitkonstante des Gebäudes (Stunden)",
+        "fr": "Constante de temps thermique apprise du bâtiment (heures)"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "chartType": "spline",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Building Time Constant",
+        "nl": "Gebouw Tijdsconstante",
+        "de": "Gebäude Zeitkonstante",
+        "fr": "Constante de Temps du Bâtiment"
+      },
+      "icon": "/assets/building-time-constant.svg"
+    },
+    "adlar_building_ua": {
+      "id": "adlar_building_ua",
+      "type": "number",
+      "title": {
+        "en": "Heat Loss Coefficient",
+        "nl": "Warmteverlies Coëfficiënt",
+        "de": "Wärmeverlust-Koeffizient",
+        "fr": "Coefficient de Perte de Chaleur"
+      },
+      "units": {
+        "en": "kW/°C",
+        "nl": "kW/°C",
+        "de": "kW/°C",
+        "fr": "kW/°C"
+      },
+      "desc": {
+        "en": "Learned heat loss coefficient of the building (kW/°C)",
+        "nl": "Geleerde warmteverlies coëfficiënt van het gebouw (kW/°C)",
+        "de": "Gelernter Wärmeverlust-Koeffizient des Gebäudes (kW/°C)",
+        "fr": "Coefficient de perte de chaleur appris du bâtiment (kW/°C)"
+      },
+      "decimals": 2,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "chartType": "spline",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Building Heat Loss Coefficient",
+        "nl": "Gebouw Warmteverlies Coëfficiënt",
+        "de": "Gebäude Wärmeverlust-Koeffizient",
+        "fr": "Coefficient de Perte de Chaleur du Bâtiment"
+      },
+      "icon": "/assets/building-heat-loss.svg"
+    },
+    "adlar_cheapest_block_start": {
+      "id": "adlar_cheapest_block_start",
+      "type": "string",
+      "title": {
+        "en": "Cheapest Block Starts",
+        "nl": "Goedkoopste Blok Begint",
+        "de": "Günstigster Block Beginnt",
+        "fr": "Bloc le Moins Cher Commence"
+      },
+      "desc": {
+        "en": "Start time (HH:MM) of the cheapest 4-hour block today.",
+        "nl": "Starttijd (UU:MM) van het goedkoopste 4-uurs blok vandaag.",
+        "de": "Startzeit (HH:MM) des günstigsten 4-Stunden-Blocks heute.",
+        "fr": "Heure de début (HH:MM) du bloc de 4 heures le moins cher aujourd'hui."
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/cheapest-block-start.svg"
     },
     "adlar_comp_target_freq": {
       "id": "adlar_comp_target_freq",
@@ -8054,6 +8346,59 @@
         "nl": "Compressor gestopt"
       }
     },
+    "adlar_connection_active": {
+      "id": "adlar_connection_active",
+      "type": "boolean",
+      "title": {
+        "en": "Connection Active",
+        "nl": "Verbinding Actief",
+        "de": "Verbindung Aktiv",
+        "fr": "Connexion Active"
+      },
+      "desc": {
+        "en": "Device connection state for insights tracking",
+        "nl": "Apparaat verbindingsstatus voor insights tracking",
+        "de": "Geräteverbindungsstatus für Insights-Verfolgung",
+        "fr": "État de connexion de l'appareil pour le suivi des insights"
+      },
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Connected",
+        "nl": "Verbonden",
+        "de": "Verbunden",
+        "fr": "Connecté"
+      },
+      "insightsTitleFalse": {
+        "en": "Disconnected",
+        "nl": "Verbroken",
+        "de": "Getrennt",
+        "fr": "Déconnecté"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/connection-status.svg"
+    },
+    "adlar_connection_status": {
+      "id": "adlar_connection_status",
+      "type": "string",
+      "title": {
+        "en": "Connection Status",
+        "nl": "Verbindingsstatus",
+        "de": "Verbindungsstatus",
+        "fr": "État de connexion"
+      },
+      "desc": {
+        "en": "Current Modbus device connection state with timestamp",
+        "nl": "Huidige Modbus apparaat verbindingsstatus met tijdstempel",
+        "de": "Aktueller Modbus-Geräteverbindungsstatus mit Zeitstempel",
+        "fr": "État de connexion actuel du périphérique Modbus avec horodatage"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/connection-status.svg"
+    },
     "adlar_cop": {
       "id": "adlar_cop",
       "title": {
@@ -8090,6 +8435,250 @@
         "de": "Berechnete Leistungszahl - Verhältnis zwischen nutzbarer Wärmeleistung und elektrischem Energieverbrauch. Höhere Werte bedeuten bessere Effizienz.",
         "fr": "Coefficient de performance calculé - rapport entre la production de chaleur utile et la consommation d'énergie électrique. Des valeurs plus élevées indiquent une meilleure efficacité."
       }
+    },
+    "adlar_cop_daily": {
+      "id": "adlar_cop_daily",
+      "title": {
+        "en": "Rolling Daily Average COP",
+        "nl": "Voortschrijdend Dagelijks Gemiddelde COP",
+        "de": "Gleitender Tagesdurchschnitt COP",
+        "fr": "Moyenne mobile quotidienne COP"
+      },
+      "type": "number",
+      "units": {
+        "en": "COP",
+        "nl": "COP",
+        "de": "COP",
+        "fr": "COP"
+      },
+      "min": 0,
+      "max": 8,
+      "step": 0.01,
+      "decimals": 2,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Daily Heat Pump Efficiency (COP)",
+        "nl": "Dagelijkse Warmtepomp Efficiëntie (COP)",
+        "de": "Tägliche Wärmepumpen Effizienz (COP)",
+        "fr": "Efficacité quotidienne de la pompe à chaleur (COP)"
+      },
+      "icon": "/assets/cop-efficiency.svg",
+      "description": {
+        "en": "24-hour rolling average COP for trend analysis and daily performance monitoring. Weighted by compressor runtime for accurate efficiency representation.",
+        "nl": "24-uur voortschrijdend gemiddelde COP voor trendanalyse en dagelijkse prestatiemonitoring. Gewogen op compressor looptijd voor nauwkeurige efficiëntie weergave.",
+        "de": "24-Stunden gleitender Durchschnitt COP für Trendanalyse und tägliche Leistungsüberwachung. Gewichtet nach Kompressorlaufzeit für genaue Effizienzdarstellung.",
+        "fr": "Moyenne mobile COP sur 24 heures pour l'analyse des tendances et la surveillance quotidienne des performances. Pondérée par le temps de fonctionnement du compresseur pour une représentation précise de l'efficacité."
+      }
+    },
+    "adlar_cop_method": {
+      "id": "adlar_cop_method",
+      "title": {
+        "en": "COP Calculation Method",
+        "nl": "COP Berekenings Methode",
+        "de": "COP-Berechnungsmethode",
+        "fr": "Méthode de Calcul COP"
+      },
+      "type": "string",
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": false,
+      "icon": "/assets/cop-efficiency.svg",
+      "description": {
+        "en": "Shows which calculation method was used to determine the COP value, indicating data quality and accuracy level.",
+        "nl": "Toont welke berekeningsmethode werd gebruikt om de COP waarde te bepalen, wat de datakwaliteit en nauwkeurigheidsniveau aangeeft.",
+        "de": "Zeigt, welche Berechnungsmethode zur Bestimmung des COP-Werts verwendet wurde, was die Datenqualität und das Genauigkeitsniveau angibt.",
+        "fr": "Indique quelle méthode de calcul a été utilisée pour déterminer la valeur COP, indiquant la qualité des données et le niveau de précision."
+      }
+    },
+    "adlar_cop_monthly": {
+      "id": "adlar_cop_monthly",
+      "title": {
+        "en": "Rolling Monthly Average COP",
+        "nl": "Voortschrijdend Maandelijkse Gemiddelde COP",
+        "de": "Gleitender Monatsdurchschnitt COP",
+        "fr": "Moyenne mobile mensuelle COP"
+      },
+      "type": "number",
+      "units": {
+        "en": "COP",
+        "nl": "COP",
+        "de": "COP",
+        "fr": "COP"
+      },
+      "min": 0,
+      "max": 8,
+      "step": 0.01,
+      "decimals": 2,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Monthly Heat Pump Efficiency (COP)",
+        "nl": "Maandelijkse Warmtepomp Efficiëntie (COP)",
+        "de": "Monatliche Wärmepumpen Effizienz (COP)",
+        "fr": "Efficacité mensuelle de la pompe à chaleur (COP)"
+      },
+      "icon": "/assets/cop-efficiency.svg",
+      "description": {
+        "en": "30-day rolling average COP for seasonal pattern identification and long-term efficiency monitoring. Ideal for detecting gradual performance changes and seasonal optimization opportunities.",
+        "nl": "30-dagen voortschrijdend gemiddelde COP voor seizoenspatroon identificatie en langetermijn efficiëntie monitoring. Ideaal voor het detecteren van geleidelijke prestatieveranderingen en seizoensoptimalisatie mogelijkheden.",
+        "de": "30-Tage gleitender Durchschnitt COP zur Identifizierung saisonaler Muster und Langzeitüberwachung der Effizienz. Ideal zur Erkennung allmählicher Leistungsveränderungen und saisonaler Optimierungsmöglichkeiten.",
+        "fr": "Moyenne mobile COP sur 30 jours pour l'identification des tendances saisonnières et la surveillance de l'efficacité à long terme. Idéal pour détecter les changements progressifs de performance et les opportunités d'optimisation saisonnière."
+      }
+    },
+    "adlar_cop_trend": {
+      "id": "adlar_cop_trend",
+      "title": {
+        "en": "COP Trend",
+        "nl": "COP Trend",
+        "de": "COP-Trend",
+        "fr": "Tendance COP"
+      },
+      "type": "string",
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": false,
+      "icon": "/assets/data-quality.svg",
+      "description": {
+        "en": "COP performance trend over the last 24 hours: improving, stable, or degrading. Used for predictive maintenance and optimization guidance.",
+        "nl": "COP prestatie trend over de laatste 24 uur: verbeterend, stabiel, of verslechterend. Gebruikt voor voorspellend onderhoud en optimalisatie begeleiding.",
+        "de": "COP-Leistungstrend über die letzten 24 Stunden: verbessernd, stabil oder verschlechternd. Verwendet für vorausschauende Wartung und Optimierungshinweise.",
+        "fr": "Tendance de performance COP au cours des dernières 24 heures : amélioration, stable ou dégradation. Utilisé pour la maintenance prédictive et les conseils d'optimisation."
+      }
+    },
+    "adlar_cop_weekly": {
+      "id": "adlar_cop_weekly",
+      "title": {
+        "en": "Rolling Weekly Average COP",
+        "nl": "Voortschrijdend Wekelijks Gemiddelde COP",
+        "de": "Gleitender Wochendurchschnitt COP",
+        "fr": "Moyenne mobile hebdomadaire COP"
+      },
+      "type": "number",
+      "units": {
+        "en": "COP",
+        "nl": "COP",
+        "de": "COP",
+        "fr": "COP"
+      },
+      "min": 0,
+      "max": 8,
+      "step": 0.01,
+      "decimals": 2,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Weekly Heat Pump Efficiency (COP)",
+        "nl": "Wekelijkse Warmtepomp Efficiëntie (COP)",
+        "de": "Wöchentliche Wärmepumpen Effizienz (COP)",
+        "fr": "Efficacité hebdomadaire de la pompe à chaleur (COP)"
+      },
+      "icon": "/assets/cop-efficiency.svg",
+      "description": {
+        "en": "7-day rolling average COP for seasonal pattern identification and long-term efficiency monitoring. Helps identify optimal operating conditions.",
+        "nl": "7-dagen voortschrijdend gemiddelde COP voor seizoenspatroon identificatie en langetermijn efficiëntie monitoring. Helpt optimale bedrijfscondities identificeren.",
+        "de": "7-Tage gleitender Durchschnitt COP zur Identifizierung saisonaler Muster und Langzeitüberwachung der Effizienz. Hilft optimale Betriebsbedingungen zu identifizieren.",
+        "fr": "Moyenne mobile COP sur 7 jours pour l'identification des tendances saisonnières et la surveillance de l'efficacité à long terme. Aide à identifier les conditions de fonctionnement optimales."
+      }
+    },
+    "adlar_daily_disconnect_count": {
+      "id": "adlar_daily_disconnect_count",
+      "title": {
+        "en": "Daily Disconnect Count",
+        "nl": "Dagelijkse Disconnect Telling",
+        "de": "Tägliche Verbindungsabbrüche",
+        "fr": "Nombre quotidien de déconnexions"
+      },
+      "type": "number",
+      "min": 0,
+      "max": 9999,
+      "step": 1,
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Daily disconnects",
+        "nl": "Dagelijkse disconnects",
+        "de": "Tägliche Verbindungsabbrüche",
+        "fr": "Déconnexions quotidiennes"
+      },
+      "icon": "/assets/connection-status.svg",
+      "description": {
+        "en": "Counts how many times the device disconnected today (Homey timezone). Resets automatically each day.",
+        "nl": "Telt hoe vaak het apparaat vandaag is verbroken (Homey-tijdzone). Reset automatisch elke dag.",
+        "de": "Zählt, wie oft das Gerät heute getrennt wurde (Homey-Zeitzone). Setzt sich täglich automatisch zurück.",
+        "fr": "Compte le nombre de déconnexions aujourd'hui (fuseau horaire Homey). Réinitialisation automatique chaque jour."
+      }
+    },
+    "adlar_defrost_count_24h": {
+      "id": "adlar_defrost_count_24h",
+      "type": "number",
+      "title": {
+        "en": "Defrost cycles (24h)",
+        "nl": "Ontdooicycli (24u)",
+        "de": "Abtauzyklen (24h)",
+        "fr": "Cycles de dégivrage (24h)"
+      },
+      "units": {
+        "en": "x",
+        "nl": "x",
+        "de": "x",
+        "fr": "x"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Defrost cycles last 24 hours",
+        "nl": "Ontdooicycli afgelopen 24 uur",
+        "de": "Abtauzyklen letzte 24 Stunden",
+        "fr": "Cycles de dégivrage dernières 24 heures"
+      },
+      "icon": "/assets/defrost-count.svg",
+      "decimals": 0,
+      "min": 0,
+      "max": 100
+    },
+    "adlar_defrost_minutes_24h": {
+      "id": "adlar_defrost_minutes_24h",
+      "type": "number",
+      "title": {
+        "en": "Defrost duration (24h)",
+        "nl": "Ontdooitijd (24u)",
+        "de": "Abtaudauer (24h)",
+        "fr": "Durée de dégivrage (24h)"
+      },
+      "units": {
+        "en": "min",
+        "nl": "min",
+        "de": "min",
+        "fr": "min"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Defrost duration last 24 hours",
+        "nl": "Ontdooitijd afgelopen 24 uur",
+        "de": "Abtaudauer letzte 24 Stunden",
+        "fr": "Durée de dégivrage dernières 24 heures"
+      },
+      "icon": "/assets/defrost-duration.svg",
+      "decimals": 1,
+      "min": 0,
+      "max": 300
     },
     "adlar_defrosting": {
       "id": "adlar_defrosting",
@@ -8128,6 +8717,482 @@
       "min": 0,
       "max": 500
     },
+    "adlar_energy_cost_daily": {
+      "id": "adlar_energy_cost_daily",
+      "type": "number",
+      "title": {
+        "en": "Daily Energy Cost",
+        "nl": "Dagelijkse Energiekosten",
+        "de": "Tägliche Energiekosten",
+        "fr": "Coût Énergétique Quotidien"
+      },
+      "units": {
+        "en": "€",
+        "nl": "€",
+        "de": "€",
+        "fr": "€"
+      },
+      "desc": {
+        "en": "Total energy cost today (consumption × average price)",
+        "nl": "Totale energiekosten vandaag (verbruik × gemiddelde prijs)",
+        "de": "Gesamte Energiekosten heute (Verbrauch × Durchschnittspreis)",
+        "fr": "Coût énergétique total aujourd'hui (consommation × prix moyen)"
+      },
+      "decimals": 4,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/energy-cost-daily.svg"
+    },
+    "adlar_energy_cost_hourly": {
+      "id": "adlar_energy_cost_hourly",
+      "type": "number",
+      "title": {
+        "en": "Hourly Energy Cost",
+        "nl": "Uurlijkse Energiekosten",
+        "de": "Stündliche Energiekosten",
+        "fr": "Coût Énergétique Horaire"
+      },
+      "units": {
+        "en": "€/h",
+        "nl": "€/u",
+        "de": "€/h",
+        "fr": "€/h"
+      },
+      "desc": {
+        "en": "Current energy cost per hour (power × price)",
+        "nl": "Huidige energiekosten per uur (vermogen × prijs)",
+        "de": "Aktuelle Energiekosten pro Stunde (Leistung × Preis)",
+        "fr": "Coût énergétique actuel par heure (puissance × prix)"
+      },
+      "decimals": 4,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/energy-cost-hourly.svg"
+    },
+    "adlar_energy_price_category": {
+      "id": "adlar_energy_price_category",
+      "type": "enum",
+      "title": {
+        "en": "Energy Price Category",
+        "nl": "Energieprijs Categorie",
+        "de": "Energiepreis-Kategorie",
+        "fr": "Catégorie de Prix de l'Énergie"
+      },
+      "desc": {
+        "en": "Current energy price category (very low, low, normal, high, very high).",
+        "nl": "Huidige energieprijscategorie (zeer laag, laag, normaal, hoog, zeer hoog).",
+        "de": "Aktuelle Energiepreis-Kategorie (sehr niedrig, niedrig, normal, hoch, sehr hoch).",
+        "fr": "Catégorie actuelle du prix de l'énergie (très bas, bas, normal, élevé, très élevé)."
+      },
+      "values": [
+        {
+          "id": "very_low",
+          "title": {
+            "en": "Very Low",
+            "nl": "Zeer Laag",
+            "de": "Sehr Niedrig",
+            "fr": "Très Bas"
+          }
+        },
+        {
+          "id": "low",
+          "title": {
+            "en": "Low",
+            "nl": "Laag",
+            "de": "Niedrig",
+            "fr": "Bas"
+          }
+        },
+        {
+          "id": "normal",
+          "title": {
+            "en": "Normal",
+            "nl": "Normaal",
+            "de": "Normal",
+            "fr": "Normal"
+          }
+        },
+        {
+          "id": "high",
+          "title": {
+            "en": "High",
+            "nl": "Hoog",
+            "de": "Hoch",
+            "fr": "Élevé"
+          }
+        },
+        {
+          "id": "very_high",
+          "title": {
+            "en": "Very High",
+            "nl": "Zeer Hoog",
+            "de": "Sehr Hoch",
+            "fr": "Très Élevé"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/energy-price-category.svg"
+    },
+    "adlar_energy_price_current": {
+      "id": "adlar_energy_price_current",
+      "type": "number",
+      "title": {
+        "en": "Current Energy Price",
+        "nl": "Huidige Energieprijs",
+        "de": "Aktueller Energiepreis",
+        "fr": "Prix Actuel de l'Énergie"
+      },
+      "units": {
+        "en": "€/kWh",
+        "nl": "€/kWh",
+        "de": "€/kWh",
+        "fr": "€/kWh"
+      },
+      "desc": {
+        "en": "Current electricity price per kWh.",
+        "nl": "Huidige elektriciteitsprijs per kWh.",
+        "de": "Aktueller Strompreis pro kWh.",
+        "fr": "Prix actuel de l'électricité par kWh."
+      },
+      "decimals": 4,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/energy-price-current.svg"
+    },
+    "adlar_energy_price_next": {
+      "id": "adlar_energy_price_next",
+      "type": "number",
+      "title": {
+        "en": "Next Hour Energy Price",
+        "nl": "Energieprijs Volgend Uur",
+        "de": "Energiepreis Nächste Stunde",
+        "fr": "Prix de l'Énergie Heure Suivante"
+      },
+      "units": {
+        "en": "€/kWh",
+        "nl": "€/kWh",
+        "de": "€/kWh",
+        "fr": "€/kWh"
+      },
+      "desc": {
+        "en": "Energy price for the next hour.",
+        "nl": "Energieprijs voor het volgende uur.",
+        "de": "Energiepreis für die nächste Stunde.",
+        "fr": "Prix de l'énergie pour l'heure suivante."
+      },
+      "decimals": 4,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/energy-price-next.svg"
+    },
+    "adlar_external_ambient": {
+      "id": "adlar_external_ambient",
+      "title": {
+        "en": "External Ambient Temperature",
+        "nl": "Externe Buitentemperatuur",
+        "de": "Externe Umgebungstemperatur",
+        "fr": "Température ambiante externe"
+      },
+      "type": "number",
+      "units": {
+        "en": "°C",
+        "nl": "°C",
+        "de": "°C",
+        "fr": "°C"
+      },
+      "min": -50,
+      "max": 50,
+      "step": 0.1,
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "External Ambient for COP",
+        "nl": "Externe Buitentemp voor COP",
+        "de": "Externe Umgebung für COP",
+        "fr": "Ambiance externe pour COP"
+      },
+      "icon": "/assets/external-ambient.svg",
+      "description": {
+        "en": "External ambient temperature received via flow cards from other Homey devices, used for enhanced COP calculations with external temperature sensor data",
+        "nl": "Externe buitentemperatuur ontvangen via flow kaarten van andere Homey apparaten, gebruikt voor verbeterde COP berekeningen met externe temperatuur sensor gegevens",
+        "de": "Externe Umgebungstemperatur empfangen über Flow-Karten von anderen Homey-Geräten, verwendet für erweiterte COP-Berechnungen mit externen Temperatursensordaten",
+        "fr": "Température ambiante externe reçue via des cartes de flux d'autres appareils Homey, utilisée pour des calculs COP améliorés avec des données de capteur de température externe"
+      }
+    },
+    "adlar_external_energy_daily": {
+      "id": "adlar_external_energy_daily",
+      "title": {
+        "en": "Daily Estimated Energy Consumption",
+        "nl": "Dagelijks Geschat Energieverbruik",
+        "de": "Geschätzter täglicher Energieverbrauch",
+        "fr": "Consommation d'énergie quotidienne estimée"
+      },
+      "type": "number",
+      "units": {
+        "en": "kWh",
+        "nl": "kWh",
+        "de": "kWh",
+        "fr": "kWh"
+      },
+      "min": 0,
+      "max": 500,
+      "step": 0.000001,
+      "decimals": 6,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Daily External Energy Consumption",
+        "nl": "Dagelijks Extern Energieverbruik",
+        "de": "Täglicher externer Energieverbrauch",
+        "fr": "Consommation d'énergie externe quotidienne"
+      },
+      "icon": "/assets/external-energy-daily.svg",
+      "description": {
+        "en": "Daily energy consumption estimated from external power measurements received via flow cards. Resets automatically at midnight for accurate daily tracking.",
+        "nl": "Dagelijks energieverbruik geschat uit externe vermogensmetingen ontvangen via flow kaarten. Reset automatisch om middernacht voor nauwkeurige dagelijkse tracking.",
+        "de": "Täglicher Energieverbrauch geschätzt aus externen Leistungsmessungen über Flow-Karten. Wird automatisch um Mitternacht zurückgesetzt für genaue tägliche Erfassung.",
+        "fr": "Consommation d'énergie quotidienne estimée à partir de mesures de puissance externes reçues via des cartes de flux. Se réinitialise automatiquement à minuit pour un suivi quotidien précis."
+      }
+    },
+    "adlar_external_energy_total": {
+      "id": "adlar_external_energy_total",
+      "title": {
+        "en": "Estimated Total Energy Consumption",
+        "nl": "Geschat Totaal Energieverbruik",
+        "de": "Geschätzter Gesamtenergieverbrauch",
+        "fr": "Consommation d'énergie totale estimée"
+      },
+      "type": "number",
+      "units": {
+        "en": "kWh",
+        "nl": "kWh",
+        "de": "kWh",
+        "fr": "kWh"
+      },
+      "min": 0,
+      "max": 999999,
+      "step": 0.000001,
+      "decimals": 6,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "External Energy Cumulative",
+        "nl": "Extern Energie Cumulatief",
+        "de": "Externe Energie kumulativ",
+        "fr": "Énergie externe cumulative"
+      },
+      "icon": "/assets/external-energy-total.svg",
+      "description": {
+        "en": "Total energy consumption estimated from external power measurements received via flow cards. Only tracks energy when external power data is available.",
+        "nl": "Totaal energieverbruik geschat uit externe vermogensmetingen ontvangen via flow kaarten. Volgt alleen energie wanneer externe vermogensgegevens beschikbaar zijn.",
+        "de": "Gesamtenergieverbrauch geschätzt aus externen Leistungsmessungen über Flow-Karten. Erfasst nur Energie wenn externe Leistungsdaten verfügbar sind.",
+        "fr": "Consommation d'énergie totale estimée à partir de mesures de puissance externes reçues via des cartes de flux. Ne suit l'énergie que lorsque des données de puissance externes sont disponibles."
+      }
+    },
+    "adlar_external_flow": {
+      "id": "adlar_external_flow",
+      "title": {
+        "en": "External Water Flow Measurement",
+        "nl": "Externe Water Doorstroom Meting",
+        "de": "Externe Wasserdurchflussmessung",
+        "fr": "Mesure de débit d'eau externe"
+      },
+      "type": "number",
+      "units": {
+        "en": "L/min",
+        "nl": "L/min",
+        "de": "L/min",
+        "fr": "L/min"
+      },
+      "min": 0,
+      "max": 200,
+      "step": 0.1,
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "External Flow Input for COP",
+        "nl": "Externe Doorstroom Input voor COP",
+        "de": "Externe Durchflusseingabe für COP",
+        "fr": "Entrée de débit externe pour COP"
+      },
+      "icon": "/assets/external-flow.svg",
+      "description": {
+        "en": "External water flow measurement received via flow cards from other Homey devices, used for enhanced COP calculations with external flow meter data",
+        "nl": "Externe water doorstroom meting ontvangen via flow kaarten van andere Homey apparaten, gebruikt voor verbeterde COP berekeningen met externe doorstroom meter gegevens",
+        "de": "Externe Wasserdurchflussmessung empfangen über Flow-Karten von anderen Homey-Geräten, verwendet für erweiterte COP-Berechnungen mit externen Durchflussmessdaten",
+        "fr": "Mesure de débit d'eau externe reçue via des cartes de flux d'autres appareils Homey, utilisée pour des calculs COP améliorés avec des données de débitmètre externe"
+      }
+    },
+    "adlar_external_indoor_temperature": {
+      "id": "adlar_external_indoor_temperature",
+      "title": {
+        "en": "External Indoor Temperature",
+        "nl": "Externe Binnen Temperatuur",
+        "de": "Externe Raumtemperatur",
+        "fr": "Température intérieure externe"
+      },
+      "type": "number",
+      "units": {
+        "en": "°C",
+        "nl": "°C",
+        "de": "°C",
+        "fr": "°C"
+      },
+      "min": -10,
+      "max": 50,
+      "step": 0.1,
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "External Indoor Temperature for Adaptive Control",
+        "nl": "Externe Binnentemperatuur voor Adaptieve Regeling",
+        "de": "Externe Raumtemperatur für adaptive Steuerung",
+        "fr": "Température intérieure externe pour contrôle adaptatif"
+      },
+      "icon": "/assets/external_indoor-temperature.svg",
+      "description": {
+        "en": "Indoor temperature received via flow cards from external Homey devices (thermostats, sensors), used for adaptive temperature control",
+        "nl": "Binnentemperatuur ontvangen via flow kaarten van externe Homey apparaten (thermostaten, sensoren), gebruikt voor adaptieve temperatuurregeling",
+        "de": "Raumtemperatur empfangen über Flow-Karten von externen Homey-Geräten (Thermostate, Sensoren), verwendet für adaptive Temperatursteuerung",
+        "fr": "Température intérieure reçue via des cartes de flux d'appareils Homey externes (thermostats, capteurs), utilisée pour le contrôle adaptatif de la température"
+      }
+    },
+    "adlar_external_power": {
+      "id": "adlar_external_power",
+      "title": {
+        "en": "External Power Measurement",
+        "nl": "Externe Vermogen Meting",
+        "de": "Externe Leistungsmessung",
+        "fr": "Mesure de puissance externe"
+      },
+      "type": "number",
+      "units": {
+        "en": "W",
+        "nl": "W",
+        "de": "W",
+        "fr": "W"
+      },
+      "min": 0,
+      "max": 50000,
+      "step": 0.1,
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "External Power Input for COP",
+        "nl": "Externe Vermogen Input voor COP",
+        "de": "Externe Leistungseingabe für COP",
+        "fr": "Entrée de puissance externe pour COP"
+      },
+      "icon": "/assets/external-power.svg",
+      "description": {
+        "en": "External power measurement received via flow cards from other Homey devices, used for enhanced COP calculations with external power meter data",
+        "nl": "Externe vermogensmeting ontvangen via flow kaarten van andere Homey apparaten, gebruikt voor verbeterde COP berekeningen met externe vermogensmeter gegevens",
+        "de": "Externe Leistungsmessung empfangen über Flow-Karten von anderen Homey-Geräten, verwendet für erweiterte COP-Berechnungen mit externen Leistungsmessdaten",
+        "fr": "Mesure de puissance externe reçue via des cartes de flux d'autres appareils Homey, utilisée pour des calculs COP améliorés avec des données de compteur de puissance externe"
+      }
+    },
+    "adlar_external_solar_power": {
+      "id": "adlar_external_solar_power",
+      "title": {
+        "en": "External Solar Power",
+        "nl": "Externe Zonnepaneel Vermogen",
+        "de": "Externe Solarleistung",
+        "fr": "Puissance solaire externe"
+      },
+      "type": "number",
+      "units": {
+        "en": "W",
+        "nl": "W",
+        "de": "W",
+        "fr": "W"
+      },
+      "min": 0,
+      "max": 50000,
+      "step": 1,
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/external-solar-power.svg"
+    },
+    "adlar_external_solar_radiation": {
+      "id": "adlar_external_solar_radiation",
+      "title": {
+        "en": "External Solar Radiation",
+        "nl": "Externe Zonnestraling",
+        "de": "Externe Sonnenstrahlung",
+        "fr": "Rayonnement solaire externe"
+      },
+      "type": "number",
+      "units": {
+        "en": "W/m²",
+        "nl": "W/m²",
+        "de": "W/m²",
+        "fr": "W/m²"
+      },
+      "min": 0,
+      "max": 1500,
+      "step": 1,
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/external-solar-radiation.svg"
+    },
+    "adlar_external_wind_speed": {
+      "id": "adlar_external_wind_speed",
+      "title": {
+        "en": "External Wind Speed",
+        "nl": "Externe Windsnelheid",
+        "de": "Externe Windgeschwindigkeit",
+        "fr": "Vitesse du vent externe"
+      },
+      "type": "number",
+      "units": {
+        "en": "km/h",
+        "nl": "km/u",
+        "de": "km/h",
+        "fr": "km/h"
+      },
+      "min": 0,
+      "max": 200,
+      "step": 0.1,
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/external-wind-speed.svg"
+    },
     "adlar_fan_speed": {
       "id": "adlar_fan_speed",
       "type": "number",
@@ -8143,6 +9208,32 @@
       "decimals": 0,
       "min": 0,
       "max": 3000
+    },
+    "adlar_fault": {
+      "id": "adlar_fault",
+      "title": {
+        "en": "Fault Code",
+        "nl": "Foutcode",
+        "de": "Fehlercode",
+        "fr": "Code de défaut"
+      },
+      "type": "number",
+      "min": 0,
+      "max": 30,
+      "uiComponent": "sensor",
+      "icon": "/assets/fault.svg",
+      "getable": true,
+      "setable": false,
+      "insights": true,
+      "insightsTitle": {
+        "en": "Fault Status Code",
+        "nl": "Foutstatus Code",
+        "de": "Fehlerstatuscode",
+        "fr": "Code d'état de défaut"
+      },
+      "description": {
+        "nl": "dp 15 : fault - Fault"
+      }
     },
     "adlar_fault_1": {
       "id": "adlar_fault_1",
@@ -8240,6 +9331,182 @@
         "nl": "Fout-stop opgeheven"
       }
     },
+    "adlar_forecast_advice": {
+      "id": "adlar_forecast_advice",
+      "type": "string",
+      "title": {
+        "en": "Efficiency Forecast advice",
+        "nl": "Efficiëntie forecast advies",
+        "de": "Effizienzprognose-Empfehlung",
+        "fr": "Conseil de prévision d'efficacité"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/forecast.svg"
+    },
+    "adlar_forecast_cop_correction": {
+      "id": "adlar_forecast_cop_correction",
+      "type": "number",
+      "title": {
+        "en": "COP Weather Conditions Performance",
+        "nl": "COP rendement weercondities",
+        "de": "COP Leistung Wetterbedingungen",
+        "fr": "COP rendement conditions météo"
+      },
+      "units": {
+        "en": "%",
+        "nl": "%",
+        "de": "%",
+        "fr": "%"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "COP Weather Conditions Performance",
+        "nl": "COP rendement weercondities",
+        "de": "COP Leistung Wetterbedingungen",
+        "fr": "COP rendement conditions météo"
+      },
+      "icon": "/assets/forecast-cop-correction.svg",
+      "decimals": 1,
+      "min": -25,
+      "max": 10
+    },
+    "adlar_hotwater": {
+      "id": "adlar_hotwater",
+      "title": {
+        "en": "Hot Water Set Temp",
+        "nl": "Warmwater stel temperatuur",
+        "de": "Warmwasser Solltemperatur",
+        "fr": "Température de consigne eau chaude"
+      },
+      "type": "number",
+      "getable": true,
+      "setable": true,
+      "uiComponent": "slider",
+      "units": {
+        "en": "℃",
+        "nl": "℃",
+        "de": "℃",
+        "fr": "℃"
+      },
+      "min": 10,
+      "max": 75,
+      "step": 1,
+      "insights": true,
+      "insightsTitle": {
+        "en": "Hot Water Set Temp",
+        "nl": "Warmwater stel temperatuur",
+        "de": "Warmwasser Solltemperatur",
+        "fr": "Température de consigne eau chaude"
+      },
+      "description": {
+        "nl": "dp 101 : minitemp_set - Hot Water Set Temp"
+      }
+    },
+    "adlar_last_indoor_temp_received": {
+      "id": "adlar_last_indoor_temp_received",
+      "type": "string",
+      "title": {
+        "en": "Last Indoor Temperature (Flow Card)",
+        "nl": "Laatste Binnentemperatuur (Flow Kaart)",
+        "de": "Letzte Innentemperatur (Flow-Karte)",
+        "fr": "Dernière Température Intérieure (Carte Flux)"
+      },
+      "desc": {
+        "en": "Timestamp and value of the last indoor temperature received via flow card",
+        "nl": "Tijdstip en waarde van de laatste binnentemperatuur ontvangen via flow kaart",
+        "de": "Zeitstempel und Wert der letzten über Flow-Karte empfangenen Innentemperatur",
+        "fr": "Horodatage et valeur de la dernière température intérieure reçue via carte de flux"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "icon": "/assets/adaptive-control-diagnostics.svg"
+    },
+    "adlar_last_outdoor_temp_received": {
+      "id": "adlar_last_outdoor_temp_received",
+      "type": "string",
+      "title": {
+        "en": "Last Outdoor Temperature (Flow Card)",
+        "nl": "Laatste Buitentemperatuur (Flow Kaart)",
+        "de": "Letzte Außentemperatur (Flow-Karte)",
+        "fr": "Dernière Température Extérieure (Carte Flux)"
+      },
+      "desc": {
+        "en": "Timestamp and value of the last outdoor temperature received via flow card",
+        "nl": "Tijdstip en waarde van de laatste buitentemperatuur ontvangen via flow kaart",
+        "de": "Zeitstempel und Wert der letzten über Flow-Karte empfangenen Außentemperatur",
+        "fr": "Horodatage et valeur de la dernière température extérieure reçue via carte de flux"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "icon": "/assets/adaptive-control-diagnostics.svg"
+    },
+    "adlar_last_solar_power_received": {
+      "id": "adlar_last_solar_power_received",
+      "type": "string",
+      "title": {
+        "en": "Last Solar Panel Power (Flow Card)",
+        "nl": "Laatste Zonnepaneelvermogen (Flow Kaart)",
+        "de": "Letzte Solaranlagenleistung (Flow-Karte)",
+        "fr": "Dernière Puissance Panneaux Solaires (Carte Flux)"
+      },
+      "desc": {
+        "en": "Timestamp and value of the last solar panel power (W) received via flow card",
+        "nl": "Tijdstip en waarde van het laatste zonnepaneelvermogen (W) ontvangen via flow kaart",
+        "de": "Zeitstempel und Wert der letzten über Flow-Karte empfangenen Solaranlagenleistung (W)",
+        "fr": "Horodatage et valeur de la dernière puissance de panneaux solaires (W) reçue via carte de flux"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "icon": "/assets/adaptive-control-diagnostics.svg"
+    },
+    "adlar_last_solar_radiation_received": {
+      "id": "adlar_last_solar_radiation_received",
+      "type": "string",
+      "title": {
+        "en": "Last Solar Radiation (Flow Card)",
+        "nl": "Laatste Zonnestraling (Flow Kaart)",
+        "de": "Letzte Sonnenstrahlung (Flow-Karte)",
+        "fr": "Dernier Rayonnement Solaire (Carte Flux)"
+      },
+      "desc": {
+        "en": "Timestamp and value of the last solar radiation (W/m²) received via flow card",
+        "nl": "Tijdstip en waarde van de laatste zonnestraling (W/m²) ontvangen via flow kaart",
+        "de": "Zeitstempel und Wert der letzten über Flow-Karte empfangenen Sonnenstrahlung (W/m²)",
+        "fr": "Horodatage et valeur du dernier rayonnement solaire (W/m²) reçu via carte de flux"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "icon": "/assets/adaptive-control-diagnostics.svg"
+    },
+    "adlar_last_wind_received": {
+      "id": "adlar_last_wind_received",
+      "type": "string",
+      "title": {
+        "en": "Last Wind Speed (Flow Card)",
+        "nl": "Laatste Windsnelheid (Flow Kaart)",
+        "de": "Letzte Windgeschwindigkeit (Flow-Karte)",
+        "fr": "Dernière Vitesse de Vent (Carte Flux)"
+      },
+      "desc": {
+        "en": "Timestamp and value of the last wind speed received via flow card",
+        "nl": "Tijdstip en waarde van de laatste windsnelheid ontvangen via flow kaart",
+        "de": "Zeitstempel und Wert der letzten über Flow-Karte empfangenen Windgeschwindigkeit",
+        "fr": "Horodatage et valeur de la dernière vitesse de vent reçue via carte de flux"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "icon": "/assets/adaptive-control-diagnostics.svg"
+    },
     "adlar_mode": {
       "id": "adlar_mode",
       "type": "enum",
@@ -8296,6 +9563,203 @@
         }
       ]
     },
+    "adlar_openmeteo_last_fetch": {
+      "id": "adlar_openmeteo_last_fetch",
+      "type": "string",
+      "title": {
+        "en": "Open-Meteo Last Fetch",
+        "nl": "Open-Meteo Laatste Ophaling",
+        "de": "Open-Meteo Letzter Abruf",
+        "fr": "Open-Meteo Dernier Chargement"
+      },
+      "desc": {
+        "en": "Timestamp and values of the last Open-Meteo fetch (temperature, wind, solar radiation, humidity)",
+        "nl": "Tijdstip en waarden van de laatste Open-Meteo ophaling (temperatuur, wind, zonnestraling, vochtigheid)",
+        "de": "Zeitstempel und Werte des letzten Open-Meteo-Abrufs (Temperatur, Wind, Sonnenstrahlung, Feuchtigkeit)",
+        "fr": "Horodatage et valeurs du dernier chargement Open-Meteo (température, vent, rayonnement solaire, humidité)"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "icon": "/assets/adaptive-control-diagnostics.svg"
+    },
+    "adlar_optimal_delay": {
+      "id": "adlar_optimal_delay",
+      "type": "number",
+      "title": {
+        "en": "Optimal delay",
+        "nl": "Optimale wachttijd",
+        "de": "Optimale Wartezeit",
+        "fr": "Délai optimal"
+      },
+      "units": {
+        "en": "h",
+        "nl": "u",
+        "de": "h",
+        "fr": "h"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Optimal delay",
+        "nl": "Optimale wachttijd",
+        "de": "Optimale Wartezeit",
+        "fr": "Délai optimal"
+      },
+      "icon": "/assets/timer.svg",
+      "decimals": 1,
+      "min": -48,
+      "max": 48
+    },
+    "adlar_performance_report": {
+      "id": "adlar_performance_report",
+      "type": "string",
+      "title": {
+        "en": "Performance Report",
+        "nl": "Prestatierapport",
+        "de": "Leistungsbericht",
+        "fr": "Rapport de Performance"
+      },
+      "desc": {
+        "en": "Structured JSON performance scorecard with 7 domains: efficiency, building, defrost, energy, pricing, telemetry, health (0-100 scores with recommendations)",
+        "nl": "Gestructureerd JSON prestatierapport met 7 domeinen: efficiëntie, gebouw, ontdooiing, energie, prijzen, telemetrie, gezondheid (0-100 scores met aanbevelingen)",
+        "de": "Strukturierter JSON-Leistungsbericht mit 7 Bereichen: Effizienz, Gebäude, Abtauung, Energie, Preise, Telemetrie, Gesundheit (0-100 Bewertungen mit Empfehlungen)",
+        "fr": "Rapport de performance JSON structuré avec 7 domaines : efficacité, bâtiment, dégivrage, énergie, prix, télémétrie, santé (scores 0-100 avec recommandations)"
+      },
+      "units": {
+        "en": "",
+        "nl": "",
+        "de": "",
+        "fr": ""
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "icon": "/assets/adaptive-control-diagnostics.svg"
+    },
+    "adlar_performance_score": {
+      "id": "adlar_performance_score",
+      "title": {
+        "en": "Performance Score (hourly)",
+        "nl": "Prestatiescore (per uur)",
+        "de": "Leistungsbewertung (stündlich)",
+        "fr": "Score de performance (horaire)"
+      },
+      "type": "number",
+      "units": {
+        "en": "/100",
+        "nl": "/100",
+        "de": "/100",
+        "fr": "/100"
+      },
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Heat Pump Performance Score (hourly)",
+        "nl": "Warmtepomp Prestatiescore (per uur)",
+        "de": "Wärmepumpen-Leistungsbewertung (stündlich)",
+        "fr": "Score de performance de la pompe à chaleur (horaire)"
+      },
+      "icon": "/assets/adaptive-control-diagnostics.svg",
+      "description": {
+        "en": "Overall performance score (0-100) across 7 domains: efficiency, building, defrost, energy, pricing, telemetry and health. Updated every hour and at 23:00 daily.",
+        "nl": "Totale prestatiescore (0-100) over 7 domeinen: efficiëntie, gebouw, ontdooiing, energie, prijzen, telemetrie en gezondheid. Elk uur en dagelijks om 23:00 bijgewerkt.",
+        "de": "Gesamt-Leistungsscore (0-100) über 7 Bereiche: Effizienz, Gebäude, Abtauung, Energie, Preise, Telemetrie und Gesundheit. Stündlich und täglich um 23:00 Uhr aktualisiert.",
+        "fr": "Score de performance global (0-100) sur 7 domaines : efficacité, bâtiment, dégivrage, énergie, prix, télémétrie et santé. Mis à jour toutes les heures et quotidiennement à 23h00."
+      }
+    },
+    "adlar_price_forecast_24h": {
+      "id": "adlar_price_forecast_24h",
+      "type": "number",
+      "title": {
+        "en": "Price Forecast (24h)",
+        "nl": "Prijsvoorspelling (24u)",
+        "de": "Preisprognose (24 Std)",
+        "fr": "Prévision Prix (24h)"
+      },
+      "units": {
+        "en": "€/kWh",
+        "nl": "€/kWh",
+        "de": "€/kWh",
+        "fr": "€/kWh"
+      },
+      "desc": {
+        "en": "Average electricity price for the next 24 hours.",
+        "nl": "Gemiddelde elektriciteitsprijs voor de komende 24 uur.",
+        "de": "Durchschnittlicher Strompreis für die nächsten 24 Stunden.",
+        "fr": "Prix moyen de l'électricité pour les 24 prochaines heures."
+      },
+      "decimals": 4,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/price-forecast-24h.svg"
+    },
+    "adlar_price_forecast_4h": {
+      "id": "adlar_price_forecast_4h",
+      "type": "number",
+      "title": {
+        "en": "Price Forecast (4h)",
+        "nl": "Prijsvoorspelling (4u)",
+        "de": "Preisprognose (4 Std)",
+        "fr": "Prévision Prix (4h)"
+      },
+      "units": {
+        "en": "€/kWh",
+        "nl": "€/kWh",
+        "de": "€/kWh",
+        "fr": "€/kWh"
+      },
+      "desc": {
+        "en": "Average electricity price for the next 4 hours.",
+        "nl": "Gemiddelde elektriciteitsprijs voor de komende 4 uur.",
+        "de": "Durchschnittlicher Strompreis für die nächsten 4 Stunden.",
+        "fr": "Prix moyen de l'électricité pour les 4 prochaines heures."
+      },
+      "decimals": 4,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/price-forecast-4h.svg"
+    },
+    "adlar_price_savings_potential": {
+      "id": "adlar_price_savings_potential",
+      "type": "number",
+      "title": {
+        "en": "Daily Savings Potential",
+        "nl": "Dagelijks Besparingspotentieel",
+        "de": "Tägliches Einsparpotenzial",
+        "fr": "Potentiel d'Économies Quotidiennes"
+      },
+      "units": {
+        "en": "€",
+        "nl": "€",
+        "de": "€",
+        "fr": "€"
+      },
+      "desc": {
+        "en": "Estimated daily savings using price optimization vs always-on heating.",
+        "nl": "Geschatte dagelijkse besparing met prijsoptimalisatie vs altijd aan verwarming.",
+        "de": "Geschätzte tägliche Einsparungen durch Preisoptimierung vs. Dauerheizung.",
+        "fr": "Économies quotidiennes estimées avec optimisation des prix vs chauffage continu."
+      },
+      "decimals": 2,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "icon": "/assets/price-savings-potential.svg"
+    },
     "adlar_pump_pwm": {
       "id": "adlar_pump_pwm",
       "type": "number",
@@ -8331,6 +9795,192 @@
       "insightsTitleFalse": {
         "en": "Unit stopped running",
         "nl": "Unit gestopt"
+      }
+    },
+    "adlar_scop": {
+      "id": "adlar_scop",
+      "title": {
+        "en": "Seasonal Coefficient of Performance",
+        "nl": "Seizoensgebonden Prestatiecoëfficiënt",
+        "de": "Saisonale Leistungszahl",
+        "fr": "Coefficient de performance saisonnier"
+      },
+      "type": "number",
+      "units": {
+        "en": "SCOP",
+        "nl": "SCOP",
+        "de": "SCOP",
+        "fr": "SCOP"
+      },
+      "min": 2,
+      "max": 6,
+      "step": 0.1,
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Seasonal Heat Pump Efficiency",
+        "nl": "Seizoensgebonden Warmtepomp Efficiëntie",
+        "de": "Saisonale Wärmepumpen Effizienz",
+        "fr": "Efficacité saisonnière de la pompe à chaleur"
+      },
+      "icon": "/assets/cop-efficiency.svg",
+      "description": {
+        "en": "Calculated Seasonal Coefficient of Performance according to EN 14825 - average efficiency over heating season. Higher values indicate better seasonal performance.",
+        "nl": "Berekende Seizoensgebonden Prestatiecoëfficiënt volgens EN 14825 - gemiddelde efficiëntie over verwarmingsseizoen. Hogere waarden duiden op betere seizoensprestaties.",
+        "de": "Berechnete Saisonale Leistungszahl nach EN 14825 - durchschnittliche Effizienz über die Heizsaison. Höhere Werte bedeuten bessere saisonale Leistung.",
+        "fr": "Coefficient de performance saisonnier calculé selon EN 14825 - efficacité moyenne sur la saison de chauffage. Des valeurs plus élevées indiquent une meilleure performance saisonnière."
+      }
+    },
+    "adlar_scop_quality": {
+      "id": "adlar_scop_quality",
+      "title": {
+        "en": "SCOP Quality",
+        "nl": "SCOP Kwaliteit",
+        "de": "SCOP-Qualität",
+        "fr": "Qualité SCOP"
+      },
+      "type": "string",
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": false,
+      "icon": "/assets/data-quality.svg",
+      "description": {
+        "en": "SCOP calculation data quality indicator showing confidence level and method mix used for seasonal calculation",
+        "nl": "SCOP berekening data kwaliteit indicator die betrouwbaarheidsniveau en methode mix toont gebruikt voor seizoensberekening",
+        "de": "SCOP-Berechnungs-Datenqualitätsindikator, der das Vertrauensniveau und die für die saisonale Berechnung verwendete Methodenmischung anzeigt",
+        "fr": "Indicateur de qualité des données de calcul SCOP montrant le niveau de confiance et la combinaison de méthodes utilisée pour le calcul saisonnier"
+      }
+    },
+    "adlar_simulated_target": {
+      "id": "adlar_simulated_target",
+      "type": "number",
+      "title": {
+        "en": "Simulated Target Temperature",
+        "nl": "Gesimuleerde Doeltemperatuur",
+        "de": "Simulierte Zieltemperatur",
+        "fr": "Température Cible Simulée"
+      },
+      "desc": {
+        "en": "Warmtepomp setpoint calculated by adaptive control in simulation mode (CASCADE CONTROL - not sent to heat pump)",
+        "nl": "Warmtepomp setpoint berekend door adaptieve regeling in simulatiemodus (CASCADE CONTROL - niet naar warmtepomp gestuurd)",
+        "de": "Wärmepumpen-Sollwert berechnet durch adaptive Steuerung im Simulationsmodus (CASCADE CONTROL - nicht an Wärmepumpe gesendet)",
+        "fr": "Consigne de pompe à chaleur calculée par contrôle adaptatif en mode simulation (CASCADE CONTROL - non envoyée à la pompe)"
+      },
+      "units": {
+        "en": "°C",
+        "nl": "°C",
+        "de": "°C",
+        "fr": "°C"
+      },
+      "chartType": "stepLine",
+      "decimals": 1,
+      "min": 5,
+      "max": 75,
+      "step": 0.1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Simulated Heat Pump Setpoint",
+        "nl": "Gesimuleerde Warmtepomp Setpoint",
+        "de": "Simulierter Wärmepumpen-Sollwert",
+        "fr": "Consigne simulée de la pompe à chaleur"
+      },
+      "icon": "/assets/simulated-target-temperature.svg"
+    },
+    "adlar_state_backwater": {
+      "id": "adlar_state_backwater",
+      "title": {
+        "en": "Backwater state",
+        "nl": "Retourwater status",
+        "de": "Rücklaufstatus",
+        "fr": "État du retour"
+      },
+      "type": "boolean",
+      "setable": false,
+      "getable": true,
+      "uiComponent": "sensor",
+      "icon": "/assets/backwater-state.svg",
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Backwater is ON",
+        "nl": "Retourwater is AAN",
+        "de": "Rücklauf ist EIN",
+        "fr": "Retour est ALLUMÉ"
+      },
+      "insightsTitleFalse": {
+        "en": "Backwater is OFF",
+        "nl": "Retourwater is UIT",
+        "de": "Rücklauf ist AUS",
+        "fr": "Retour est ÉTEINT"
+      },
+      "description": {
+        "nl": "dp 31 : backwater - Backwater state"
+      }
+    },
+    "adlar_state_compressor_state": {
+      "id": "adlar_state_compressor_state",
+      "title": {
+        "en": "Compressor state",
+        "nl": "Compressor status",
+        "de": "Kompressorstatus",
+        "fr": "État du compresseur"
+      },
+      "type": "boolean",
+      "setable": false,
+      "getable": true,
+      "uiComponent": "sensor",
+      "icon": "/assets/compressor-state.svg",
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Compressor is ON",
+        "nl": "Compressor is AAN",
+        "de": "Kompressor ist EIN",
+        "fr": "Compresseur est ALLUMÉ"
+      },
+      "insightsTitleFalse": {
+        "en": "Compressor is OFF",
+        "nl": "Compressor is UIT",
+        "de": "Kompressor ist AUS",
+        "fr": "Compresseur est ÉTEINT"
+      },
+      "description": {
+        "nl": "dp 27 : compressor_state - Compressor state"
+      }
+    },
+    "adlar_state_defrost_state": {
+      "id": "adlar_state_defrost_state",
+      "title": {
+        "en": "Defrosting",
+        "nl": "Ontdooi status",
+        "de": "Abtaustatus",
+        "fr": "État de dégivrage"
+      },
+      "type": "boolean",
+      "setable": false,
+      "getable": true,
+      "uiComponent": "sensor",
+      "icon": "/assets/defrost-state.svg",
+      "insights": true,
+      "insightsTitleTrue": {
+        "en": "Defrosting active",
+        "nl": "Ontdooien actief",
+        "de": "Abtauen aktiv",
+        "fr": "Dégivrage actif"
+      },
+      "insightsTitleFalse": {
+        "en": "Defrosting inactive",
+        "nl": "Ontdooien niet actief",
+        "de": "Abtauen inaktiv",
+        "fr": "Dégivrage inactif"
+      },
+      "description": {
+        "nl": "dp 33 : defrost_state - Defrosting"
       }
     },
     "adlar_sterilization": {
@@ -8369,6 +10019,273 @@
       "decimals": 1,
       "min": 0,
       "max": 60
+    },
+    "building_insight_insulation": {
+      "id": "building_insight_insulation",
+      "type": "string",
+      "title": {
+        "en": "Insulation Performance",
+        "nl": "Isolatie Prestatie",
+        "de": "Dämmleistung",
+        "fr": "Performance d'Isolation"
+      },
+      "desc": {
+        "en": "Insulation analysis: heat loss assessment and improvement recommendations",
+        "nl": "Isolatie analyse: warmteverlies beoordeling en verbeteringsaanbevelingen",
+        "de": "Dämmungsanalyse: Wärmeverlustbewertung und Verbesserungsempfehlungen",
+        "fr": "Analyse d'isolation: évaluation des pertes de chaleur et recommandations d'amélioration"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/insight-insulation.svg"
+    },
+    "building_insight_preheating": {
+      "id": "building_insight_preheating",
+      "type": "string",
+      "title": {
+        "en": "Pre-heating duration (comfort)",
+        "nl": "Voorverwarming duur (comfort)",
+        "de": "Vorheizdauer (Komfort)",
+        "fr": "Durée de préchauffage (confort)"
+      },
+      "desc": {
+        "en": "Pre-heating recommendations based on thermal response speed",
+        "nl": "Voorverwarmingsaanbevelingen gebaseerd op thermische responstijd",
+        "de": "Vorheizempfehlungen basierend auf thermischer Reaktionsgeschwindigkeit",
+        "fr": "Recommandations de préchauffage basées sur la vitesse de réponse thermique"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/insight-preheating.svg"
+    },
+    "building_insight_profile": {
+      "id": "building_insight_profile",
+      "type": "string",
+      "title": {
+        "en": "Building Profile",
+        "nl": "Gebouwprofiel",
+        "de": "Gebäudeprofil",
+        "fr": "Profil du Bâtiment"
+      },
+      "desc": {
+        "en": "Building profile match analysis and optimization suggestions",
+        "nl": "Gebouwprofiel match analyse en optimalisatie suggesties",
+        "de": "Gebäudeprofilabgleich-Analyse und Optimierungsvorschläge",
+        "fr": "Analyse de correspondance du profil du bâtiment et suggestions d'optimisation"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/insight-profile.svg"
+    },
+    "building_insight_thermal_storage": {
+      "id": "building_insight_thermal_storage",
+      "type": "string",
+      "title": {
+        "en": "Thermal Storage (cost savings)",
+        "nl": "Thermische Opslag (kostenbesparing)",
+        "de": "Thermische Speicherung (Kosteneinsparungen)",
+        "fr": "Stockage Thermique (économies de coûts)"
+      },
+      "desc": {
+        "en": "Thermal mass optimization for energy price shifting",
+        "nl": "Thermische massa optimalisatie voor energieprijs verschuiving",
+        "de": "Thermische Massenoptimierung für Energiepreisverlagerung",
+        "fr": "Optimisation de la masse thermique pour le décalage des prix de l'énergie"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/insight-thermal.svg"
+    },
+    "building_insights_diagnostics": {
+      "id": "building_insights_diagnostics",
+      "type": "string",
+      "title": {
+        "en": "Building Insights Diagnostics (JSON)",
+        "nl": "Gebouw Inzichten Diagnostiek (JSON)",
+        "de": "Gebäudeerkenntnisse Diagnose (JSON)",
+        "fr": "Diagnostics des Aperçus du Bâtiment (JSON)"
+      },
+      "desc": {
+        "en": "Detailed diagnostics about active insights, history, and insight detection status (JSON format for advanced users)",
+        "nl": "Gedetailleerde diagnostiek over actieve inzichten, geschiedenis en inzicht detectiestatus (JSON formaat voor gevorderde gebruikers)",
+        "de": "Detaillierte Diagnose über aktive Erkenntnisse, Verlauf und Erkennungserkennungsstatus (JSON-Format für fortgeschrittene Benutzer)",
+        "fr": "Diagnostics détaillés sur les aperçus actifs, l'historique et le statut de détection des aperçus (format JSON pour utilisateurs avancés)"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "icon": "/assets/diagnostics.svg"
+    },
+    "building_model_diagnostics": {
+      "id": "building_model_diagnostics",
+      "type": "string",
+      "title": {
+        "en": "Building Model Diagnostics",
+        "nl": "Gebouwmodel Diagnostiek",
+        "de": "Gebäudemodell-Diagnostik",
+        "fr": "Diagnostics du modèle de bâtiment"
+      },
+      "desc": {
+        "en": "Building thermal model learning status as JSON (tau/C/UA parameters, confidence, samples)",
+        "nl": "Thermisch gebouwmodel leer-status als JSON (tau/C/UA parameters, betrouwbaarheid, samples)",
+        "de": "Status des thermischen Gebäudemodell-Lernens als JSON (tau/C/UA-Parameter, Vertrauen, Proben)",
+        "fr": "État d'apprentissage du modèle thermique du bâtiment en JSON (paramètres tau/C/UA, confiance, échantillons)"
+      },
+      "units": {
+        "en": "",
+        "nl": "",
+        "de": "",
+        "fr": ""
+      },
+      "chartType": "stepLine",
+      "decimals": 2,
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "icon": "/assets/adaptive-control-diagnostics.svg"
+    },
+    "cop_optimizer_diagnostics": {
+      "type": "string",
+      "title": {
+        "en": "COP Optimizer Diagnostics",
+        "nl": "COP Optimizer Diagnostiek",
+        "de": "COP-Optimierer-Diagnose",
+        "fr": "Diagnostics de l'optimiseur COP"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "insights": false,
+      "desc": {
+        "en": "JSON diagnostic data for COP optimizer learning status",
+        "nl": "JSON diagnostische gegevens voor COP optimizer leerstatus",
+        "de": "JSON-Diagnosedaten für COP-Optimierer-Lernstatus",
+        "fr": "Données de diagnostic JSON pour l'état d'apprentissage de l'optimiseur COP"
+      }
+    },
+    "defrost_active_power": {
+      "id": "defrost_active_power",
+      "title": {
+        "en": "Defrost Power Consumption",
+        "nl": "Ontdooistand Vermogensverbruik",
+        "de": "Abtau-Leistungsaufnahme",
+        "fr": "Consommation pendant dégivrage"
+      },
+      "type": "number",
+      "units": {
+        "en": "W",
+        "nl": "W",
+        "de": "W",
+        "fr": "W"
+      },
+      "min": 0,
+      "max": 50000,
+      "step": 0.1,
+      "decimals": 1,
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Power Consumption During Defrost",
+        "nl": "Ontdooistand Vermogensverbruik",
+        "de": "Leistungsaufnahme Während Abtauen",
+        "fr": "Consommation Pendant Dégivrage"
+      },
+      "icon": "/assets/defrost-active-power.svg",
+      "description": {
+        "en": "Power consumption during defrost cycles - shows external power measurement when defrosting is active, 0 when inactive",
+        "nl": "Vermogensverbruik tijdens ontdooicycli - toont externe vermogensmeting wanneer ontdooien actief is, 0 wanneer inactief",
+        "de": "Stromverbrauch während Abtauzyklen - zeigt externe Leistungsmessung wenn Abtauen aktiv ist, 0 wenn inaktiv",
+        "fr": "Consommation d'énergie pendant les cycles de dégivrage - affiche la mesure de puissance externe lorsque le dégivrage est actif, 0 lorsqu'il est inactif"
+      }
+    },
+    "energy_prices_data": {
+      "id": "energy_prices_data",
+      "type": "string",
+      "title": {
+        "en": "Energy Prices (24h)",
+        "nl": "Energieprijzen (24u)",
+        "de": "Energiepreise (24h)",
+        "fr": "Prix de l'énergie (24h)"
+      },
+      "desc": {
+        "en": "Hourly energy prices for next 24 hours as JSON (hour offset: price)",
+        "nl": "Uurlijkse energieprijzen voor komende 24 uur als JSON (uur offset: prijs)",
+        "de": "Stündliche Energiepreise für nächste 24 Stunden als JSON (Stunden-Offset: Preis)",
+        "fr": "Prix de l'énergie horaires pour les prochaines 24 heures en JSON (décalage horaire: prix)"
+      },
+      "units": {
+        "en": "",
+        "nl": "",
+        "de": "",
+        "fr": ""
+      },
+      "chartType": "stepLine",
+      "decimals": 0,
+      "getable": true,
+      "setable": false,
+      "uiComponent": null,
+      "icon": "/assets/energy-price-current.svg"
+    },
+    "heating_curve_formula": {
+      "id": "heating_curve_formula",
+      "type": "string",
+      "title": {
+        "en": "Heating Curve Formula",
+        "nl": "Verwarmingscurve Formule"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null
+    },
+    "heating_curve_intercept": {
+      "id": "heating_curve_intercept",
+      "type": "number",
+      "title": {
+        "en": "Heating Curve Intercept",
+        "nl": "Verwarmingscurve Intercept"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null
+    },
+    "heating_curve_ref_outdoor": {
+      "id": "heating_curve_ref_outdoor",
+      "type": "number",
+      "title": {
+        "en": "Reference Outdoor Temperature",
+        "nl": "Referentie Buitentemperatuur"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null
+    },
+    "heating_curve_ref_temp": {
+      "id": "heating_curve_ref_temp",
+      "type": "number",
+      "title": {
+        "en": "Reference Temperature",
+        "nl": "Referentie Temperatuur"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null
+    },
+    "heating_curve_slope": {
+      "id": "heating_curve_slope",
+      "type": "number",
+      "title": {
+        "en": "Heating Curve Slope",
+        "nl": "Verwarmingscurve Helling"
+      },
+      "getable": true,
+      "setable": false,
+      "uiComponent": null
     }
   }
 }

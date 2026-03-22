@@ -1,0 +1,31 @@
+{
+  "id": "adlar_state_defrost_state",
+  "title": {
+    "en": "Defrosting",
+    "nl": "Ontdooi status",
+    "de": "Abtaustatus",
+    "fr": "État de dégivrage"
+  },
+  "type": "boolean",
+  "setable": false,
+  "getable": true,
+  "uiComponent": "sensor",
+  "icon": "/assets/defrost-state.svg",
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Defrosting active",
+    "nl": "Ontdooien actief",
+    "de": "Abtauen aktiv",
+    "fr": "Dégivrage actif"
+  },
+  "insightsTitleFalse": {
+    "en": "Defrosting inactive",
+    "nl": "Ontdooien niet actief",
+    "de": "Abtauen inaktiv",
+    "fr": "Dégivrage inactif"
+  },
+
+  "description": {
+    "nl": "dp 33 : defrost_state - Defrosting"
+  }
+}

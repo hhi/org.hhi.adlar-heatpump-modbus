@@ -1,0 +1,157 @@
+{
+  "name": {
+    "en": "Adlar Castra Heat Pump",
+    "nl": "Adlar Castra Warmtepomp"
+  },
+  "class": "thermostat",
+  "capabilities": [
+    "onoff",
+    "target_temperature",
+    "target_temperature.cooling",
+    "target_temperature.dhw",
+    "target_temperature.floor",
+    "measure_temperature",
+    "measure_temperature.inlet",
+    "measure_temperature.ambient",
+    "measure_temperature.outer_coil",
+    "measure_temperature.inner_coil",
+    "measure_temperature.suction",
+    "measure_temperature.exhaust",
+    "measure_temperature.dhw",
+    "measure_temperature.econ_in",
+    "measure_temperature.econ_out",
+    "measure_temperature.hp_sat",
+    "measure_temperature.lp_sat",
+    "measure_power",
+    "meter_power",
+    "measure_voltage",
+    "measure_current",
+    "adlar_cop",
+    "adlar_mode",
+    "adlar_defrosting",
+    "alarm_generic",
+    "adlar_compressor_freq",
+    "adlar_fan_speed",
+    "adlar_eev_step",
+    "adlar_pump_pwm",
+    "adlar_water_flow"
+  ],
+  "capabilitiesOptions": {
+    "target_temperature": {
+      "title": {
+        "en": "Heating setpoint",
+        "nl": "Verwarming setpoint"
+      }
+    },
+    "target_temperature.cooling": {
+      "title": {
+        "en": "Cooling setpoint",
+        "nl": "Koeling setpoint"
+      }
+    },
+    "target_temperature.dhw": {
+      "title": {
+        "en": "DHW setpoint",
+        "nl": "Warmwater setpoint"
+      }
+    },
+    "target_temperature.floor": {
+      "title": {
+        "en": "Floor heating setpoint",
+        "nl": "Vloerverwarming setpoint"
+      }
+    },
+    "measure_temperature": {
+      "title": {
+        "en": "Outlet temperature (T7)",
+        "nl": "Uitlaattemperatuur (T7)"
+      }
+    },
+    "measure_temperature.inlet": {
+      "title": {
+        "en": "Inlet temperature (T6)",
+        "nl": "Inlaattemperatuur (T6)"
+      }
+    },
+    "measure_temperature.ambient": {
+      "title": {
+        "en": "Ambient temperature (T1)",
+        "nl": "Buitentemperatuur (T1)"
+      }
+    },
+    "measure_temperature.outer_coil": {
+      "title": {
+        "en": "Outer coil temperature (T2)",
+        "nl": "Buitenste spoel temperatuur (T2)"
+      }
+    },
+    "measure_temperature.inner_coil": {
+      "title": {
+        "en": "Inner coil temperature (T3)",
+        "nl": "Binnenste spoel temperatuur (T3)"
+      }
+    },
+    "measure_temperature.suction": {
+      "title": {
+        "en": "Suction temperature (T4)",
+        "nl": "Zuigtemperatuur (T4)"
+      }
+    },
+    "measure_temperature.exhaust": {
+      "title": {
+        "en": "Exhaust temperature (T5)",
+        "nl": "Uitlaattemperatuur compressor (T5)"
+      }
+    },
+    "measure_temperature.dhw": {
+      "title": {
+        "en": "DHW tank temperature",
+        "nl": "Warmwaterboiler temperatuur"
+      }
+    },
+    "measure_temperature.econ_in": {
+      "title": {
+        "en": "Economizer inlet (T8)",
+        "nl": "Economizer inlaat (T8)"
+      }
+    },
+    "measure_temperature.econ_out": {
+      "title": {
+        "en": "Economizer outlet (T9)",
+        "nl": "Economizer uitlaat (T9)"
+      }
+    },
+    "measure_temperature.hp_sat": {
+      "title": {
+        "en": "HP saturation temperature",
+        "nl": "HP saturatietemperatuur"
+      }
+    },
+    "measure_temperature.lp_sat": {
+      "title": {
+        "en": "LP saturation temperature",
+        "nl": "LP saturatietemperatuur"
+      }
+    }
+  },
+  "pair": [
+    {
+      "id": "enter_modbus_info",
+      "template": "generic",
+      "navigation": {
+        "next": "list_devices"
+      }
+    },
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "add_devices"
+      }
+    },
+    {
+      "id": "add_devices",
+      "template": "add_devices"
+    }
+  ]
+}

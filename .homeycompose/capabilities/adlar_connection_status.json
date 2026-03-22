@@ -1,0 +1,20 @@
+{
+  "id": "adlar_connection_status",
+  "type": "string",
+  "title": {
+    "en": "Connection Status",
+    "nl": "Verbindingsstatus",
+    "de": "Verbindungsstatus",
+    "fr": "État de connexion"
+  },
+  "desc": {
+    "en": "Current Modbus device connection state with timestamp",
+    "nl": "Huidige Modbus apparaat verbindingsstatus met tijdstempel",
+    "de": "Aktueller Modbus-Geräteverbindungsstatus mit Zeitstempel",
+    "fr": "État de connexion actuel du périphérique Modbus avec horodatage"
+  },
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/connection-status.svg"
+}

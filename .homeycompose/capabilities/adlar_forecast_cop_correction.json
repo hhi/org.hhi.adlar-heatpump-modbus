@@ -1,0 +1,30 @@
+{
+    "id": "adlar_forecast_cop_correction",
+    "type": "number",
+    "title": {
+        "en": "COP Weather Conditions Performance",
+        "nl": "COP rendement weercondities",
+        "de": "COP Leistung Wetterbedingungen",
+        "fr": "COP rendement conditions météo"
+    },
+    "units": {
+        "en": "%",
+        "nl": "%",
+        "de": "%",
+        "fr": "%"
+    },
+    "getable": true,
+    "setable": false,
+    "uiComponent": "sensor",
+    "insights": true,
+    "insightsTitle": {
+        "en": "COP Weather Conditions Performance",
+        "nl": "COP rendement weercondities",
+        "de": "COP Leistung Wetterbedingungen",
+        "fr": "COP rendement conditions météo"
+    },
+    "icon": "/assets/forecast-cop-correction.svg",
+    "decimals": 1,
+    "min": -25,
+    "max": 10
+}

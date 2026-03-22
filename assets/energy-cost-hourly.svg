@@ -1,0 +1,14 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Euro symbol (right side) -->
+  <g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 75 25 C 65 25 58 35 58 50 C 58 65 65 75 75 75"/>
+    <line x1="52" y1="42" x2="72" y2="42"/>
+    <line x1="52" y1="58" x2="72" y2="58"/>
+  </g>
+
+  <!-- Clock (left side) -->
+  <g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="25" cy="50" r="17"/>
+    <polyline points="25,40 25,50 32,57"/>
+  </g>
+</svg>
