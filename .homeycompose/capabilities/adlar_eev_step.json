@@ -1,0 +1,16 @@
+{
+  "id": "adlar_eev_step",
+  "type": "number",
+  "title": {
+    "en": "EEV opening steps",
+    "nl": "EEV-openingsstappen"
+  },
+  "icon": "/assets/adlar-icon-white.svg",
+  "uiComponent": "sensor",
+  "getable": true,
+  "setable": false,
+  "units": "steps",
+  "decimals": 0,
+  "min": 0,
+  "max": 500
+}

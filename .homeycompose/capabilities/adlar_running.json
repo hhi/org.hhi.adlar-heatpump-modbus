@@ -1,0 +1,21 @@
+{
+  "id": "adlar_running",
+  "type": "boolean",
+  "title": {
+    "en": "Unit running",
+    "nl": "Unit in bedrijf"
+  },
+  "icon": "/assets/adlar-icon-white.svg",
+  "uiComponent": "sensor",
+  "getable": true,
+  "setable": false,
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Unit started running",
+    "nl": "Unit gestart"
+  },
+  "insightsTitleFalse": {
+    "en": "Unit stopped running",
+    "nl": "Unit gestopt"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "1.0.0": {
+    "en": "Added initial version of the Adlar Castra Heatpump (Modbus) Homey app, providing local Modbus TCP access to the heatpump device.",
+    "nl": "Toegevoegd: initiële versie van de Adlar Castra Heatpump (Modbus) Homey app, die lokale Modbus TCP toegang tot het warmtepompapparaat biedt.",
+    "de": "Hinzufügen: Erste Version der Adlar Castra Heatpump (Modbus) Homey App, die lokalen Modbus TCP Zugriff auf das Wärmepumpengerät bietet.",
+    "fr": "Ajout : première version de l'application Homey Adlar Castra Heatpump (Modbus), offrant un accès local Modbus TCP à l'appareil de pompe à chaleur.",
+    "es": "Agregado: primera versión de la aplicación Homey Adlar Castra Heatpump (Modbus), que proporciona acceso local Modbus TCP al dispositivo de bomba de calor."
+  }
+}

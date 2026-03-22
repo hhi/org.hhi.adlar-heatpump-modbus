@@ -1,0 +1,108 @@
+{
+  "id": "temperature_adjustment_recommended",
+  "title": {
+    "en": "Adaptive control recommends temperature adjustment",
+    "nl": "Adaptieve regeling beveelt temperatuur aanpassing aan",
+    "de": "Adaptive Regelung empfiehlt Temperaturanpassung",
+    "fr": "Contrôle adaptatif recommande un ajustement de température"
+  },
+  "titleFormatted": {
+    "en": "Adaptive control recommends [[recommended_temperature]]°C (conf: [[building_model_confidence]]%)",
+    "nl": "Adaptieve regeling beveelt [[recommended_temperature]]°C aan (conf: [[building_model_confidence]]%)",
+    "de": "Adaptive Regelung empfiehlt [[recommended_temperature]]°C (Konf: [[building_model_confidence]]%)",
+    "fr": "Contrôle adaptatif recommande [[recommended_temperature]]°C (conf: [[building_model_confidence]]%)"
+  },
+  "hint": {
+    "en": "Triggered when adaptive control calculates a recommended temperature adjustment (only when significant action needed). Use building_model_confidence to filter on model confidence. Use 'Set target temperature' action to apply.",
+    "nl": "Wordt geactiveerd wanneer adaptieve regeling een aanbevolen temperatuur berekent (alleen bij significante actie nodig). Gebruik building_model_confidence om te filteren op modelbetrouwbaarheid. Gebruik 'Doel temperatuur instellen' actie om toe te passen.",
+    "de": "Wird ausgelöst, wenn adaptive Regelung eine empfohlene Temperaturanpassung berechnet (nur bei signifikanter Aktion). Verwenden Sie building_model_confidence zum Filtern. Verwenden Sie 'Zieltemperatur einstellen' zum Anwenden.",
+    "fr": "Déclenché lorsque le contrôle adaptatif calcule un ajustement recommandé (uniquement si action significative). Utilisez building_model_confidence pour filtrer. Utilisez 'Régler température' pour appliquer."
+  },
+  "highlight": true,
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=intelligent-heatpump-modbus"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "current_temperature",
+      "type": "number",
+      "title": {
+        "en": "Current target temperature",
+        "nl": "Huidige doeltemperatuur",
+        "de": "Aktuelle Zieltemperatur",
+        "fr": "Température cible actuelle"
+      },
+      "example": 21.5
+    },
+    {
+      "name": "recommended_temperature",
+      "type": "number",
+      "title": {
+        "en": "Recommended target temperature",
+        "nl": "Aanbevolen doeltemperatuur",
+        "de": "Empfohlene Zieltemperatur",
+        "fr": "Température cible recommandée"
+      },
+      "example": 22.0
+    },
+    {
+      "name": "adjustment",
+      "type": "number",
+      "title": {
+        "en": "Temperature adjustment",
+        "nl": "Temperatuur aanpassing",
+        "de": "Temperaturanpassung",
+        "fr": "Ajustement de température"
+      },
+      "example": 0.5
+    },
+    {
+      "name": "reason",
+      "type": "string",
+      "title": {
+        "en": "Adjustment reason",
+        "nl": "Reden voor aanpassing",
+        "de": "Anpassungsgrund",
+        "fr": "Raison de l'ajustement"
+      },
+      "example": "Comfort: Error 0.8°C; Efficiency: COP 3.2; Cost: Low price"
+    },
+    {
+      "name": "controller",
+      "type": "string",
+      "title": {
+        "en": "Controller",
+        "nl": "Controller",
+        "de": "Regler",
+        "fr": "Contrôleur"
+      },
+      "example": "weighted"
+    },
+    {
+      "name": "building_model_confidence",
+      "type": "number",
+      "title": {
+        "en": "Building Model Confidence (%)",
+        "nl": "Gebouwmodel Betrouwbaarheid (%)",
+        "de": "Gebäudemodell Vertrauen (%)",
+        "fr": "Confiance du Modèle (%)"
+      },
+      "example": 72
+    },
+    {
+      "name": "control_mode",
+      "type": "string",
+      "title": {
+        "en": "Control mode",
+        "nl": "Regelmodus",
+        "de": "Regelmodus",
+        "fr": "Mode de contrôle"
+      },
+      "example": "heating"
+    }
+  ]
+}

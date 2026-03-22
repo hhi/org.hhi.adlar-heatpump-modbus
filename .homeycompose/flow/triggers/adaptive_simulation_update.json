@@ -1,0 +1,152 @@
+{
+  "id": "adaptive_simulation_update",
+  "title": {
+    "en": "Simulated temperature updated",
+    "nl": "Gesimuleerde temperatuur bijgewerkt",
+    "de": "Simulierte Temperatur aktualisiert",
+    "fr": "Température simulée mise à jour"
+  },
+  "titleFormatted": {
+    "en": "Simulated target: [[simulated_target]]°C (Δ[[delta]]°C, conf: [[building_model_confidence]]%)",
+    "nl": "Gesimuleerd doel: [[simulated_target]]°C (Δ[[delta]]°C, conf: [[building_model_confidence]]%)",
+    "de": "Simuliertes Ziel: [[simulated_target]]°C (Δ[[delta]]°C, Konf: [[building_model_confidence]]%)",
+    "fr": "Cible simulée: [[simulated_target]]°C (Δ[[delta]]°C, conf: [[building_model_confidence]]%)"
+  },
+  "hint": {
+    "en": "Triggers every control cycle (5 min) with full breakdown of what adaptive control calculates. Use for monitoring, logging, and confidence-based filtering. Filter on building_model_confidence to only act on high-confidence recommendations.",
+    "nl": "Triggert elke regelcyclus (5 min) met volledige breakdown van wat adaptieve regeling berekent. Gebruik voor monitoring, logging en filteren op betrouwbaarheid. Filter op building_model_confidence om alleen te acteren op aanbevelingen met hoge betrouwbaarheid.",
+    "de": "Wird bei jedem Regelzyklus (5 min) mit vollständiger Aufschlüsselung der adaptiven Regelungsberechnung ausgelöst. Verwenden Sie für Überwachung, Protokollierung und Vertrauensfilterung. Filtern Sie nach building_model_confidence, um nur auf vertrauenswürdige Empfehlungen zu reagieren.",
+    "fr": "Se déclenche à chaque cycle de contrôle (5 min) avec une répartition complète du calcul du contrôle adaptatif. Utilisez pour la surveillance, la journalisation et le filtrage basé sur la confiance. Filtrez sur building_model_confidence pour n'agir que sur des recommandations à haute confiance."
+  },
+  "highlight": true,
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=intelligent-heatpump-modbus&capabilities=adlar_simulated_target"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "simulated_target",
+      "type": "number",
+      "title": {
+        "en": "Simulated Target (°C)",
+        "nl": "Gesimuleerd Doel (°C)",
+        "de": "Simuliertes Ziel (°C)",
+        "fr": "Cible Simulée (°C)"
+      },
+      "example": 23.5
+    },
+    {
+      "name": "actual_target",
+      "type": "number",
+      "title": {
+        "en": "Actual Target (°C)",
+        "nl": "Werkelijk Doel (°C)",
+        "de": "Tatsächliches Ziel (°C)",
+        "fr": "Cible Réelle (°C)"
+      },
+      "example": 21.0
+    },
+    {
+      "name": "delta",
+      "type": "number",
+      "title": {
+        "en": "Difference (°C)",
+        "nl": "Verschil (°C)",
+        "de": "Unterschied (°C)",
+        "fr": "Différence (°C)"
+      },
+      "example": 2.5
+    },
+    {
+      "name": "adjustment",
+      "type": "number",
+      "title": {
+        "en": "Adjustment (°C)",
+        "nl": "Aanpassing (°C)",
+        "de": "Anpassung (°C)",
+        "fr": "Ajustement (°C)"
+      },
+      "example": 1.2
+    },
+    {
+      "name": "comfort_component",
+      "type": "number",
+      "title": {
+        "en": "Comfort Component (°C)",
+        "nl": "Comfort Component (°C)",
+        "de": "Komfort-Komponente (°C)",
+        "fr": "Composante Confort (°C)"
+      },
+      "example": 0.72
+    },
+    {
+      "name": "efficiency_component",
+      "type": "number",
+      "title": {
+        "en": "Efficiency Component (°C)",
+        "nl": "Efficiëntie Component (°C)",
+        "de": "Effizienz-Komponente (°C)",
+        "fr": "Composante Efficacité (°C)"
+      },
+      "example": 0.25
+    },
+    {
+      "name": "cost_component",
+      "type": "number",
+      "title": {
+        "en": "Cost Component (°C)",
+        "nl": "Kosten Component (°C)",
+        "de": "Kosten-Komponente (°C)",
+        "fr": "Composante Coût (°C)"
+      },
+      "example": 0.15
+    },
+    {
+      "name": "building_model_confidence",
+      "type": "number",
+      "title": {
+        "en": "Building Model Confidence (%)",
+        "nl": "Gebouwmodel Betrouwbaarheid (%)",
+        "de": "Gebäudemodell Vertrauen (%)",
+        "fr": "Confiance du Modèle de Bâtiment (%)"
+      },
+      "example": 72
+    },
+    {
+      "name": "cop_confidence",
+      "type": "number",
+      "title": {
+        "en": "COP Confidence (%)",
+        "nl": "COP Betrouwbaarheid (%)",
+        "de": "COP Vertrauen (%)",
+        "fr": "Confiance COP (%)"
+      },
+      "example": 65
+    },
+    {
+      "name": "coast_component",
+      "type": "number",
+      "title": {
+        "en": "Coast Component (°C)",
+        "nl": "Coast-component (°C)",
+        "de": "Coast-Komponente (°C)",
+        "fr": "Composante coast (°C)"
+      },
+      "example": -3.3
+    },
+    {
+      "name": "reasoning",
+      "type": "string",
+      "title": {
+        "en": "Reasoning",
+        "nl": "Redenering",
+        "de": "Begründung",
+        "fr": "Raisonnement"
+      },
+      "example": "Comfort: Error 0.8°C; Efficiency: Low COP 2.5; Cost: Normal price €0.25/kWh"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "adlar_compressor_freq",
+  "type": "number",
+  "title": {
+    "en": "Compressor frequency",
+    "nl": "Compressorfrequentie"
+  },
+  "icon": "/assets/adlar-icon-white.svg",
+  "uiComponent": "sensor",
+  "getable": true,
+  "setable": false,
+  "units": "Hz",
+  "decimals": 0,
+  "min": 0,
+  "max": 120
+}

@@ -1,0 +1,12 @@
+{
+  "id": "adlar_fault_active",
+  "type": "string",
+  "title": {
+    "en": "Active fault description",
+    "nl": "Actieve foutomschrijving"
+  },
+  "icon": "/assets/adlar-icon-white.svg",
+  "uiComponent": "sensor",
+  "getable": true,
+  "setable": false
+}

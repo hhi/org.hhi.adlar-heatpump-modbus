@@ -1,0 +1,21 @@
+{
+  "id": "adlar_antifreeze",
+  "type": "boolean",
+  "title": {
+    "en": "Antifreeze protection active",
+    "nl": "Antivriesbeveiliging actief"
+  },
+  "icon": "/assets/adlar-icon-white.svg",
+  "uiComponent": "sensor",
+  "getable": true,
+  "setable": false,
+  "insights": true,
+  "insightsTitleTrue": {
+    "en": "Antifreeze protection activated",
+    "nl": "Antivriesbeveiliging geactiveerd"
+  },
+  "insightsTitleFalse": {
+    "en": "Antifreeze protection deactivated",
+    "nl": "Antivriesbeveiliging uitgeschakeld"
+  }
+}

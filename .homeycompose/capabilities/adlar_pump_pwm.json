@@ -1,0 +1,16 @@
+{
+  "id": "adlar_pump_pwm",
+  "type": "number",
+  "title": {
+    "en": "Pump PWM",
+    "nl": "Pomp PWM"
+  },
+  "icon": "/assets/adlar-icon-white.svg",
+  "uiComponent": "sensor",
+  "getable": true,
+  "setable": false,
+  "units": "%",
+  "decimals": 0,
+  "min": 0,
+  "max": 100
+}

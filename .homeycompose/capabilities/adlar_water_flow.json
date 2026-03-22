@@ -1,0 +1,16 @@
+{
+  "id": "adlar_water_flow",
+  "type": "number",
+  "title": {
+    "en": "Water flow",
+    "nl": "Waterdebiet"
+  },
+  "icon": "/assets/adlar-icon-white.svg",
+  "uiComponent": "sensor",
+  "getable": true,
+  "setable": false,
+  "units": "L/min",
+  "decimals": 1,
+  "min": 0,
+  "max": 60
+}
