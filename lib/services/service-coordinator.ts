@@ -37,6 +37,7 @@ export class ServiceCoordinator {
 
   // Service state
   private serviceHealth = new Map<string, boolean>();
+  private _lastDisconnectCountMs = 0;
   private healthCheckInterval: NodeJS.Timeout | null = null;
 
   // Event handler references (prevent memory leaks)
@@ -280,6 +281,10 @@ export class ServiceCoordinator {
 
   private _incrementDailyDisconnectCount(): void {
     if (!this.device.hasCapability('adlar_daily_disconnect_count')) return;
+
+    const now = Date.now();
+    if (now - this._lastDisconnectCountMs < 60_000) return;
+    this._lastDisconnectCountMs = now;
 
     const current = (this.device.getCapabilityValue('adlar_daily_disconnect_count') as number | null) ?? 0;
     this.device.setCapabilityValue('adlar_daily_disconnect_count', current + 1).catch(() => {});
