@@ -39,6 +39,7 @@ export class ServiceCoordinator {
   private serviceHealth = new Map<string, boolean>();
   private _lastDisconnectCountMs = 0;
   private healthCheckInterval: NodeJS.Timeout | null = null;
+  private _disconnectStatusTimer: NodeJS.Timeout | null = null;
   private _prevDefrosting = false;
   private _defrostStartedAt: number | null = null;
 
@@ -264,6 +265,14 @@ export class ServiceCoordinator {
   private _handleConnected(): void {
     this.logger('ServiceCoordinator: Modbus connected');
     this.serviceHealth.set('modbus', true);
+
+    // Cancel pending disconnect status update if reconnected within the grace period
+    if (this._disconnectStatusTimer) {
+      this.device.homey.clearTimeout(this._disconnectStatusTimer);
+      this._disconnectStatusTimer = null;
+      this.logger('ServiceCoordinator: Disconnect status timer cancelled (reconnected in time)');
+    }
+
     this.device.setAvailable().catch(() => {});
     this.energyTracking.setConnectionState(true).catch((e) => {
       this.logger('ServiceCoordinator: setConnectionState(true) failed', e);
@@ -278,8 +287,17 @@ export class ServiceCoordinator {
     this.energyTracking.setConnectionState(false).catch((e) => {
       this.logger('ServiceCoordinator: setConnectionState(false) failed', e);
     });
-    this._setConnectionCapabilities(false, reason);
-    this._incrementDailyDisconnectCount();
+
+    // Only update visible status after 1 minute — short reconnects stay invisible
+    if (this._disconnectStatusTimer) {
+      this.device.homey.clearTimeout(this._disconnectStatusTimer);
+    }
+    this._disconnectStatusTimer = this.device.homey.setTimeout(() => {
+      this._disconnectStatusTimer = null;
+      this.logger('ServiceCoordinator: Disconnect grace period elapsed, updating status');
+      this._setConnectionCapabilities(false, reason);
+      this._incrementDailyDisconnectCount();
+    }, 60_000);
   }
 
   private _setConnectionCapabilities(connected: boolean, reason: string | null): void {
@@ -377,6 +395,11 @@ export class ServiceCoordinator {
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
       this.healthCheckInterval = null;
+    }
+
+    if (this._disconnectStatusTimer) {
+      this.device.homey.clearTimeout(this._disconnectStatusTimer);
+      this._disconnectStatusTimer = null;
     }
 
     try {
