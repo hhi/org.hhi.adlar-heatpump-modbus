@@ -1,4 +1,11 @@
 {
+  "1.0.4": {
+    "en": "Fixed: connection status no longer shows 'Disconnected' for brief Modbus interruptions shorter than 1 minute. Fixed: hot water setpoint slider now reflects the actual device value and writes changes to the heat pump.",
+    "nl": "Opgelost: verbindingsstatus toont niet langer 'Verbroken' bij korte Modbus-onderbrekingen van minder dan 1 minuut. Opgelost: warmwater-instelpuntschuifregelaar toont nu de actuele apparaatwaarde en schrijft wijzigingen naar de warmtepomp.",
+    "de": "Behoben: Verbindungsstatus zeigt bei kurzen Modbus-Unterbrechungen unter 1 Minute nicht mehr 'Getrennt'. Behoben: Warmwasser-Sollwertregler zeigt jetzt den tatsächlichen Gerätewert und schreibt Änderungen an die Wärmepumpe.",
+    "fr": "Correction : le statut de connexion n'affiche plus 'Déconnecté' pour les interruptions Modbus brèves de moins d'1 minute. Correction : le curseur de consigne eau chaude reflète maintenant la valeur réelle de l'appareil et transmet les modifications à la pompe à chaleur.",
+    "es": "Corregido: el estado de conexión ya no muestra 'Desconectado' para interrupciones Modbus breves de menos de 1 minuto. Corregido: el control deslizante del punto de ajuste de agua caliente ahora refleja el valor real del dispositivo y escribe los cambios en la bomba de calor."
+  },
   "1.0.3": {
     "en": "Fixed: short Modbus reconnect bursts are no longer counted as multiple disconnects, improving the accuracy of disconnect reporting during unstable Modbus connections.",
     "nl": "Opgelost: korte Modbus reconnect-pieken worden niet langer als meerdere disconnects geteld, waardoor de disconnectregistratie nauwkeuriger blijft bij instabiele Modbus-verbindingen.",

@@ -331,6 +331,7 @@ class AdlarModbusDevice extends Homey.Device {
     set('target_temperature', snap.control.heatingSetpointC);
     set('target_temperature.cooling', snap.control.coolingSetpointC);
     set('target_temperature.dhw', snap.control.dhwSetpointC);
+    set('adlar_hotwater', snap.control.dhwSetpointC);
     set('target_temperature.floor', snap.control.floorSetpointC);
     set('adlar_mode', String(snap.control.mode));
 
@@ -556,6 +557,12 @@ class AdlarModbusDevice extends Homey.Device {
       this.logger.debug('Set mode:', value);
       if (!this.coordinator) return;
       await this.coordinator.setMode(parseInt(value, 10));
+    });
+
+    this.registerCapabilityListener('adlar_hotwater', async (value: number) => {
+      this.logger.debug('Set hot water setpoint:', value);
+      if (!this.coordinator) return;
+      await this.coordinator.setTemperature('dhw', value);
     });
   }
 }
