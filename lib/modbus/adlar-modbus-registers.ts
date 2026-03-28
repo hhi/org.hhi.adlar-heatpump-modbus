@@ -569,7 +569,7 @@ export const CONTROL_REGISTERS = {
     address: 0x0300, unit: '°C', min: 7, max: 25, default: 12, multiply: 0.1, name: 'Cooling Set Temperature',
   }, // v2.2: multiply + default
   tempSetHeating: {
-    address: 0x0301, unit: '°C', min: 20, max: 60, default: 55, multiply: 0.1, name: 'Heating Set Temperature',
+    address: 0x0301, unit: '°C', min: 15, max: 60, default: 55, multiply: 0.1, name: 'Heating Set Temperature',
   }, // v2.2
   tempSetHotWater: {
     address: 0x0302, unit: '°C', min: 20, max: 75, default: 55, multiply: 0.1, name: 'Hot Water Set Temperature',

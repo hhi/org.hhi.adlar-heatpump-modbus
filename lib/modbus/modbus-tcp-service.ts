@@ -308,6 +308,24 @@ export class ModbusTcpService extends EventEmitter {
     }
   }
 
+  /**
+   * Zorgt dat er een actieve verbinding is voor een schrijfoperatie.
+   * Als er geen verbinding is, wordt de geplande backoff geannuleerd en
+   * direct een herverbindingspoging gedaan — zonder backoff-vertraging.
+   */
+  private async _ensureConnected(): Promise<void> {
+    if (this._connected) return;
+    if (this._destroyed) throw new Error('Service destroyed');
+    this._clearBackoff();
+    this.socket = new net.Socket();
+    this.client = new Modbus.client.TCP(this.socket, this.cfg.unitId, this.cfg.timeoutMs);
+    this._wireSocketEvents();
+    await this.connect();
+    if (this._pollGroups.length > 0) {
+      this.startPolling(this._pollGroups);
+    }
+  }
+
   // ── Modbus TCP operaties ──────────────────────────────────────────────────
 
   /**
@@ -362,7 +380,7 @@ export class ModbusTcpService extends EventEmitter {
    * Cache wordt synchroon bijgewerkt na succesvolle write.
    */
   async writeSingleRegister(addr: number, value: number): Promise<void> {
-    if (!this._connected) throw new Error('Niet verbonden');
+    await this._ensureConnected();
     const raw = value & 0xFFFF;
     const addrHex = `0x${addr.toString(16).padStart(4, '0')}`;
     this._log(`FC06 WRITE ${addrHex} = ${raw}`);
@@ -384,7 +402,7 @@ export class ModbusTcpService extends EventEmitter {
    * FC05 — Write Single Coil.
    */
   async writeSingleCoil(coilAddr: number, state: boolean): Promise<void> {
-    if (!this._connected) throw new Error('Niet verbonden');
+    await this._ensureConnected();
     const addrHex = `0x${coilAddr.toString(16).padStart(4, '0')}`;
     this._log(`FC05 COIL  ${addrHex} = ${state ? 'ON' : 'OFF'}`);
 
