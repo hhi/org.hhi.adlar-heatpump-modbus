@@ -1,5 +1,5 @@
 {
-  "1.0.2": {
+  "1.0.3": {
     "en": "Fixed: short Modbus reconnect bursts are no longer counted as multiple disconnects, improving the accuracy of disconnect reporting during unstable Modbus connections.",
     "nl": "Opgelost: korte Modbus reconnect-pieken worden niet langer als meerdere disconnects geteld, waardoor de disconnectregistratie nauwkeuriger blijft bij instabiele Modbus-verbindingen.",
     "de": "Behoben: kurze Modbus-Wiederverbindungsphasen werden nicht mehr als mehrere Trennungen gezählt, wodurch die Genauigkeit der Trennungserfassung bei instabilen Modbus-Verbindungen verbessert wird.",

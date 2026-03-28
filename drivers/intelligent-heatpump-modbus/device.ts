@@ -1,6 +1,7 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable node/no-missing-import */
 /* eslint-disable import/extensions */
+import os from 'os';
 import Homey from 'homey';
 import { DataSnapshot } from '../../lib/modbus/adlar2-modbus-service';
 import { Logger, LogLevel } from '../../lib/logger';
@@ -219,6 +220,29 @@ class AdlarModbusDevice extends Homey.Device {
       pollMediumMs: (settings.poll_medium_s ?? 30) * 1000,
       pollSlowMs: (settings.poll_slow_s ?? 300) * 1000,
     });
+
+    // Populate read-only info settings with runtime values
+    try {
+      const uptimeSec = os.uptime();
+      const manifestName = this.homey.manifest.name as { en?: string } | string;
+      await this.setSettings({
+        info_app_version: String(this.homey.manifest.version ?? ''),
+        info_app_id: String(this.homey.manifest.id ?? ''),
+        info_app_name: String(
+          (manifestName as { en?: string })?.en ?? manifestName ?? '',
+        ),
+        info_homey_version: String(this.homey.version ?? ''),
+        info_homey_platform: String(this.homey.platform ?? 'local'),
+        info_homey_platform_version: String(this.homey.platformVersion ?? ''),
+        info_node_version: process.version,
+        info_platform: os.platform(),
+        info_arch: os.arch(),
+        info_uptime: `${Math.floor(uptimeSec / 3600)}h ${Math.floor((uptimeSec % 3600) / 60)}m`,
+      });
+      this.logger.info('Info settings populated');
+    } catch (error) {
+      this.logger.warn('Failed to populate info settings:', error);
+    }
   }
 
   async onSettings({ newSettings, changedKeys }: { newSettings: Partial<DeviceSettings>; changedKeys: string[] }) {

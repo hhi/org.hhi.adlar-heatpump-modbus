@@ -39,6 +39,8 @@ export class ServiceCoordinator {
   private serviceHealth = new Map<string, boolean>();
   private _lastDisconnectCountMs = 0;
   private healthCheckInterval: NodeJS.Timeout | null = null;
+  private _prevDefrosting = false;
+  private _defrostStartedAt: number | null = null;
 
   // Event handler references (prevent memory leaks)
   private onHealthDegradedHandler?: (data: { capability: string; healthData: unknown }) => void;
@@ -72,7 +74,7 @@ export class ServiceCoordinator {
       ...opts,
       onExternalPowerData: this.energyTracking.receiveExternalPowerData.bind(this.energyTracking),
       onExternalPricesData: async (prices: Record<string, number>) => {
-        this.adaptiveControl.getEnergyOptimizer().setExternalPrices(prices);
+        this.adaptiveControl.setExternalEnergyPrices(prices);
         await this.device.setStoreValue('external_energy_prices', prices);
         this.logger('ServiceCoordinator: External prices forwarded to AdaptiveControlService', {
           count: Object.keys(prices).length,
@@ -95,6 +97,7 @@ export class ServiceCoordinator {
     this.serviceHealth.set('flowcard', true);
     this.serviceHealth.set('adaptive', false);
 
+    this.energyTracking.setEnergyPriceOptimizer(this.adaptiveControl.getEnergyOptimizer());
     this.logger('ServiceCoordinator: Services created');
   }
 
@@ -142,6 +145,7 @@ export class ServiceCoordinator {
 
     this.onEnergyDailyResetHandler = () => {
       this.logger('ServiceCoordinator: Energy daily reset');
+      this.energyTracking.resetDailyCost();
     };
     this.device.on('energy:daily-reset', this.onEnergyDailyResetHandler);
   }
@@ -241,6 +245,20 @@ export class ServiceCoordinator {
     this.energyTracking.updateIntelligentPowerMeasurement().catch((e) => {
       this.logger('ServiceCoordinator: EnergyTracking update failed', e);
     });
+
+    // Detect defrost cycle end (true → false transition)
+    const defrosting = snapshot.status.defrosting;
+    if (defrosting && !this._prevDefrosting) {
+      this._defrostStartedAt = Date.now();
+    } else if (!defrosting && this._prevDefrosting && this._defrostStartedAt !== null) {
+      const durationSec = (Date.now() - this._defrostStartedAt) / 1000;
+      const outdoorTemp = snapshot.sensors.ambientT1?.value ?? 0;
+      this._defrostStartedAt = null;
+      this.adaptiveControl.onDefrostComplete(outdoorTemp, durationSec).catch((e) => {
+        this.logger('ServiceCoordinator: onDefrostComplete failed', e);
+      });
+    }
+    this._prevDefrosting = defrosting;
   }
 
   private _handleConnected(): void {
@@ -251,6 +269,7 @@ export class ServiceCoordinator {
       this.logger('ServiceCoordinator: setConnectionState(true) failed', e);
     });
     this._setConnectionCapabilities(true, null);
+    this.adaptiveControl.onConnectionRestored();
   }
 
   private _handleDisconnected(reason: string): void {
@@ -304,6 +323,9 @@ export class ServiceCoordinator {
     await this.settingsManager.onSettings(oldSettings, newSettings, changedKeys);
     if (this.energyTracking) {
       await this.energyTracking.onSettings(oldSettings, newSettings, changedKeys);
+    }
+    if (this.adaptiveControl) {
+      await this.adaptiveControl.onSettings(oldSettings, newSettings, changedKeys);
     }
   }
 
@@ -362,6 +384,9 @@ export class ServiceCoordinator {
       this.capabilityHealth.destroy();
       this.energyTracking.destroy();
       this.flowCardManager.destroy();
+      await this.adaptiveControl.saveEnergyOptimizerState().catch((e) => {
+        this.logger('ServiceCoordinator: saveEnergyOptimizerState failed', e);
+      });
       this.adaptiveControl.destroy();
       await this.modbusConnection.destroy();
     } catch (err) {
