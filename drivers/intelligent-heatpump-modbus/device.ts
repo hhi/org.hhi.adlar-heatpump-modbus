@@ -6,63 +6,17 @@ import Homey from 'homey';
 import { DataSnapshot } from '../../lib/modbus/adlar2-modbus-service';
 import { Logger, LogLevel } from '../../lib/logger';
 import { ServiceCoordinator } from '../../lib/services/service-coordinator';
+import {
+  heatingCurveToEnumId,
+  enumIdToHeatingCurve,
+  userModeToWorkModeId,
+  workModeIdToUserMode,
+  hotWaterCurveToEnumId,
+  enumIdToHotWaterCurve,
+} from '../../lib/modbus/adlar-enum-mappers';
+import { FAULT_DESCRIPTIONS } from '../../lib/modbus/adlar-fault-descriptions';
 import { RollingCOPCalculator, type COPDataPoint } from '../../lib/services/rolling-cop-calculator';
 import { SCOPCalculator, type COPMeasurement } from '../../lib/services/scop-calculator';
-
-// ============================================================================
-// FAULT CODE DESCRIPTIONS (48 codes)
-// ============================================================================
-
-const FAULT_DESCRIPTIONS: Record<string, string> = {
-  FAULT_1_BIT0: 'Phase sequence error / missing phase',
-  FAULT_1_BIT1: 'Water flow switch alarm',
-  FAULT_1_BIT2: 'High pressure alarm',
-  FAULT_1_BIT3: 'Low pressure alarm',
-  FAULT_1_BIT4: 'Compressor over-current alarm',
-  FAULT_1_BIT5: 'Module temperature alarm',
-  FAULT_1_BIT6: 'Ambient sensor (T1) alarm',
-  FAULT_1_BIT7: 'Outer coil sensor (T2) alarm',
-  FAULT_1_BIT8: 'Inner coil sensor (T3) alarm',
-  FAULT_1_BIT9: 'Suction sensor (T4) alarm',
-  FAULT_1_BIT10: 'Exhaust sensor (T5) alarm',
-  FAULT_1_BIT11: 'Water inlet sensor (T6) alarm',
-  FAULT_1_BIT12: 'Water outlet sensor (T7) alarm',
-  FAULT_1_BIT13: 'Economizer inlet (T8) alarm',
-  FAULT_1_BIT14: 'Economizer outlet (T9) alarm',
-  FAULT_1_BIT15: 'DHW tank sensor alarm',
-  FAULT_2_BIT0: 'Environment humidity alarm',
-  FAULT_2_BIT1: 'Plate heat exchanger sensor alarm',
-  FAULT_2_BIT2: 'Buffer tank sensor alarm',
-  FAULT_2_BIT3: 'Water pump 1 alarm',
-  FAULT_2_BIT4: 'Water pump 2 alarm',
-  FAULT_2_BIT5: 'Zone 1 mixing valve alarm',
-  FAULT_3_BIT0: 'Expansion board communication alarm',
-  FAULT_3_BIT1: 'Fan motor 1 alarm',
-  FAULT_3_BIT2: 'Fan motor 2 alarm',
-  FAULT_3_BIT3: 'Fan motor 3 alarm',
-  FAULT_3_BIT4: 'Fan motor 4 alarm',
-  FAULT_3_BIT5: 'Model mismatch alarm',
-  FAULT_3_BIT6: 'Controller communication alarm',
-  FAULT_3_BIT7: 'Zone 2 mixing valve alarm',
-  FAULT_3_BIT8: 'DHW return sensor alarm',
-  FAULT_3_BIT9: 'Total outlet sensor alarm',
-  FAULT_3_BIT10: 'Zone 1 mixing sensor alarm',
-  SYS1_FAULT_1_BIT0: 'Compressor high-temp protection',
-  SYS1_FAULT_1_BIT1: 'Compressor low-temp protection',
-  SYS1_FAULT_1_BIT2: 'Discharge high-pressure protection',
-  SYS1_FAULT_1_BIT3: 'Suction low-pressure protection',
-  SYS1_FAULT_1_BIT4: 'Compressor over-current protection',
-  SYS1_FAULT_1_BIT5: 'IPM over-temperature protection',
-  SYS1_FAULT_1_BIT6: 'AC input over-voltage protection',
-  SYS1_FAULT_1_BIT7: 'AC input under-voltage protection',
-  SYS1_FAULT_1_BIT8: 'DC bus over-voltage protection',
-  SYS1_FAULT_1_BIT9: 'DC bus under-voltage protection',
-  SYS1_FAULT_1_BIT10: 'Compressor start failure',
-  SYS1_FAULT_1_BIT11: 'Communication alarm (controller)',
-  SYS1_FAULT_1_BIT12: 'Phase current imbalance',
-  SYS1_FAULT_1_BIT13: 'Drive over-current alarm',
-  SYS1_FAULT_1_BIT14: 'Ground fault alarm',
-};
 
 // ============================================================================
 // DEVICE SETTINGS
@@ -115,93 +69,6 @@ class AdlarModbusDevice extends Homey.Device {
 
     this._initCOPCalculators();
     await this._restoreCOPData();
-
-    // Migration: Add Fase 3/4 capabilities to existing devices
-    const newCapabilities = [
-      // Fase 4 — Adaptive Control
-      'adlar_simulated_target',
-      'target_temperature.indoor',
-      'measure_temperature.indoor',
-      // Fase 3 — Connection status
-      'adlar_connection_status',
-      'adlar_connection_active',
-      'adlar_daily_disconnect_count',
-      // Fase 3 — COP/SCOP
-      'adlar_cop_daily',
-      'adlar_cop_weekly',
-      'adlar_cop_monthly',
-      'adlar_cop_trend',
-      'adlar_cop_method',
-      'adlar_scop',
-      'adlar_scop_quality',
-      // Fase 3 — External sensors
-      'adlar_external_power',
-      'adlar_external_flow',
-      'adlar_external_ambient',
-      'adlar_external_solar_power',
-      'adlar_external_solar_radiation',
-      'adlar_external_wind_speed',
-      'adlar_external_indoor_temperature',
-      'adlar_external_energy_daily',
-      'adlar_external_energy_total',
-      'adlar_last_indoor_temp_received',
-      'adlar_last_outdoor_temp_received',
-      'adlar_last_solar_power_received',
-      'adlar_last_solar_radiation_received',
-      'adlar_last_wind_received',
-      // Fase 3 — Energy pricing
-      'adlar_energy_price_current',
-      'adlar_energy_price_next',
-      'adlar_energy_price_category',
-      'adlar_price_forecast_4h',
-      'adlar_price_forecast_24h',
-      'adlar_cheapest_block_start',
-      'adlar_price_savings_potential',
-      'adlar_energy_cost_daily',
-      'adlar_energy_cost_hourly',
-      'energy_prices_data',
-      // Fase 4 — Adaptive outputs
-      'adlar_forecast_advice',
-      'adlar_forecast_cop_correction',
-      'adlar_optimal_delay',
-      'adlar_building_ua',
-      'adlar_building_tau',
-      'adlar_building_g',
-      'adlar_building_c',
-      'adlar_building_pint',
-      'building_model_diagnostics',
-      'cop_optimizer_diagnostics',
-      'adaptive_control_diagnostics',
-      'building_insight_insulation',
-      'building_insight_preheating',
-      'building_insight_profile',
-      'building_insight_thermal_storage',
-      'building_insights_diagnostics',
-      'adlar_performance_report',
-      'adlar_performance_score',
-      // Status / diagnostics
-      'adlar_state_compressor_state',
-      'adlar_state_defrost_state',
-      'adlar_state_backwater',
-      'defrost_active_power',
-      'adlar_defrost_count_24h',
-      'adlar_defrost_minutes_24h',
-      'adlar_openmeteo_last_fetch',
-      'adlar_hotwater',
-      'adlar_fault',
-      'heating_curve_formula',
-      'heating_curve_slope',
-      'heating_curve_intercept',
-      'heating_curve_ref_outdoor',
-      'heating_curve_ref_temp',
-    ];
-    for (const cap of newCapabilities) {
-      if (!this.hasCapability(cap)) {
-        // eslint-disable-next-line no-await-in-loop
-        await this.addCapability(cap).catch((e: Error) => this.logger.warn(`Migration: Failed to add ${cap}:`, e.message));
-        this.logger.info(`Migration: Added ${cap} capability`);
-      }
-    }
 
     this.coordinator = new ServiceCoordinator({
       device: this,
@@ -316,6 +183,7 @@ class AdlarModbusDevice extends Homey.Device {
 
   // ── Snapshot → Capabilities (called by ServiceCoordinator) ────────────────
 
+
   /**
    * Called by ServiceCoordinator._handleModbusData() when new data arrives.
    */
@@ -334,6 +202,9 @@ class AdlarModbusDevice extends Homey.Device {
     set('adlar_hotwater', snap.control.dhwSetpointC);
     set('target_temperature.floor', snap.control.floorSetpointC);
     set('adlar_mode', String(snap.control.mode));
+    set('adlar_enum_countdown_set', heatingCurveToEnumId(snap.control.heatingCurve));
+    set('adlar_enum_work_mode', userModeToWorkModeId(snap.control.userMode));
+    set('adlar_enum_capacity_set', hotWaterCurveToEnumId(snap.control.hotWaterCurve));
 
     // Status
     set('adlar_defrosting', snap.status.defrosting);
@@ -389,6 +260,7 @@ class AdlarModbusDevice extends Homey.Device {
     set('adlar_comp_target_freq', s.compTargetFreq?.value);
     set('adlar_fan_speed', s.fanSpeed?.value);
     set('adlar_eev_step', s.eevStep?.value);
+    set('adlar_evi_step', s.eviStep?.value);
     set('adlar_pump_pwm', s.pumpPwm?.value);
     set('adlar_water_flow', s.waterFlow?.value);
 
@@ -408,6 +280,7 @@ class AdlarModbusDevice extends Homey.Device {
         ? faults.map((f: string) => FAULT_DESCRIPTIONS[f] ?? f).join('; ')
         : '',
     );
+
   }
 
   // ── COP Calculators ────────────────────────────────────────────────────────
@@ -415,6 +288,10 @@ class AdlarModbusDevice extends Homey.Device {
   private _initCOPCalculators(): void {
     this.rollingCOP = new RollingCOPCalculator({
       logger: (msg, ...args) => this.logger.debug(msg, ...args),
+      device: {
+        triggerFlowCard: (cardId, tokens, state) => this.triggerFlowCard(cardId, tokens, state),
+        getCapabilityValue: (capability) => this.getCapabilityValue(capability),
+      },
     });
     this.scopCalc = new SCOPCalculator(this);
     this.logger.debug('COP calculators initialized');
@@ -541,6 +418,12 @@ class AdlarModbusDevice extends Homey.Device {
       this.coordinator.getAdaptiveControl().storeTargetValue(value).catch(() => {});
     });
 
+    this.registerCapabilityListener('target_temperature.indoor', async (value: number) => {
+      this.logger.debug('Set indoor temperature setpoint:', value);
+      if (!this.coordinator) return;
+      await this.coordinator.setTemperature('indoor', value);
+    });
+
     this.registerCapabilityListener('target_temperature.cooling', async (value: number) => {
       this.logger.debug('Set cooling setpoint:', value);
       if (!this.coordinator) return;
@@ -564,7 +447,42 @@ class AdlarModbusDevice extends Homey.Device {
       if (!this.coordinator) return;
       await this.coordinator.setTemperature('dhw', value);
     });
+
+    this.registerCapabilityListener('adlar_enum_countdown_set', async (value: string) => {
+      this.logger.debug('Set heating curve:', value);
+      if (!this.coordinator) return;
+      await this.coordinator.setHeatingCurve(enumIdToHeatingCurve(value));
+    });
+
+    this.registerCapabilityListener('adlar_enum_work_mode', async (value: string) => {
+      this.logger.debug('Set work mode:', value);
+      if (!this.coordinator) return;
+      await this.coordinator.setUserMode(workModeIdToUserMode(value));
+    });
+
+    this.registerCapabilityListener('adlar_enum_capacity_set', async (value: string) => {
+      this.logger.debug('Set hot water curve:', value);
+      if (!this.coordinator) return;
+      await this.coordinator.setHotWaterCurve(enumIdToHotWaterCurve(value));
+    });
   }
+
+  // ── Flow card trigger hook ─────────────────────────────────────────────────
+
+  async triggerFlowCard(
+    cardId: string,
+    tokens: Record<string, unknown>,
+    state?: Record<string, unknown>,
+  ): Promise<void> {
+    try {
+      const card = this.homey.flow.getDeviceTriggerCard(cardId);
+      await card.trigger(this, tokens, state ?? {});
+      this.logger.debug('triggerFlowCard:', cardId, tokens);
+    } catch (err) {
+      this.logger.warn('triggerFlowCard failed:', cardId, (err as Error).message);
+    }
+  }
+
 }
 
 module.exports = AdlarModbusDevice;

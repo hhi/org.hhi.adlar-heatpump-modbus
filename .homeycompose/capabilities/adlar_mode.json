@@ -10,11 +10,12 @@
   "getable": true,
   "setable": true,
   "values": [
-    { "id": "0", "title": { "en": "Heating", "nl": "Verwarming" } },
-    { "id": "1", "title": { "en": "Cooling", "nl": "Koeling" } },
-    { "id": "3", "title": { "en": "DHW", "nl": "Warmwater" } },
-    { "id": "4", "title": { "en": "Heating + DHW", "nl": "Verwarming + Warmwater" } },
-    { "id": "5", "title": { "en": "Cooling + DHW", "nl": "Koeling + Warmwater" } },
-    { "id": "7", "title": { "en": "Auto", "nl": "Automatisch" } }
+    { "id": "0", "title": { "en": "Cooling", "nl": "Koeling" } },
+    { "id": "1", "title": { "en": "Heating", "nl": "Verwarming" } },
+    { "id": "2", "title": { "en": "Hot Water", "nl": "Warmwater" } },
+    { "id": "3", "title": { "en": "Floor Heating", "nl": "Vloerverwarming" } },
+    { "id": "4", "title": { "en": "Cooling + Hot Water", "nl": "Koeling + Warmwater" } },
+    { "id": "5", "title": { "en": "Heating + Hot Water", "nl": "Verwarming + Warmwater" } },
+    { "id": "7", "title": { "en": "Floor Heating + Hot Water", "nl": "Vloerverwarming + Warmwater" } }
   ]
 }

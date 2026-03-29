@@ -8,6 +8,9 @@ import { calculatePreHeatDuration } from '../utils/preheat-calculator';
 import { CapabilityCategories, UserFlowPreferences } from '../types/shared-interfaces';
 import type { BuildingInsightsService } from './building-insights-service';
 import { PerformanceReportService } from './performance-report-service';
+import { CurveCalculator } from '../curve-calculator';
+import { TimeScheduleCalculator } from '../time-schedule-calculator';
+import { SeasonalModeCalculator } from '../seasonal-mode-calculator';
 
 /* eslint-disable camelcase */
 interface PreHeatArgs {
@@ -153,6 +156,12 @@ export class FlowCardManagerService {
 
       // Register external data action cards (v2.6.1 - consolidates from device.ts)
       await this.registerExternalDataActionCards();
+
+      // Register device control action cards (set_heating_mode, set_heating_curve)
+      await this.registerDeviceControlActionCards();
+
+      // Register calculator action cards
+      await this.registerCalculatorActionCards();
 
       // Register Performance Report action card (v2.9.0)
       await this.registerPerformanceReportCard();
@@ -363,50 +372,46 @@ export class FlowCardManagerService {
       });
       this.flowCardListeners.set('hotwater_temperature_is', hotWaterTempListener);
 
-      // Heating mode condition
+      // Heating mode condition — maps flow card string IDs to adlar_mode numeric strings (0x0304)
+      const HEATING_MODE_TO_NUMBER: Record<string, string> = {
+        cold: '0',
+        heating: '1',
+        hot_water: '2',
+        floor_heating: '3',
+        cold_and_hotwater: '4',
+        heating_and_hot_water: '5',
+        floor_heatign_and_hot_water: '7',
+      };
       const heatingModeCard = this.device.homey.flow.getConditionCard('heating_mode_is');
       const heatingModeListener = heatingModeCard.registerRunListener(async (args) => {
         this.logger('FlowCardManagerService: Heating mode condition triggered', { args });
-        const currentValue = this.device.getCapabilityValue('adlar_enum_mode');
-        return currentValue === args.mode;
+        const currentValue = this.device.getCapabilityValue('adlar_mode');
+        const expectedValue = HEATING_MODE_TO_NUMBER[args.mode as string];
+        return currentValue === expectedValue;
       });
       this.flowCardListeners.set('heating_mode_is', heatingModeListener);
 
-      // Work mode condition
+      // Work mode condition — reads adlar_enum_work_mode (register 0x0307)
       const workModeCard = this.device.homey.flow.getConditionCard('work_mode_is');
       const workModeListener = workModeCard.registerRunListener(async (args) => {
-        this.logger('FlowCardManagerService: Work mode condition triggered', { args });
         const currentValue = this.device.getCapabilityValue('adlar_enum_work_mode');
-        return currentValue === args.mode;
+        return currentValue === (args as Record<string, string>).mode;
       });
       this.flowCardListeners.set('work_mode_is', workModeListener);
 
-      // Water mode condition
+      // Water mode condition — not available in Modbus driver (no equivalent register wired)
       const waterModeCard = this.device.homey.flow.getConditionCard('water_mode_is');
-      const waterModeListener = waterModeCard.registerRunListener(async (args) => {
-        this.logger('FlowCardManagerService: Water mode condition triggered', { args });
-        const currentValue = this.device.getCapabilityValue('adlar_enum_water_mode') || 0;
-        const targetValue = args.mode || 0;
-
-        switch (args.comparison) {
-          case 'equal':
-            return currentValue === targetValue;
-          case 'greater':
-            return currentValue > targetValue;
-          case 'less':
-            return currentValue < targetValue;
-          default:
-            return false;
-        }
+      const waterModeListener = waterModeCard.registerRunListener(async () => {
+        this.logger('FlowCardManagerService: water_mode_is condition not supported in Modbus driver');
+        throw new Error('Water mode condition is not supported by this device');
       });
       this.flowCardListeners.set('water_mode_is', waterModeListener);
 
-      // Capacity setting condition
+      // Capacity setting condition — reads adlar_enum_capacity_set (register 0x0315)
       const capacitySettingCard = this.device.homey.flow.getConditionCard('capacity_setting_is');
       const capacitySettingListener = capacitySettingCard.registerRunListener(async (args) => {
-        this.logger('FlowCardManagerService: Capacity setting condition triggered', { args });
         const currentValue = this.device.getCapabilityValue('adlar_enum_capacity_set');
-        return currentValue === args.capacity;
+        return currentValue === (args as Record<string, string>).capacity;
       });
       this.flowCardListeners.set('capacity_setting_is', capacitySettingListener);
 
@@ -419,23 +424,11 @@ export class FlowCardManagerService {
       });
       this.flowCardListeners.set('heating_curve_is', heatingCurveListener);
 
-      // Volume setting condition
+      // Volume setting condition — not available in Modbus driver (no equivalent register wired)
       const volumeSettingCard = this.device.homey.flow.getConditionCard('volume_setting_is');
-      const volumeSettingListener = volumeSettingCard.registerRunListener(async (args) => {
-        this.logger('FlowCardManagerService: Volume setting condition triggered', { args });
-        const currentValue = this.device.getCapabilityValue('adlar_enum_volume_set') || 0;
-        const targetValue = args.level || 0;
-
-        switch (args.comparison) {
-          case 'equal':
-            return currentValue === targetValue;
-          case 'greater':
-            return currentValue > targetValue;
-          case 'less':
-            return currentValue < targetValue;
-          default:
-            return false;
-        }
+      const volumeSettingListener = volumeSettingCard.registerRunListener(async () => {
+        this.logger('FlowCardManagerService: volume_setting_is condition not supported in Modbus driver');
+        throw new Error('Volume setting condition is not supported by this device');
       });
       this.flowCardListeners.set('volume_setting_is', volumeSettingListener);
 
@@ -1226,6 +1219,170 @@ export class FlowCardManagerService {
       this.logger('FlowCardManagerService: External data action cards registered (8 cards)');
     } catch (error) {
       this.logger('FlowCardManagerService: Error registering external data action cards:', error);
+    }
+  }
+
+  /**
+   * Register device control action cards.
+   * Uses triggerCapabilityListener so the existing capability listeners in device.ts
+   * handle the Modbus write (0x0304 for mode, 0x0314 for heating curve).
+   * Unsupported legacy cards get an explicit error handler so Homey does not
+   * surface a generic "[object Object]" execution error.
+   */
+  private async registerDeviceControlActionCards(): Promise<void> {
+    try {
+      // Mapping from flow card dropdown ID to register 0x0304 value (MODE_OPTIONS)
+      const HEATING_MODE_MAP: Record<string, number> = {
+        cold: 0,
+        heating: 1,
+        hot_water: 2,
+        floor_heating: 3,
+        cold_and_hotwater: 4,
+        heating_and_hot_water: 5,
+        floor_heatign_and_hot_water: 7,
+      };
+
+      // set_heating_mode: maps dropdown ID → adlar_mode capability (numeric string)
+      const setHeatingModeCard = this.device.homey.flow.getActionCard('set_heating_mode');
+      const setHeatingModeListener = setHeatingModeCard.registerRunListener(async (args: { mode: string }) => {
+        this.logger('FlowCardManagerService: set_heating_mode triggered', { mode: args.mode });
+        const modeValue = HEATING_MODE_MAP[args.mode];
+        if (modeValue === undefined) {
+          throw new Error(`Unknown heating mode: ${args.mode}`);
+        }
+        await this.device.triggerCapabilityListener('adlar_mode', String(modeValue), {});
+        return true;
+      });
+      this.flowCardListeners.set('set_heating_mode', setHeatingModeListener);
+
+      // set_heating_curve: passes enum ID directly to adlar_enum_countdown_set capability
+      const setHeatingCurveCard = this.device.homey.flow.getActionCard('set_heating_curve');
+      const setHeatingCurveListener = setHeatingCurveCard.registerRunListener(async (args: { curve: string }) => {
+        this.logger('FlowCardManagerService: set_heating_curve triggered', { curve: args.curve });
+        await this.device.triggerCapabilityListener('adlar_enum_countdown_set', args.curve, {});
+        return true;
+      });
+      this.flowCardListeners.set('set_heating_curve', setHeatingCurveListener);
+
+      // set_device_onoff: dropdown gives "on"/"off" string, onoff capability expects boolean
+      const setDeviceOnoffCard = this.device.homey.flow.getActionCard('set_device_onoff');
+      const setDeviceOnoffListener = setDeviceOnoffCard.registerRunListener(async (args: { state: string }) => {
+        this.logger('FlowCardManagerService: set_device_onoff triggered', { state: args.state });
+        await this.device.triggerCapabilityListener('onoff', args.state === 'on', {});
+        return true;
+      });
+      this.flowCardListeners.set('set_device_onoff', setDeviceOnoffListener);
+
+      // set_desired_indoor_temperature: no capability listener for target_temperature.indoor, call coordinator directly
+      const setIndoorTempCard = this.device.homey.flow.getActionCard('set_desired_indoor_temperature');
+      const setIndoorTempListener = setIndoorTempCard.registerRunListener(async (args: { temperature: number }) => {
+        this.logger('FlowCardManagerService: set_desired_indoor_temperature triggered', { temperature: args.temperature });
+        await this.device.triggerCapabilityListener('target_temperature.indoor', args.temperature, {});
+        return true;
+      });
+      this.flowCardListeners.set('set_desired_indoor_temperature', setIndoorTempListener);
+
+      const setWaterModeCard = this.device.homey.flow.getActionCard('set_water_mode');
+      const setWaterModeListener = setWaterModeCard.registerRunListener(async () => {
+        this.logger('FlowCardManagerService: set_water_mode action not supported in Modbus driver');
+        throw new Error('Water mode action is not supported by this device');
+      });
+      this.flowCardListeners.set('set_water_mode', setWaterModeListener);
+
+      const setVolumeCard = this.device.homey.flow.getActionCard('set_volume');
+      const setVolumeListener = setVolumeCard.registerRunListener(async () => {
+        this.logger('FlowCardManagerService: set_volume action not supported in Modbus driver');
+        throw new Error('Volume action is not supported by this device');
+      });
+      this.flowCardListeners.set('set_volume', setVolumeListener);
+
+      this.logger('FlowCardManagerService: Device control action cards registered (set_heating_mode, set_heating_curve, set_water_mode unsupported, set_volume unsupported)');
+    } catch (error) {
+      this.logger('FlowCardManagerService: Error registering device control action cards:', error);
+    }
+  }
+
+  /**
+   * Register calculator action cards: calculate_curve_value, calculate_linear_heating_curve,
+   * calculate_time_based_value, get_seasonal_mode.
+   * These are pure-calculation cards with no device state dependency.
+   */
+  private async registerCalculatorActionCards(): Promise<void> {
+    try {
+      // calculate_curve_value: maps input_value + curve rules → result_value token
+      const curveCard = this.device.homey.flow.getActionCard('calculate_curve_value');
+      const curveListener = curveCard.registerRunListener(async (args: { input_value: string | number; curve: string }) => {
+        this.logger('FlowCardManagerService: calculate_curve_value triggered');
+        let inputValue: number;
+        if (typeof args.input_value === 'number') {
+          inputValue = args.input_value;
+        } else {
+          inputValue = parseFloat(args.input_value);
+        }
+        if (Number.isNaN(inputValue) || !Number.isFinite(inputValue)) {
+          throw new Error(`Input value must be a valid number (received: "${args.input_value}")`);
+        }
+        const resultValue = CurveCalculator.evaluate(inputValue, args.curve);
+        return { result_value: resultValue };
+      });
+      this.flowCardListeners.set('calculate_curve_value', curveListener);
+
+      // calculate_linear_heating_curve: L28/L29 stooklijn berekening
+      const linearCurveCard = this.device.homey.flow.getActionCard('calculate_linear_heating_curve');
+      const linearCurveListener = linearCurveCard.registerRunListener(async (args: {
+        outdoor_temp: string | number;
+        reference_temp: number;
+        slope_grade: number;
+      }) => {
+        this.logger('FlowCardManagerService: calculate_linear_heating_curve triggered');
+        let outdoorTemp: number;
+        if (typeof args.outdoor_temp === 'number') {
+          outdoorTemp = args.outdoor_temp;
+        } else {
+          outdoorTemp = parseFloat(args.outdoor_temp);
+        }
+        if (Number.isNaN(outdoorTemp) || !Number.isFinite(outdoorTemp)) {
+          throw new Error(`Outdoor temperature must be a valid number (received: "${args.outdoor_temp}")`);
+        }
+        const slope = args.slope_grade / 10;
+        const intercept = args.reference_temp - (slope * -15);
+        const supplyTemperature = Math.round((slope * outdoorTemp + intercept) * 10) / 10;
+        const roundedSlope = Math.round(slope * 100) / 100;
+        const roundedIntercept = Math.round(intercept * 100) / 100;
+        const formula = `y = ${roundedSlope}x + ${roundedIntercept}`;
+        return { supply_temperature: supplyTemperature, formula };
+      });
+      this.flowCardListeners.set('calculate_linear_heating_curve', linearCurveListener);
+
+      // calculate_time_based_value: tijdschema evaluatie → result_value token
+      const timeCard = this.device.homey.flow.getActionCard('calculate_time_based_value');
+      const timeListener = timeCard.registerRunListener(async (args: { schedule: string }) => {
+        this.logger('FlowCardManagerService: calculate_time_based_value triggered');
+        if (!args.schedule || args.schedule.trim() === '') {
+          throw new Error('Schedule definition cannot be empty');
+        }
+        const resultValue = TimeScheduleCalculator.evaluate(args.schedule);
+        return { result_value: resultValue };
+      });
+      this.flowCardListeners.set('calculate_time_based_value', timeListener);
+
+      // get_seasonal_mode: retourneert seizoensmodus op basis van datum
+      const seasonCard = this.device.homey.flow.getActionCard('get_seasonal_mode');
+      const seasonListener = seasonCard.registerRunListener(async () => {
+        this.logger('FlowCardManagerService: get_seasonal_mode triggered');
+        const result = SeasonalModeCalculator.getCurrentSeason();
+        return {
+          mode: result.mode,
+          is_heating_season: result.isHeatingSeason,
+          is_cooling_season: result.isCoolingSeason,
+          days_until_season_change: result.daysUntilSeasonChange,
+        };
+      });
+      this.flowCardListeners.set('get_seasonal_mode', seasonListener);
+
+      this.logger('FlowCardManagerService: Calculator action cards registered (4 cards)');
+    } catch (error) {
+      this.logger('FlowCardManagerService: Error registering calculator action cards:', error);
     }
   }
 

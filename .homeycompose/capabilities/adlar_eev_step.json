@@ -5,7 +5,7 @@
     "en": "EEV opening steps",
     "nl": "EEV-openingsstappen"
   },
-  "icon": "/assets/adlar-icon-white.svg",
+  "icon": "/assets/pulse-steps.svg",
   "uiComponent": "sensor",
   "getable": true,
   "setable": false,

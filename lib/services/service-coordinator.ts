@@ -9,6 +9,7 @@ import { EnergyTrackingService } from './energy-tracking-service';
 import { ModbusConnectionService, ModbusConnectionConfig } from './modbus-connection-service';
 import { FlowCardManagerService } from './flow-card-manager-service';
 import { AdaptiveControlService } from './adaptive-control-service';
+import { SnapshotTriggerService } from './snapshot-trigger-service';
 import { DataSnapshot } from '../modbus/adlar2-modbus-service';
 
 export interface ServiceCoordinatorOptions {
@@ -34,6 +35,7 @@ export class ServiceCoordinator {
   private modbusConnection!: ModbusConnectionService;
   private flowCardManager!: FlowCardManagerService;
   private adaptiveControl!: AdaptiveControlService;
+  private snapshotTrigger!: SnapshotTriggerService;
 
   // Service state
   private serviceHealth = new Map<string, boolean>();
@@ -82,6 +84,8 @@ export class ServiceCoordinator {
         });
       },
     });
+
+    this.snapshotTrigger = new SnapshotTriggerService();
 
     this.modbusConnection = new ModbusConnectionService({
       ...opts,
@@ -237,6 +241,16 @@ export class ServiceCoordinator {
       device.applyModbusSnapshot(snapshot);
     }
 
+    // Detect snapshot changes and fire flow card triggers
+    const triggerDevice = this.device as unknown as {
+      triggerFlowCard?: (cardId: string, tokens: Record<string, unknown>, state: Record<string, unknown>) => void;
+    };
+    if (typeof triggerDevice.triggerFlowCard === 'function') {
+      this.snapshotTrigger.detect(snapshot, (cardId, tokens, state) => {
+        triggerDevice.triggerFlowCard!(cardId, tokens, state);
+      });
+    }
+
     // Update capability health for key sensors
     this.capabilityHealth.updateCapabilityHealth('measure_temperature', snapshot.sensors.outletT7?.value);
     this.capabilityHealth.updateCapabilityHealth('measure_power', snapshot.power.inputPowerKw * 1000);
@@ -366,6 +380,18 @@ export class ServiceCoordinator {
 
   async setMode(mode: number): Promise<void> {
     return this.modbusConnection.setMode(mode);
+  }
+
+  async setHeatingCurve(curve: number): Promise<void> {
+    return this.modbusConnection.setHeatingCurve(curve);
+  }
+
+  async setHotWaterCurve(curve: number): Promise<void> {
+    return this.modbusConnection.setHotWaterCurve(curve);
+  }
+
+  async setUserMode(mode: 0 | 1 | 2): Promise<void> {
+    return this.modbusConnection.setUserMode(mode);
   }
 
   isConnected(): boolean {
