@@ -2,7 +2,7 @@
 
 **Status:** Voorstel
 **Datum:** 2026-03-28
-**Gerelateerd:** [ADR-012 Flow Card Runtime Alignering](ADR-012-modbus-flow-card-runtime-alignment.md), [capability-dps-vs-modbus-mapping](../../docs/Dev%20support/capability-dps-vs-modbus-mapping.md), [flow-card-dps-vs-modbus-mapping](../../docs/Dev%20support/flow-card-dps-vs-modbus-mapping.md), [sensor-capability-dps-vs-modbus-titles](../../docs/Dev%20support/sensor-capability-dps-vs-modbus-titles.md)
+**Gerelateerd:** [ADR-012 Flow Card Runtime Alignering](ADR-012-modbus-flow-card-runtime-alignment.md), [capability-dps-vs-modbus-mapping](/docs/Dev%20support/capability-dps-vs-modbus-mapping.md), [flow-card-dps-vs-modbus-mapping](/docs/Dev%20support/flow-card-dps-vs-modbus-mapping.md), [sensor-capability-dps-vs-modbus-titles](/docs/Dev%20support/sensor-capability-dps-vs-modbus-titles.md)
 
 ---
 

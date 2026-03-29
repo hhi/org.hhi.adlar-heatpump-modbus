@@ -1,0 +1,100 @@
+{
+  "id": "adlar_enum_countdown_set",
+  "title": {
+    "en": "Heating curve setting",
+    "nl": "Verwarmingscurve (stooklijn) instelling",
+    "de": "Heizkurveneinstellung",
+    "fr": "Paramètre de courbe de chauffage"
+  },
+  "type": "enum",
+  "values": [
+    {
+      "id": "OFF",
+      "title": {
+        "en": "OFF",
+        "nl": "UIT",
+        "de": "AUS",
+        "fr": "ARRÊT"
+      }
+    },
+    {
+      "id": "H1",
+      "title": { "en": "H1", "nl": "H1" }
+    },
+    {
+      "id": "H2",
+      "title": { "en": "H2", "nl": "H2" }
+    },
+    {
+      "id": "H3",
+      "title": { "en": "H3", "nl": "H3" }
+    },
+    {
+      "id": "H4",
+      "title": { "en": "H4", "nl": "H4" }
+    },
+    {
+      "id": "H5",
+      "title": { "en": "H5", "nl": "H5" }
+    },
+    {
+      "id": "H6",
+      "title": { "en": "H6", "nl": "H6" }
+    },
+    {
+      "id": "H7",
+      "title": { "en": "H7", "nl": "H7" }
+    },
+    {
+      "id": "H8",
+      "title": { "en": "H8", "nl": "H8" }
+    },
+    {
+      "id": "L1",
+      "title": { "en": "L1", "nl": "L1" }
+    },
+    {
+      "id": "L2",
+      "title": { "en": "L2", "nl": "L2" }
+    },
+    {
+      "id": "L3",
+      "title": { "en": "L3", "nl": "L3" }
+    },
+    {
+      "id": "L4",
+      "title": { "en": "L4", "nl": "L4" }
+    },
+    {
+      "id": "L5",
+      "title": { "en": "L5", "nl": "L5" }
+    },
+    {
+      "id": "L6",
+      "title": { "en": "L6", "nl": "L6" }
+    },
+    {
+      "id": "L7",
+      "title": { "en": "L7", "nl": "L7" }
+    },
+    {
+      "id": "L8",
+      "title": {
+        "en": "L8 - custom curve",
+        "nl": "L8 - aangepaste curve",
+        "de": "L8 - benutzerdefinierte Kurve",
+        "fr": "L8 - courbe personnalisée"
+      }
+    }
+  ],
+  "getable": true,
+  "setable": true,
+  "uiComponent": "sensor",
+  "icon": "/assets/heating-curve.svg",
+  "description": {
+    "en": "Register 0x0314: Active heating curve setting (H1–H8 high temp, L1–L8 low temp, OFF = disabled)",
+    "nl": "Register 0x0314: Actieve verwarmingscurve instelling (H1–H8 hoog temp, L1–L8 laag temp, UIT = uitgeschakeld)",
+    "de": "Register 0x0314: Aktive Heizkurveneinstellung (H1–H8 Hochtemperatur, L1–L8 Niedertemperatur, AUS = deaktiviert)",
+    "fr": "Registre 0x0314 : Réglage de la courbe de chauffage active (H1–H8 haute temp, L1–L8 basse temp, ARRÊT = désactivé)"
+  }
+}

@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "org.hhi.adlar-heatpump-modbus",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "compatibility": ">=12.2.0",
   "sdk": 3,
   "platforms": [
@@ -2213,22 +2213,22 @@
       {
         "id": "heating_mode_changed",
         "title": {
-          "en": "Heating mode changed",
-          "nl": "Verwarmingsmodus gewijzigd",
-          "de": "Heizmodus geändert",
-          "fr": "Mode de chauffage changé"
+          "en": "Operating mode changed",
+          "nl": "Bedrijfsmodus gewijzigd",
+          "de": "Betriebsmodus geändert",
+          "fr": "Mode de fonctionnement changé"
         },
         "titleFormatted": {
-          "en": "Heating mode changed to [[mode]]",
-          "nl": "Verwarmingsmodus gewijzigd naar [[mode]]",
-          "de": "Heizmodus zu [[mode]] geändert",
-          "fr": "Mode de chauffage changé à [[mode]]"
+          "en": "Operating mode changed to [[mode]]",
+          "nl": "Bedrijfsmodus gewijzigd naar [[mode]]",
+          "de": "Betriebsmodus zu [[mode]] geändert",
+          "fr": "Mode de fonctionnement changé à [[mode]]"
         },
         "hint": {
-          "en": "Triggers when the heating mode changes",
-          "nl": "Wordt geactiveerd wanneer de verwarmingsmodus wijzigt",
-          "de": "Wird ausgelöst, wenn sich der Heizmodus ändert",
-          "fr": "Se déclenche lorsque le mode de chauffage change"
+          "en": "Triggers when the operating mode changes",
+          "nl": "Wordt geactiveerd wanneer de bedrijfsmodus wijzigt",
+          "de": "Wird ausgelöst, wenn sich der Betriebsmodus ändert",
+          "fr": "Se déclenche lorsque le mode de fonctionnement change"
         },
         "highlight": true,
         "args": [
@@ -2243,10 +2243,10 @@
             "type": "string",
             "name": "mode",
             "title": {
-              "en": "Heating mode",
-              "nl": "Verwarmingsmodus",
-              "de": "Heizmodus",
-              "fr": "Mode de chauffage"
+              "en": "Operating mode",
+              "nl": "Bedrijfsmodus",
+              "de": "Betriebsmodus",
+              "fr": "Mode de fonctionnement"
             },
             "example": "heating"
           },
@@ -2254,12 +2254,12 @@
             "type": "string",
             "name": "previous_mode",
             "title": {
-              "en": "Previous heating mode",
-              "nl": "Vorige verwarmingsmodus",
-              "de": "Vorheriger Heizmodus",
-              "fr": "Mode de chauffage précédent"
+              "en": "Previous operating mode",
+              "nl": "Vorige bedrijfsmodus",
+              "de": "Vorheriger Betriebsmodus",
+              "fr": "Mode de fonctionnement précédent"
             },
-            "example": "cold"
+            "example": "cooling"
           }
         ]
       },
@@ -4610,22 +4610,22 @@
       {
         "id": "heating_mode_is",
         "title": {
-          "en": "Heating mode is",
-          "nl": "Verwarmingsmodus is",
-          "de": "Heizmodus ist",
-          "fr": "Le mode de chauffage est"
+          "en": "Operating mode is",
+          "nl": "Bedrijfsmodus is",
+          "de": "Betriebsmodus ist",
+          "fr": "Le mode de fonctionnement est"
         },
         "titleFormatted": {
-          "en": "Heating mode !{{is|is not}} [[mode]]",
-          "nl": "Verwarmingsmodus !{{is|is niet}} [[mode]]",
-          "de": "Heizmodus !{{ist|ist nicht}} [[mode]]",
-          "fr": "Le mode de chauffage !{{est|n'est pas}} [[mode]]"
+          "en": "Operating mode !{{is|is not}} [[mode]]",
+          "nl": "Bedrijfsmodus !{{is|is niet}} [[mode]]",
+          "de": "Betriebsmodus !{{ist|ist nicht}} [[mode]]",
+          "fr": "Le mode de fonctionnement !{{est|n'est pas}} [[mode]]"
         },
         "hint": {
-          "en": "Check if the heating mode matches the selected mode",
-          "nl": "Controleer of de verwarmingsmodus overeenkomt met de geselecteerde modus",
-          "de": "Prüfen Sie, ob der Heizmodus mit dem ausgewählten Modus übereinstimmt",
-          "fr": "Vérifier si le mode de chauffage correspond au mode sélectionné"
+          "en": "Check if the operating mode matches the selected mode",
+          "nl": "Controleer of de bedrijfsmodus overeenkomt met de geselecteerde modus",
+          "de": "Prüfen Sie, ob der Betriebsmodus mit dem ausgewählten Modus übereinstimmt",
+          "fr": "Vérifier si le mode de fonctionnement correspond au mode sélectionné"
         },
         "args": [
           {
@@ -4637,26 +4637,26 @@
             "type": "dropdown",
             "name": "mode",
             "title": {
-              "en": "Heating mode",
-              "nl": "Verwarmingsmodus",
-              "de": "Heizmodus",
-              "fr": "Mode de chauffage"
+              "en": "Operating mode",
+              "nl": "Bedrijfsmodus",
+              "de": "Betriebsmodus",
+              "fr": "Mode de fonctionnement"
             },
             "values": [
               {
                 "id": "cold",
                 "title": {
-                  "en": "Cold",
-                  "nl": "Koud",
-                  "de": "Kälte",
-                  "fr": "Froid"
+                  "en": "Cooling",
+                  "nl": "Koeling",
+                  "de": "Kühlung",
+                  "fr": "Refroidissement"
                 }
               },
               {
                 "id": "heating",
                 "title": {
                   "en": "Heating",
-                  "nl": "Verwarmen",
+                  "nl": "Verwarming",
                   "de": "Heizen",
                   "fr": "Chauffage"
                 }
@@ -4674,7 +4674,7 @@
                 "id": "hot_water",
                 "title": {
                   "en": "Hot water",
-                  "nl": "Warm water",
+                  "nl": "Warmwater",
                   "de": "Warmwasser",
                   "fr": "Eau chaude"
                 }
@@ -4682,17 +4682,17 @@
               {
                 "id": "cold_and_hotwater",
                 "title": {
-                  "en": "Cold and hot water",
-                  "nl": "Koud en warm water",
-                  "de": "Kälte und Warmwasser",
-                  "fr": "Froid et eau chaude"
+                  "en": "Cooling and hot water",
+                  "nl": "Koeling en warmwater",
+                  "de": "Kühlung und Warmwasser",
+                  "fr": "Refroidissement et eau chaude"
                 }
               },
               {
                 "id": "heating_and_hot_water",
                 "title": {
                   "en": "Heating and hot water",
-                  "nl": "Verwarmen en warm water",
+                  "nl": "Verwarming en warmwater",
                   "de": "Heizen und Warmwasser",
                   "fr": "Chauffage et eau chaude"
                 }
@@ -4701,7 +4701,7 @@
                 "id": "floor_heatign_and_hot_water",
                 "title": {
                   "en": "Floor heating and hot water",
-                  "nl": "Vloerverwarming en warm water",
+                  "nl": "Vloerverwarming en warmwater",
                   "de": "Fußbodenheizung und Warmwasser",
                   "fr": "Chauffage au sol et eau chaude"
                 }
@@ -7150,22 +7150,22 @@
       {
         "id": "set_heating_mode",
         "title": {
-          "en": "Set heating mode",
-          "nl": "Verwarmingsmodus instellen",
-          "de": "Heizmodus einstellen",
-          "fr": "Régler le mode de chauffage"
+          "en": "Set operating mode",
+          "nl": "Bedrijfsmodus instellen",
+          "de": "Betriebsmodus einstellen",
+          "fr": "Régler le mode de fonctionnement"
         },
         "titleFormatted": {
-          "en": "Set heating mode to [[mode]]",
-          "nl": "Verwarmingsmodus instellen op [[mode]]",
-          "de": "Heizmodus einstellen auf [[mode]]",
-          "fr": "Régler le mode de chauffage sur [[mode]]"
+          "en": "Set operating mode to [[mode]]",
+          "nl": "Bedrijfsmodus instellen op [[mode]]",
+          "de": "Betriebsmodus einstellen auf [[mode]]",
+          "fr": "Régler le mode de fonctionnement sur [[mode]]"
         },
         "hint": {
-          "en": "Set the heating operation mode",
-          "nl": "Stel de verwarming bedrijfsmodus in",
-          "de": "Heizbetriebsmodus einstellen",
-          "fr": "Régler le mode de fonctionnement du chauffage"
+          "en": "Set the operating mode",
+          "nl": "Stel de bedrijfsmodus in",
+          "de": "Betriebsmodus einstellen",
+          "fr": "Régler le mode de fonctionnement"
         },
         "highlight": true,
         "args": [
@@ -7178,26 +7178,26 @@
             "type": "dropdown",
             "name": "mode",
             "title": {
-              "en": "Heating mode",
-              "nl": "Verwarmingsmodus",
-              "de": "Heizmodus",
-              "fr": "Mode de chauffage"
+              "en": "Operating mode",
+              "nl": "Bedrijfsmodus",
+              "de": "Betriebsmodus",
+              "fr": "Mode de fonctionnement"
             },
             "values": [
               {
                 "id": "cold",
                 "title": {
-                  "en": "Cold",
-                  "nl": "Koud",
-                  "de": "Kalt",
-                  "fr": "Froid"
+                  "en": "Cooling",
+                  "nl": "Koeling",
+                  "de": "Kühlung",
+                  "fr": "Refroidissement"
                 }
               },
               {
                 "id": "heating",
                 "title": {
                   "en": "Heating",
-                  "nl": "Verwarmen",
+                  "nl": "Verwarming",
                   "de": "Heizung",
                   "fr": "Chauffage"
                 }
@@ -7215,7 +7215,7 @@
                 "id": "hot_water",
                 "title": {
                   "en": "Hot water",
-                  "nl": "Warm water",
+                  "nl": "Warmwater",
                   "de": "Warmwasser",
                   "fr": "Eau chaude"
                 }
@@ -7223,17 +7223,17 @@
               {
                 "id": "cold_and_hotwater",
                 "title": {
-                  "en": "Cold and hot water",
-                  "nl": "Koud en warm water",
-                  "de": "Kalt- und Warmwasser",
-                  "fr": "Eau froide et eau chaude"
+                  "en": "Cooling and hot water",
+                  "nl": "Koeling en warmwater",
+                  "de": "Kühlung und Warmwasser",
+                  "fr": "Refroidissement et eau chaude"
                 }
               },
               {
                 "id": "heating_and_hot_water",
                 "title": {
                   "en": "Heating and hot water",
-                  "nl": "Verwarmen en warm water",
+                  "nl": "Verwarming en warmwater",
                   "de": "Heizung und Warmwasser",
                   "fr": "Chauffage et eau chaude"
                 }
@@ -7242,7 +7242,7 @@
                 "id": "floor_heatign_and_hot_water",
                 "title": {
                   "en": "Floor heating and hot water",
-                  "nl": "Vloerverwarming en warm water",
+                  "nl": "Vloerverwarming en warmwater",
                   "de": "Fußbodenheizung und Warmwasser",
                   "fr": "Chauffage au sol et eau chaude"
                 }
@@ -7672,7 +7672,11 @@
         "heating_curve_slope",
         "heating_curve_intercept",
         "heating_curve_ref_outdoor",
-        "heating_curve_ref_temp"
+        "heating_curve_ref_temp",
+        "adlar_enum_countdown_set",
+        "adlar_enum_work_mode",
+        "adlar_enum_capacity_set",
+        "adlar_evi_step"
       ],
       "capabilitiesOptions": {
         "target_temperature": {
@@ -8708,7 +8712,7 @@
         "en": "EEV opening steps",
         "nl": "EEV-openingsstappen"
       },
-      "icon": "/assets/adlar-icon-white.svg",
+      "icon": "/assets/pulse-steps.svg",
       "uiComponent": "sensor",
       "getable": true,
       "setable": false,
@@ -8895,6 +8899,275 @@
       "uiComponent": "sensor",
       "insights": true,
       "icon": "/assets/energy-price-next.svg"
+    },
+    "adlar_enum_capacity_set": {
+      "id": "adlar_enum_capacity_set",
+      "title": {
+        "en": "Hot water curve setting",
+        "nl": "Warmwater curve instelling",
+        "de": "Warmwasserkurveneinstellung",
+        "fr": "Paramètre de courbe d'eau chaude"
+      },
+      "type": "enum",
+      "values": [
+        {
+          "id": "OFF",
+          "title": {
+            "en": "OFF",
+            "nl": "UIT",
+            "de": "AUS",
+            "fr": "ARRÊT"
+          }
+        },
+        {
+          "id": "H1",
+          "title": {
+            "en": "H1",
+            "nl": "H1"
+          }
+        },
+        {
+          "id": "H2",
+          "title": {
+            "en": "H2",
+            "nl": "H2"
+          }
+        },
+        {
+          "id": "H3",
+          "title": {
+            "en": "H3",
+            "nl": "H3"
+          }
+        },
+        {
+          "id": "H4",
+          "title": {
+            "en": "H4",
+            "nl": "H4"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": true,
+      "uiComponent": "sensor",
+      "icon": "/assets/heating-curve.svg",
+      "description": {
+        "en": "Register 0x0315: Hot water curve setting (0=OFF, 1=H1, 2=H2, 3=H3, 4=H4)",
+        "nl": "Register 0x0315: Warmwater curve instelling (0=UIT, 1=H1, 2=H2, 3=H3, 4=H4)",
+        "de": "Register 0x0315: Warmwasserkurveneinstellung (0=AUS, 1=H1, 2=H2, 3=H3, 4=H4)",
+        "fr": "Registre 0x0315 : Paramètre de courbe d'eau chaude (0=ARRÊT, 1=H1, 2=H2, 3=H3, 4=H4)"
+      }
+    },
+    "adlar_enum_countdown_set": {
+      "id": "adlar_enum_countdown_set",
+      "title": {
+        "en": "Heating curve setting",
+        "nl": "Verwarmingscurve (stooklijn) instelling",
+        "de": "Heizkurveneinstellung",
+        "fr": "Paramètre de courbe de chauffage"
+      },
+      "type": "enum",
+      "values": [
+        {
+          "id": "OFF",
+          "title": {
+            "en": "OFF",
+            "nl": "UIT",
+            "de": "AUS",
+            "fr": "ARRÊT"
+          }
+        },
+        {
+          "id": "H1",
+          "title": {
+            "en": "H1",
+            "nl": "H1"
+          }
+        },
+        {
+          "id": "H2",
+          "title": {
+            "en": "H2",
+            "nl": "H2"
+          }
+        },
+        {
+          "id": "H3",
+          "title": {
+            "en": "H3",
+            "nl": "H3"
+          }
+        },
+        {
+          "id": "H4",
+          "title": {
+            "en": "H4",
+            "nl": "H4"
+          }
+        },
+        {
+          "id": "H5",
+          "title": {
+            "en": "H5",
+            "nl": "H5"
+          }
+        },
+        {
+          "id": "H6",
+          "title": {
+            "en": "H6",
+            "nl": "H6"
+          }
+        },
+        {
+          "id": "H7",
+          "title": {
+            "en": "H7",
+            "nl": "H7"
+          }
+        },
+        {
+          "id": "H8",
+          "title": {
+            "en": "H8",
+            "nl": "H8"
+          }
+        },
+        {
+          "id": "L1",
+          "title": {
+            "en": "L1",
+            "nl": "L1"
+          }
+        },
+        {
+          "id": "L2",
+          "title": {
+            "en": "L2",
+            "nl": "L2"
+          }
+        },
+        {
+          "id": "L3",
+          "title": {
+            "en": "L3",
+            "nl": "L3"
+          }
+        },
+        {
+          "id": "L4",
+          "title": {
+            "en": "L4",
+            "nl": "L4"
+          }
+        },
+        {
+          "id": "L5",
+          "title": {
+            "en": "L5",
+            "nl": "L5"
+          }
+        },
+        {
+          "id": "L6",
+          "title": {
+            "en": "L6",
+            "nl": "L6"
+          }
+        },
+        {
+          "id": "L7",
+          "title": {
+            "en": "L7",
+            "nl": "L7"
+          }
+        },
+        {
+          "id": "L8",
+          "title": {
+            "en": "L8 - custom curve",
+            "nl": "L8 - aangepaste curve",
+            "de": "L8 - benutzerdefinierte Kurve",
+            "fr": "L8 - courbe personnalisée"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": true,
+      "uiComponent": "sensor",
+      "icon": "/assets/heating-curve.svg",
+      "description": {
+        "en": "Register 0x0314: Active heating curve setting (H1–H8 high temp, L1–L8 low temp, OFF = disabled)",
+        "nl": "Register 0x0314: Actieve verwarmingscurve instelling (H1–H8 hoog temp, L1–L8 laag temp, UIT = uitgeschakeld)",
+        "de": "Register 0x0314: Aktive Heizkurveneinstellung (H1–H8 Hochtemperatur, L1–L8 Niedertemperatur, AUS = deaktiviert)",
+        "fr": "Registre 0x0314 : Réglage de la courbe de chauffage active (H1–H8 haute temp, L1–L8 basse temp, ARRÊT = désactivé)"
+      }
+    },
+    "adlar_enum_work_mode": {
+      "id": "adlar_enum_work_mode",
+      "title": {
+        "en": "Work mode",
+        "nl": "Werkmodus",
+        "de": "Betriebsmodus",
+        "fr": "Mode de fonctionnement"
+      },
+      "type": "enum",
+      "values": [
+        {
+          "id": "ECO",
+          "title": {
+            "en": "ECO (Silent)",
+            "nl": "ECO (Stil)",
+            "de": "ECO (Leise)",
+            "fr": "ECO (Silencieux)"
+          }
+        },
+        {
+          "id": "Normal",
+          "title": {
+            "en": "Normal (Standard)",
+            "nl": "Normaal (Standaard)",
+            "de": "Normal (Standard)",
+            "fr": "Normal (Standard)"
+          }
+        },
+        {
+          "id": "Boost",
+          "title": {
+            "en": "Boost (High Power)",
+            "nl": "Boost (Hoog vermogen)",
+            "de": "Boost (Hochleistung)",
+            "fr": "Boost (Haute puissance)"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": true,
+      "uiComponent": "sensor",
+      "icon": "/assets/cop-efficiency.svg",
+      "description": {
+        "en": "Register 0x0307: User function mode (0=Standard, 1=High Power, 2=Silent)",
+        "nl": "Register 0x0307: Gebruikersfunctiemodus (0=Standaard, 1=Hoog vermogen, 2=Stil)",
+        "de": "Register 0x0307: Benutzerfunktionsmodus (0=Standard, 1=Hochleistung, 2=Leise)",
+        "fr": "Registre 0x0307 : Mode fonction utilisateur (0=Standard, 1=Haute puissance, 2=Silencieux)"
+      }
+    },
+    "adlar_evi_step": {
+      "id": "adlar_evi_step",
+      "type": "number",
+      "title": {
+        "en": "EVI opening steps",
+        "nl": "EVI-openingsstappen"
+      },
+      "icon": "/assets/pulse-steps.svg",
+      "uiComponent": "sensor",
+      "getable": true,
+      "setable": false,
+      "units": "steps",
+      "decimals": 0,
+      "min": 0,
+      "max": 500
     },
     "adlar_external_ambient": {
       "id": "adlar_external_ambient",
@@ -9522,43 +9795,50 @@
         {
           "id": "0",
           "title": {
-            "en": "Heating",
-            "nl": "Verwarming"
-          }
-        },
-        {
-          "id": "1",
-          "title": {
             "en": "Cooling",
             "nl": "Koeling"
           }
         },
         {
+          "id": "1",
+          "title": {
+            "en": "Heating",
+            "nl": "Verwarming"
+          }
+        },
+        {
+          "id": "2",
+          "title": {
+            "en": "Hot Water",
+            "nl": "Warmwater"
+          }
+        },
+        {
           "id": "3",
           "title": {
-            "en": "DHW",
-            "nl": "Warmwater"
+            "en": "Floor Heating",
+            "nl": "Vloerverwarming"
           }
         },
         {
           "id": "4",
           "title": {
-            "en": "Heating + DHW",
-            "nl": "Verwarming + Warmwater"
+            "en": "Cooling + Hot Water",
+            "nl": "Koeling + Warmwater"
           }
         },
         {
           "id": "5",
           "title": {
-            "en": "Cooling + DHW",
-            "nl": "Koeling + Warmwater"
+            "en": "Heating + Hot Water",
+            "nl": "Verwarming + Warmwater"
           }
         },
         {
           "id": "7",
           "title": {
-            "en": "Auto",
-            "nl": "Automatisch"
+            "en": "Floor Heating + Hot Water",
+            "nl": "Vloerverwarming + Warmwater"
           }
         }
       ]

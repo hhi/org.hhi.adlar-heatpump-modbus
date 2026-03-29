@@ -1,9 +1,9 @@
 {
-  "id": "adlar_eev_step",
+  "id": "adlar_evi_step",
   "type": "number",
   "title": {
-    "en": "EEV opening steps",
-    "nl": "EEV-openingsstappen"
+    "en": "EVI opening steps",
+    "nl": "EVI-openingsstappen"
   },
   "icon": "/assets/pulse-steps.svg",
   "uiComponent": "sensor",

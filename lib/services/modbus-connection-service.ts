@@ -144,6 +144,21 @@ export class ModbusConnectionService extends EventEmitter {
     await this.service.setMode(mode);
   }
 
+  async setHeatingCurve(curve: number): Promise<void> {
+    if (!this.service) throw new Error('Not connected');
+    await this.service.setHeatingCurve(curve);
+  }
+
+  async setHotWaterCurve(curve: number): Promise<void> {
+    if (!this.service) throw new Error('Not connected');
+    await this.service.setHotWaterCurve(curve);
+  }
+
+  async setUserMode(mode: 0 | 1 | 2): Promise<void> {
+    if (!this.service) throw new Error('Not connected');
+    await this.service.setUserMode(mode);
+  }
+
   /**
    * Returns whether the device is currently connected.
    */

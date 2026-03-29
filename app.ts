@@ -5,6 +5,7 @@ import { App } from 'homey';
 import enableDebugInspector from './app-debug';
 import { SelfHealingRegistry } from './lib/self-healing-registry';
 import { Logger, LogLevel } from './lib/logger';
+import { registerSimpleActions, registerSimpleConditions, FLOW_PATTERNS } from './lib/flow-helpers';
 
 class MyApp extends App {
 
@@ -71,6 +72,68 @@ class MyApp extends App {
       this.homey.notifications.createNotification({
         excerpt: 'Adlar Modbus: Critical error — please restart',
       }).catch(() => {});
+    });
+
+    registerSimpleActions(this, FLOW_PATTERNS.simpleActions);
+    registerSimpleConditions(this, FLOW_PATTERNS.simpleConditions);
+
+    // ── Trigger run listeners: changed triggers ────────────────────────────
+    (['ambient_temperature_changed', 'inlet_temperature_changed', 'outlet_temperature_changed'] as const).forEach((cardId) => {
+      this.homey.flow.getDeviceTriggerCard(cardId).registerRunListener(async (args, state) => {
+        const value = (state as Record<string, number>).temperature;
+        const threshold = (args as Record<string, number>).temperature;
+        const condition = (args as Record<string, string>).condition;
+        if (condition === 'above') return value >= threshold;
+        if (condition === 'below') return value <= threshold;
+        return false;
+      });
+    });
+
+    (['heating_mode_changed', 'fault_detected', 'work_mode_changed'] as const).forEach((cardId) => {
+      this.homey.flow.getDeviceTriggerCard(cardId).registerRunListener(async () => true);
+    });
+
+    // ── Trigger run listeners: alert triggers ──────────────────────────────
+    (['tank_temperature_alert', 'coiler_temperature_alert', 'discharge_temperature_alert'] as const).forEach((cardId) => {
+      this.homey.flow.getDeviceTriggerCard(cardId).registerRunListener(async (args, state) => {
+        const value = (state as Record<string, number>).value;
+        const threshold = (args as Record<string, number>).temperature;
+        const condition = (args as Record<string, string>).condition;
+        if (condition === 'above') return value >= threshold;
+        if (condition === 'below') return value <= threshold;
+        return false;
+      });
+    });
+
+    this.homey.flow.getDeviceTriggerCard('water_flow_alert').registerRunListener(async (args, state) => {
+      const value = (state as Record<string, number>).value;
+      const threshold = (args as Record<string, number>).flow_rate;
+      const condition = (args as Record<string, string>).condition;
+      if (condition === 'above') return value >= threshold;
+      if (condition === 'below') return value <= threshold;
+      return false;
+    });
+
+    (['compressor_efficiency_alert', 'fan_motor_efficiency_alert'] as const).forEach((cardId) => {
+      this.homey.flow.getDeviceTriggerCard(cardId).registerRunListener(async (args, state) => {
+        const value = (state as Record<string, number>).value;
+        const threshold = (args as Record<string, number>).frequency;
+        const condition = (args as Record<string, string>).condition;
+        if (condition === 'above') return value >= threshold;
+        if (condition === 'below') return value <= threshold;
+        return false;
+      });
+    });
+
+    (['eev_pulse_steps_alert', 'evi_pulse_steps_alert'] as const).forEach((cardId) => {
+      this.homey.flow.getDeviceTriggerCard(cardId).registerRunListener(async (args, state) => {
+        const value = (state as Record<string, number>).value;
+        const threshold = (args as Record<string, number>).pulse_steps;
+        const condition = (args as Record<string, string>).condition;
+        if (condition === 'above') return value >= threshold;
+        if (condition === 'below') return value <= threshold;
+        return false;
+      });
     });
 
     this.logger.info('App initialized');

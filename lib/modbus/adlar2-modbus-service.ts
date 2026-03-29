@@ -89,6 +89,7 @@ const SENSOR_DESCRIPTORS: readonly SensorDescriptor[] = [
   { key: 'compTargetFreq', def: COMP_TARGET_FREQ_DEF },
   { key: 'fanSpeed', def: SENSOR_REGISTERS.fanRunningSpeed },
   { key: 'eevStep', def: SENSOR_REGISTERS.eevOpenStep },
+  { key: 'eviStep', def: SENSOR_REGISTERS.eviValveOpenStep },
   { key: 'pumpPwm', def: SENSOR_REGISTERS.waterPumpSpeedPWM },
   { key: 'waterFlow', def: SENSOR_REGISTERS.waterFlow },
   { key: 'acVoltage', def: SENSOR_REGISTERS.acInputVoltage },
@@ -151,6 +152,7 @@ export interface ControlSnapshot {
   dhwSetpointC: number;
   floorSetpointC: number;
   heatingCurve: number;
+  hotWaterCurve: number;
   protocolVersion: number;
   coilsAvailable: boolean;
 }
@@ -426,6 +428,12 @@ export class Adlar2ModbusService extends EventEmitter {
     await this.tcp.writeSingleRegister(def.address, curve);
   }
 
+  async setHotWaterCurve(curve: number): Promise<void> {
+    const def = CONTROL_REGISTERS.hotWaterCurve;
+    assertRange(def, curve);
+    await this.tcp.writeSingleRegister(def.address, curve);
+  }
+
   async setUserMode(mode: 0 | 1 | 2): Promise<void> {
     await this.tcp.writeSingleRegister(CONTROL_REGISTERS.runningMode.address, mode);
   }
@@ -558,6 +566,7 @@ export class Adlar2ModbusService extends EventEmitter {
       dhwSetpointC: this.readScaledValue(CONTROL_REGISTERS.tempSetHotWater),
       floorSetpointC: this.readScaledValue(CONTROL_REGISTERS.tempSetFloorHeating),
       heatingCurve: this.tcp.u16(CONTROL_REGISTERS.heatingCurve.address),
+      hotWaterCurve: this.tcp.u16(CONTROL_REGISTERS.hotWaterCurve.address),
       protocolVersion,
       coilsAvailable: protocolSupportsCoils(protocolVersion),
     };

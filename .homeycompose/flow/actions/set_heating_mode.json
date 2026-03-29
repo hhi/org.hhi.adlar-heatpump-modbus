@@ -1,22 +1,22 @@
 {
   "id": "set_heating_mode",
   "title": {
-    "en": "Set heating mode",
-    "nl": "Verwarmingsmodus instellen",
-    "de": "Heizmodus einstellen",
-    "fr": "Régler le mode de chauffage"
+    "en": "Set operating mode",
+    "nl": "Bedrijfsmodus instellen",
+    "de": "Betriebsmodus einstellen",
+    "fr": "Régler le mode de fonctionnement"
   },
   "titleFormatted": {
-    "en": "Set heating mode to [[mode]]",
-    "nl": "Verwarmingsmodus instellen op [[mode]]",
-    "de": "Heizmodus einstellen auf [[mode]]",
-    "fr": "Régler le mode de chauffage sur [[mode]]"
+    "en": "Set operating mode to [[mode]]",
+    "nl": "Bedrijfsmodus instellen op [[mode]]",
+    "de": "Betriebsmodus einstellen auf [[mode]]",
+    "fr": "Régler le mode de fonctionnement sur [[mode]]"
   },
   "hint": {
-    "en": "Set the heating operation mode",
-    "nl": "Stel de verwarming bedrijfsmodus in",
-    "de": "Heizbetriebsmodus einstellen",
-    "fr": "Régler le mode de fonctionnement du chauffage"
+    "en": "Set the operating mode",
+    "nl": "Stel de bedrijfsmodus in",
+    "de": "Betriebsmodus einstellen",
+    "fr": "Régler le mode de fonctionnement"
   },
   "highlight": true,
   "args": [
@@ -29,26 +29,26 @@
       "type": "dropdown",
       "name": "mode",
       "title": {
-        "en": "Heating mode",
-        "nl": "Verwarmingsmodus",
-        "de": "Heizmodus",
-        "fr": "Mode de chauffage"
+        "en": "Operating mode",
+        "nl": "Bedrijfsmodus",
+        "de": "Betriebsmodus",
+        "fr": "Mode de fonctionnement"
       },
       "values": [
         {
           "id": "cold",
           "title": {
-            "en": "Cold",
-            "nl": "Koud",
-            "de": "Kalt",
-            "fr": "Froid"
+            "en": "Cooling",
+            "nl": "Koeling",
+            "de": "Kühlung",
+            "fr": "Refroidissement"
           }
         },
         {
           "id": "heating",
           "title": {
             "en": "Heating",
-            "nl": "Verwarmen",
+            "nl": "Verwarming",
             "de": "Heizung",
             "fr": "Chauffage"
           }
@@ -66,7 +66,7 @@
           "id": "hot_water",
           "title": {
             "en": "Hot water",
-            "nl": "Warm water",
+            "nl": "Warmwater",
             "de": "Warmwasser",
             "fr": "Eau chaude"
           }
@@ -74,17 +74,17 @@
         {
           "id": "cold_and_hotwater",
           "title": {
-            "en": "Cold and hot water",
-            "nl": "Koud en warm water",
-            "de": "Kalt- und Warmwasser",
-            "fr": "Eau froide et eau chaude"
+            "en": "Cooling and hot water",
+            "nl": "Koeling en warmwater",
+            "de": "Kühlung und Warmwasser",
+            "fr": "Refroidissement et eau chaude"
           }
         },
         {
           "id": "heating_and_hot_water",
           "title": {
             "en": "Heating and hot water",
-            "nl": "Verwarmen en warm water",
+            "nl": "Verwarming en warmwater",
             "de": "Heizung und Warmwasser",
             "fr": "Chauffage et eau chaude"
           }
@@ -93,7 +93,7 @@
           "id": "floor_heatign_and_hot_water",
           "title": {
             "en": "Floor heating and hot water",
-            "nl": "Vloerverwarming en warm water",
+            "nl": "Vloerverwarming en warmwater",
             "de": "Fußbodenheizung und Warmwasser",
             "fr": "Chauffage au sol et eau chaude"
           }
