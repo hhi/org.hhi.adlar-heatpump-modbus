@@ -1,4 +1,10 @@
 {
+  "1.1.1": {
+    "en": "Added internal documentation comparing DPS and Modbus driver capabilities, including renamed equivalents and metadata differences such as type, UI component, and min/max/step ranges.",
+    "nl": "Toegevoegd: interne documentatie die de DPS- en Modbus-drivercapabilities vergelijkt, inclusief hernoemde equivalenten en metadata-verschillen zoals type, UI-component en min/max/step-bereiken.",
+    "de": "Hinzugefügt: interne Dokumentation zum Vergleich der DPS- und Modbus-Treiberfähigkeiten, einschließlich umbenannter Entsprechungen und Metadaten-Unterschieden wie Typ, UI-Komponente und Min/Max/Step-Bereichen.",
+    "fr": "Ajout de documentation interne comparant les capacités des pilotes DPS et Modbus, y compris les équivalents renommés et les différences de métadonnées telles que le type, le composant UI et les plages min/max/pas."
+  },
   "1.1.0": {
     "en": "Added: work mode capability (ECO / Normal / Boost). Added: hot water curve capability (OFF / H1–H4). Added: EVI valve open step readout. Added: flow trigger cards now fire on temperature changes, heating mode change, work mode change, and fault detection. Fixed: action cards (set work mode, set hot water curve, set on/off, set indoor temperature setpoint) now execute correctly. Fixed: Modbus write errors now show a readable message instead of '[object Object]'.",
     "nl": "Toegevoegd: bedrijfsmodus capability (ECO / Normaal / Boost). Toegevoegd: warmwater curve capability (UIT / H1–H4). Toegevoegd: EVI klep openingstappen uitlezing. Toegevoegd: flow-triggerkaartjes vuren nu bij temperatuurwijzigingen, verwarmingsmodus, bedrijfsmodus en foutdetectie. Opgelost: actiekaartjes (bedrijfsmodus, warmwater curve, aan/uit, kamertemperatuur setpoint) voeren nu correct uit. Opgelost: Modbus schrijffouten tonen nu een leesbare melding in plaats van '[object Object]'.",
