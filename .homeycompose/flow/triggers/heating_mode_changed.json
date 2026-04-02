@@ -1,22 +1,22 @@
 {
   "id": "heating_mode_changed",
   "title": {
-    "en": "Operating mode changed",
-    "nl": "Bedrijfsmodus gewijzigd",
-    "de": "Betriebsmodus geändert",
-    "fr": "Mode de fonctionnement changé"
+    "en": "Heating mode changed",
+    "nl": "Verwarmingsmodus gewijzigd",
+    "de": "Heizmodus geändert",
+    "fr": "Mode de chauffage changé"
   },
   "titleFormatted": {
-    "en": "Operating mode changed to [[mode]]",
-    "nl": "Bedrijfsmodus gewijzigd naar [[mode]]",
-    "de": "Betriebsmodus zu [[mode]] geändert",
-    "fr": "Mode de fonctionnement changé à [[mode]]"
+    "en": "Heating mode changed to [[mode]]",
+    "nl": "Verwarmingsmodus gewijzigd naar [[mode]]",
+    "de": "Heizmodus zu [[mode]] geändert",
+    "fr": "Mode de chauffage changé à [[mode]]"
   },
   "hint": {
-    "en": "Triggers when the operating mode changes",
-    "nl": "Wordt geactiveerd wanneer de bedrijfsmodus wijzigt",
-    "de": "Wird ausgelöst, wenn sich der Betriebsmodus ändert",
-    "fr": "Se déclenche lorsque le mode de fonctionnement change"
+    "en": "Triggers when the heating mode changes",
+    "nl": "Wordt geactiveerd wanneer de verwarmingsmodus wijzigt",
+    "de": "Wird ausgelöst, wenn sich der Heizmodus ändert",
+    "fr": "Se déclenche lorsque le mode de chauffage change"
   },
   "highlight": true,
   "args": [
@@ -31,10 +31,10 @@
       "type": "string",
       "name": "mode",
       "title": {
-        "en": "Operating mode",
-        "nl": "Bedrijfsmodus",
-        "de": "Betriebsmodus",
-        "fr": "Mode de fonctionnement"
+        "en": "Heating mode",
+        "nl": "Verwarmingsmodus",
+        "de": "Heizmodus",
+        "fr": "Mode de chauffage"
       },
       "example": "heating"
     },
@@ -42,12 +42,12 @@
       "type": "string",
       "name": "previous_mode",
       "title": {
-        "en": "Previous operating mode",
-        "nl": "Vorige bedrijfsmodus",
-        "de": "Vorheriger Betriebsmodus",
-        "fr": "Mode de fonctionnement précédent"
+        "en": "Previous heating mode",
+        "nl": "Vorige verwarmingsmodus",
+        "de": "Vorheriger Heizmodus",
+        "fr": "Mode de chauffage précédent"
       },
-      "example": "cooling"
+      "example": "cold"
     }
   ]
 }

@@ -2,7 +2,7 @@
 
 **Status:** Voorstel
 **Datum:** 2026-03-28
-**Gerelateerd:** [ADR-031 ModbusConnectionService Ontkoppeling](ADR-031-modbus-connection-service-driver-ontkoppeling.md), [ADR-030 DPS vs Modbus Gap-Analyse](ADR-030-dps-vs-modbus-mapping-gap-analyse.md)
+**Gerelateerd:** [ADR-031 ModbusConnectionService Ontkoppeling](ADR-031-modbus-connection-service-driver-ontkoppeling.md), [ADR-012 Flow Card Runtime Alignering](ADR-012-modbus-flow-card-runtime-alignment.md)
 
 ---
 

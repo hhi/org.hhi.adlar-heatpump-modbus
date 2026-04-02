@@ -626,26 +626,13 @@ export class EnergyTrackingService {
   async initialize(): Promise<void> {
     this.logger('EnergyTrackingService: Initializing energy tracking service');
 
-    // Check if energy tracking is enabled in device settings
-    const energyTrackingEnabled = this.device.getSetting('enable_intelligent_energy_tracking');
+    this.isEnabled = true;
 
-    if (energyTrackingEnabled) {
-      // Enable the service
-      this.isEnabled = true;
+    await this.initializeEnergyTracking();
+    this.startEnergyTrackingInterval();
+    this.scheduleMidnightReset();
 
-      // Initialize persistent tracking values
-      await this.initializeEnergyTracking();
-
-      // Start the 30-second accumulation interval
-      this.startEnergyTrackingInterval();
-
-      // Schedule midnight reset for daily counters
-      this.scheduleMidnightReset();
-
-      this.logger('EnergyTrackingService: Energy tracking enabled and interval started');
-    } else {
-      this.logger('EnergyTrackingService: Energy tracking disabled by user settings');
-    }
+    this.logger('EnergyTrackingService: Energy tracking enabled and interval started');
 
     // Start initial power measurement update
     await this.updateIntelligentPowerMeasurement();
@@ -657,26 +644,10 @@ export class EnergyTrackingService {
    * Enables or disables energy tracking based on user settings
    */
   async onSettings(
-    oldSettings: Record<string, unknown>,
-    newSettings: Record<string, unknown>,
-    changedKeys: string[],
+    _oldSettings: Record<string, unknown>,
+    _newSettings: Record<string, unknown>,
+    _changedKeys: string[],
   ): Promise<void> {
-    if (changedKeys.includes('enable_intelligent_energy_tracking')) {
-      const enabled = newSettings.enable_intelligent_energy_tracking as boolean;
-
-      if (enabled && !this.isEnabled) {
-        // Enable tracking
-        this.isEnabled = true;
-        await this.initializeEnergyTracking();
-        this.startEnergyTrackingInterval();
-        this.logger('EnergyTrackingService: Enabled energy tracking via settings');
-      } else if (!enabled && this.isEnabled) {
-        // Disable tracking
-        this.isEnabled = false;
-        this.stopEnergyTrackingInterval();
-        this.logger('EnergyTrackingService: Disabled energy tracking via settings');
-      }
-    }
   }
 
   /**
