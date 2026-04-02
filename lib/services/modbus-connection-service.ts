@@ -144,16 +144,25 @@ export class ModbusConnectionService extends EventEmitter {
     await this.service.setMode(mode);
   }
 
+  /**
+   * Write the heating curve to the device.
+   */
   async setHeatingCurve(curve: number): Promise<void> {
     if (!this.service) throw new Error('Not connected');
     await this.service.setHeatingCurve(curve);
   }
 
+  /**
+   * Write the hot water curve to the device.
+   */
   async setHotWaterCurve(curve: number): Promise<void> {
     if (!this.service) throw new Error('Not connected');
     await this.service.setHotWaterCurve(curve);
   }
 
+  /**
+   * Write the user mode to the device.
+   */
   async setUserMode(mode: 0 | 1 | 2): Promise<void> {
     if (!this.service) throw new Error('Not connected');
     await this.service.setUserMode(mode);

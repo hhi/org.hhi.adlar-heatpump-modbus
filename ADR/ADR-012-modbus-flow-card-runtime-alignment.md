@@ -1,8 +1,48 @@
 # ADR-012: Flow Card Runtime Alignering voor de Modbus App
 
-**Status:** Grotendeels geïmplementeerd (2026-03-29)
+**Status:** Volledig geïmplementeerd (2026-03-30)
 **Datum:** 2026-03-26
-**Gerelateerd:** [ADR-004 Standalone Modbus Driver](ADR-004-standalone-modbus-driver.md), [ADR-005a Protocol Integration Revised](ADR-005a-protocol-integration-revised.md), [flow-card-dps-vs-modbus-mapping](../../docs/Dev%20support/flow-card-dps-vs-modbus-mapping.md)
+**Gerelateerd:** [ADR-004 Standalone Modbus Driver](ADR-004-standalone-modbus-driver.md), [ADR-005a Protocol Integration Revised](ADR-005a-protocol-integration-revised.md), [flow-card-dps-vs-modbus-mapping](../../docs/Dev%20support/flow-card-dps-vs-modbus-mapping.md), [capability-dps-vs-modbus-mapping](../../docs/Dev%20support/capability-dps-vs-modbus-mapping.md), [sensor-capability-dps-vs-modbus-titles](../../docs/Dev%20support/sensor-capability-dps-vs-modbus-titles.md)
+
+---
+
+## Implementatiestatus (laatste update: 2026-03-30)
+
+> Samenvatting van de huidige realisatiegraad. Zie §9 voor de volledige implementatiehistorie met technische details.
+
+### ✅ Gerealiseerd
+
+| Categorie | Flow cards / onderdelen | Locatie |
+|-----------|------------------------|---------|
+| **Simple actions** (via `registerSimpleActions`) | `set_target_temperature`, `set_hotwater_temperature`, `set_work_mode`, `set_capacity` | `app.ts` + `flow-helpers.ts` |
+| **Custom action handlers** | `set_heating_mode`, `set_heating_curve`, `set_device_onoff`, `set_desired_indoor_temperature` | `FlowCardManagerService.registerDeviceControlActionCards()` |
+| **Simple conditions** (via `registerSimpleConditions`) | `fault_active`, `temperature_above`, `compressor_running`, `power_above_threshold`, `total_consumption_above` | `app.ts` + `flow-helpers.ts` |
+| **Custom conditions** | `heating_mode_is`, `heating_curve_is`, `work_mode_is`, `capacity_setting_is` | `FlowCardManagerService` |
+| **Calculator action cards** | `calculate_curve_value`, `calculate_linear_heating_curve`, `calculate_time_based_value`, `get_seasonal_mode` | `FlowCardManagerService.registerCalculatorActionCards()` |
+| **Advanced diagnostic conditions** | `temperature_differential` (ΔT inlet/outlet), `water_flow_rate_check`, `system_pulse_steps_differential` (EEV−EVI) | `FlowCardManagerService.registerAdvancedConditionCards()` |
+| **Device trigger hook** | `triggerFlowCard()` methode op device | `device.ts` |
+| **Service-driven triggers** | `cop_trend_detected`, `daily_cop_efficiency_changed`, `monthly_cop_efficiency_changed`, `daily_consumption_threshold` | `RollingCOPCalculator`, `EnergyTrackingService` |
+| **Status-change triggers** | `ambient_temperature_changed`, `inlet_temperature_changed`, `outlet_temperature_changed`, `heating_mode_changed`, `work_mode_changed`, `fault_detected` | `SnapshotTriggerService` (v1.1.0) |
+| **Sensor-alert triggers** | `tank_temperature_alert`, `coiler_temperature_alert`, `discharge_temperature_alert`, `eev_pulse_steps_alert`, `evi_pulse_steps_alert`, `water_flow_alert`, `compressor_efficiency_alert`, `fan_motor_efficiency_alert` | `SnapshotTriggerService` (v1.1.0) |
+| **Building Insights** | `force_insight_analysis`, `calculate_preheat_time`, `insight_is_active`, `confidence_above`, `savings_above`, `building_insight_detected`, `building_profile_mismatch`, `pre_heat_recommendation` | `BuildingInsightsService` — volledig overgenomen van DPS (v1.1.1) |
+| **Nieuwe capabilities** | `adlar_enum_countdown_set` (0x0314), `adlar_enum_work_mode` (0x0307), `adlar_enum_capacity_set` (0x0315), `adlar_evi_step` (0x0043) | `device.ts` + compose JSON |
+| **Alias mismatches opgelost** | `heating_mode_is`, `hotwater_temperature_is`, `work_mode_is`, `capacity_setting_is` | `FlowCardManagerService` |
+| **Device-scoped execution** | Alle flow cards via `args.device` pattern | `registerSimpleActions()` / `registerSimpleConditions()` |
+| **Energie-tracking** | Altijd actief — `enable_intelligent_energy_tracking` setting verwijderd | `EnergyTrackingService` (v1.1.1) |
+| **Refactor** | `SnapshotTriggerService`, `adlar-enum-mappers`, `adlar-fault-descriptions` geëxtraheerd uit `device.ts` | `lib/services/`, `lib/modbus/` |
+
+**Totaal gerealiseerd: ~55 flow cards runtime-actief.**
+
+### ⚠️ Bewust niet geïmplementeerd
+
+| Item | Reden |
+| ---- | ----- |
+| `water_mode_is`, `set_water_mode`, `water_mode_changed` | Geen Modbus-register equivalent gevonden |
+| `volume_setting_is`, `set_volume` | Geen Modbus-register equivalent |
+| `electrical_balance_check` | 3-fase stroomregisters niet gepolled, compose-bestand verwijderd |
+| `cop_calculation_method_is` | Geen runtime-registratie in DPS of Modbus — dode kaart |
+
+Alle vier geven een expliciete `throw new Error("not supported by this device")` zodat Homey geen generieke `[object Object]` toont.
 
 ---
 
@@ -463,3 +503,69 @@ Nog openstaand:
 - `volume_setting_is` — geen Modbus-register equivalent gevonden
 
 Beide geven een expliciete `throw new Error(...)` in plaats van stil `false`.
+
+---
+
+## 10. Aanvullende Verbetergebieden
+
+> Oorspronkelijk gedocumenteerd in ADR-030. Na consolidatie opgenomen in deze ADR als aanvullende suggesties die buiten de scope van secties 5.1–5.5 vallen.
+
+### 10.1 Ongewired Registers als Capabilities Exposen
+
+Vier registers bestaan al in `lib/modbus/adlar-modbus-registers.ts` maar zijn niet gekoppeld aan capabilities:
+
+| Register | Omschrijving | Richting |
+|---|---|---|
+| `0x0076` / `0x0078` | B/C fase spanning | Read |
+| `0x0360-0x0363` | Firmware versies | Read |
+
+> **Opmerking:** De curve-registers (`0x0314`/`0x0315`) en work mode (`0x0307`) zijn inmiddels gewired (zie §9.1). B/C fase spanning en firmware-info zijn nog openstaand.
+
+**Geschatte impact:** 4+ nieuwe meetwaarden
+**Geschatte effort:** Klein
+
+### 10.2 Titel-Consistentie Verbeteren
+
+Observaties uit het [sensor-titels-document](../../docs/Dev%20support/sensor-capability-dps-vs-modbus-titles.md):
+
+| Issue | Voorbeelden |
+|---|---|
+| **"Homey standaardtitel" als fallback** | `measure_power`, `measure_current`, `measure_voltage`, `meter_power`, `measure_temperature.indoor` — hebben geen custom Modbus-titel |
+| **Taalinconsistentie** | Mix van Nederlands en Engels: "HP saturatietemperatuur" vs "Economizer inlaat (T8)" |
+| **Ontbrekende T-nummers** | `measure_temperature.dhw` heeft geen "(T-nummer)" suffix |
+
+**Suggestie:** Geef alle sensor capabilities expliciete Nederlandstalige titels in `capabilitiesOptions` met consistente Tx-nummers voor fysieke sensoren.
+
+**Geschatte effort:** Klein — alleen `driver.compose.json` aanpassingen
+
+### 10.3 Dode Flow Cards Opruimen of Markeren
+
+`cop_calculation_method_is` heeft in **geen van beide** repos runtime registratie. Ook `set_volume` en `set_water_mode` hebben geen Modbus-equivalent en zullen dat waarschijnlijk ook niet krijgen.
+
+**Suggestie:** Maak een beslissing per dode kaart:
+
+- **Verwijderen:** als de functionaliteit fundamenteel niet bestaat in Modbus
+- **Markeren als "coming soon":** als implementatie gepland is
+- **Accepteren als compose-only:** documenteer bewust dat de kaart geen runtime heeft
+
+### 10.4 Cross-Referenties in Documentatie
+
+De drie mapping-documenten ([capability-mapping](../../docs/Dev%20support/capability-dps-vs-modbus-mapping.md), [flow-card-mapping](../../docs/Dev%20support/flow-card-dps-vs-modbus-mapping.md), [sensor-titels](../../docs/Dev%20support/sensor-capability-dps-vs-modbus-titles.md)) zijn complementair maar linken niet naar elkaar. Overweeg een "Zie ook"-sectie per document en eventueel een overkoepelend "Modbus Migration Status" dashboard.
+
+## 11. Prioriteitsmatrix
+
+| # | Suggestie | Impact | Effort | Flow cards affected | Status |
+|---|---|---|---|---|---|
+| 5.1 | Flow-helpers bootstrap | Hoog | Klein | ~15 | ✅ Geïmplementeerd (§9.1) |
+| 5.3 | Device trigger hook | Hoog | Klein-Medium | 4 | ✅ Geïmplementeerd (§9.1) |
+| 5.4 | Alias mismatches | Hoog | Medium | 4-7 | ✅ Grotendeels gesloten (§9.1/9.2) |
+| 10.1 | Ongewired registers exposen | Medium | Klein | 4+ | ⚠️ Deels — B/C fase + firmware openstaand |
+| 5.2 | BuildingInsightsService | Medium | Groot | 7 | ⚠️ Openstaand (§9.2) |
+| 5.5 | Temp/efficiency triggers | Medium | Medium-Groot | 15+ | ✅ Geïmplementeerd (§9.1) |
+| 10.2 | Titel-consistentie | Laag | Klein | — | ⏳ |
+| 10.3 | Dode flow cards opruimen | Laag | Klein | 2-3 | ⏳ |
+| 10.4 | Documentatie cross-refs | Laag | Klein | — | ⏳ |
+
+## 12. Consolidatiehistorie
+
+**2026-03-30:** ADR-030 (DPS vs Modbus Mapping Gap-Analyse) is geconsolideerd in deze ADR. De high-priority suggesties uit ADR-030 (§2.1–2.3) kwamen 1:1 overeen met secties 5.1, 5.3 en 5.4 van deze ADR. De medium- en lage-prioriteit suggesties die niet eerder in deze ADR stonden zijn opgenomen als secties 10.1–10.4 en de prioriteitsmatrix als sectie 11.

@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "org.hhi.adlar-heatpump-modbus",
-  "version": "1.1.1",
+  "version": "1.2.1",
   "compatibility": ">=12.2.0",
   "sdk": 3,
   "platforms": [
@@ -2213,22 +2213,22 @@
       {
         "id": "heating_mode_changed",
         "title": {
-          "en": "Operating mode changed",
-          "nl": "Bedrijfsmodus gewijzigd",
-          "de": "Betriebsmodus geändert",
-          "fr": "Mode de fonctionnement changé"
+          "en": "Heating mode changed",
+          "nl": "Verwarmingsmodus gewijzigd",
+          "de": "Heizmodus geändert",
+          "fr": "Mode de chauffage changé"
         },
         "titleFormatted": {
-          "en": "Operating mode changed to [[mode]]",
-          "nl": "Bedrijfsmodus gewijzigd naar [[mode]]",
-          "de": "Betriebsmodus zu [[mode]] geändert",
-          "fr": "Mode de fonctionnement changé à [[mode]]"
+          "en": "Heating mode changed to [[mode]]",
+          "nl": "Verwarmingsmodus gewijzigd naar [[mode]]",
+          "de": "Heizmodus zu [[mode]] geändert",
+          "fr": "Mode de chauffage changé à [[mode]]"
         },
         "hint": {
-          "en": "Triggers when the operating mode changes",
-          "nl": "Wordt geactiveerd wanneer de bedrijfsmodus wijzigt",
-          "de": "Wird ausgelöst, wenn sich der Betriebsmodus ändert",
-          "fr": "Se déclenche lorsque le mode de fonctionnement change"
+          "en": "Triggers when the heating mode changes",
+          "nl": "Wordt geactiveerd wanneer de verwarmingsmodus wijzigt",
+          "de": "Wird ausgelöst, wenn sich der Heizmodus ändert",
+          "fr": "Se déclenche lorsque le mode de chauffage change"
         },
         "highlight": true,
         "args": [
@@ -2243,10 +2243,10 @@
             "type": "string",
             "name": "mode",
             "title": {
-              "en": "Operating mode",
-              "nl": "Bedrijfsmodus",
-              "de": "Betriebsmodus",
-              "fr": "Mode de fonctionnement"
+              "en": "Heating mode",
+              "nl": "Verwarmingsmodus",
+              "de": "Heizmodus",
+              "fr": "Mode de chauffage"
             },
             "example": "heating"
           },
@@ -2254,12 +2254,12 @@
             "type": "string",
             "name": "previous_mode",
             "title": {
-              "en": "Previous operating mode",
-              "nl": "Vorige bedrijfsmodus",
-              "de": "Vorheriger Betriebsmodus",
-              "fr": "Mode de fonctionnement précédent"
+              "en": "Previous heating mode",
+              "nl": "Vorige verwarmingsmodus",
+              "de": "Vorheriger Heizmodus",
+              "fr": "Mode de chauffage précédent"
             },
-            "example": "cooling"
+            "example": "cold"
           }
         ]
       },
@@ -4337,55 +4337,6 @@
         ]
       },
       {
-        "id": "electrical_balance_check",
-        "title": {
-          "en": "Electrical balance check",
-          "nl": "Elektrische balans controle",
-          "de": "Elektrische Bilanz prüfen",
-          "fr": "Vérification de l'équilibre électrique"
-        },
-        "titleFormatted": {
-          "en": "3-phase electrical balance is !{{within|outside}} [[tolerance]]% tolerance",
-          "nl": "3-fase elektrische balans is !{{binnen|buiten}} [[tolerance]]% tolerantie",
-          "de": "3-Phasen-Elektrische Bilanz ist !{{innerhalb|außerhalb}} [[tolerance]]% Toleranz",
-          "fr": "L'équilibre électrique triphasé est !{{dans|hors}} de [[tolerance]]% de tolérance"
-        },
-        "hint": {
-          "en": "Check if the 3-phase electrical currents are balanced within specified tolerance",
-          "nl": "Controleer of de 3-fase elektrische stromen gebalanceerd zijn binnen de tolerantie",
-          "de": "Prüfen Sie, ob die 3-Phasen-Elektrischen Ströme innerhalb der angegebenen Toleranz ausgeglichen sind",
-          "fr": "Vérifier si les courants électriques triphasés sont équilibrés dans la tolérance spécifiée"
-        },
-        "highlight": true,
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=intelligent-heatpump-modbus"
-          },
-          {
-            "type": "range",
-            "name": "tolerance",
-            "title": {
-              "en": " Balance tolerance ",
-              "nl": " Balans tolerantie ",
-              "de": " Bilanztoleranz ",
-              "fr": " Tolérance d'équilibre "
-            },
-            "min": 1,
-            "max": 20,
-            "step": 1,
-            "units": "%",
-            "placeholder": {
-              "en": "Electrical balance tolerance percentage",
-              "nl": "Elektrische balans tolerantie percentage",
-              "de": "Elektrische Bilanztoleranz-Prozentsatz",
-              "fr": "Pourcentage de tolérance d'équilibre électrique"
-            }
-          }
-        ]
-      },
-      {
         "id": "fault_active",
         "title": {
           "en": "Fault is active",
@@ -4610,22 +4561,22 @@
       {
         "id": "heating_mode_is",
         "title": {
-          "en": "Operating mode is",
-          "nl": "Bedrijfsmodus is",
-          "de": "Betriebsmodus ist",
-          "fr": "Le mode de fonctionnement est"
+          "en": "Heating mode is",
+          "nl": "Verwarmingsmodus is",
+          "de": "Heizmodus ist",
+          "fr": "Le mode de chauffage est"
         },
         "titleFormatted": {
-          "en": "Operating mode !{{is|is not}} [[mode]]",
-          "nl": "Bedrijfsmodus !{{is|is niet}} [[mode]]",
-          "de": "Betriebsmodus !{{ist|ist nicht}} [[mode]]",
-          "fr": "Le mode de fonctionnement !{{est|n'est pas}} [[mode]]"
+          "en": "Heating mode !{{is|is not}} [[mode]]",
+          "nl": "Verwarmingsmodus !{{is|is niet}} [[mode]]",
+          "de": "Heizmodus !{{ist|ist nicht}} [[mode]]",
+          "fr": "Le mode de chauffage !{{est|n'est pas}} [[mode]]"
         },
         "hint": {
-          "en": "Check if the operating mode matches the selected mode",
-          "nl": "Controleer of de bedrijfsmodus overeenkomt met de geselecteerde modus",
-          "de": "Prüfen Sie, ob der Betriebsmodus mit dem ausgewählten Modus übereinstimmt",
-          "fr": "Vérifier si le mode de fonctionnement correspond au mode sélectionné"
+          "en": "Check if the heating mode matches the selected mode",
+          "nl": "Controleer of de verwarmingsmodus overeenkomt met de geselecteerde modus",
+          "de": "Prüfen Sie, ob der Heizmodus mit dem ausgewählten Modus übereinstimmt",
+          "fr": "Vérifier si le mode de chauffage correspond au mode sélectionné"
         },
         "args": [
           {
@@ -4637,26 +4588,26 @@
             "type": "dropdown",
             "name": "mode",
             "title": {
-              "en": "Operating mode",
-              "nl": "Bedrijfsmodus",
-              "de": "Betriebsmodus",
-              "fr": "Mode de fonctionnement"
+              "en": "Heating mode",
+              "nl": "Verwarmingsmodus",
+              "de": "Heizmodus",
+              "fr": "Mode de chauffage"
             },
             "values": [
               {
                 "id": "cold",
                 "title": {
-                  "en": "Cooling",
-                  "nl": "Koeling",
-                  "de": "Kühlung",
-                  "fr": "Refroidissement"
+                  "en": "Cold",
+                  "nl": "Koud",
+                  "de": "Kälte",
+                  "fr": "Froid"
                 }
               },
               {
                 "id": "heating",
                 "title": {
                   "en": "Heating",
-                  "nl": "Verwarming",
+                  "nl": "Verwarmen",
                   "de": "Heizen",
                   "fr": "Chauffage"
                 }
@@ -4674,7 +4625,7 @@
                 "id": "hot_water",
                 "title": {
                   "en": "Hot water",
-                  "nl": "Warmwater",
+                  "nl": "Warm water",
                   "de": "Warmwasser",
                   "fr": "Eau chaude"
                 }
@@ -4682,17 +4633,17 @@
               {
                 "id": "cold_and_hotwater",
                 "title": {
-                  "en": "Cooling and hot water",
-                  "nl": "Koeling en warmwater",
-                  "de": "Kühlung und Warmwasser",
-                  "fr": "Refroidissement et eau chaude"
+                  "en": "Cold and hot water",
+                  "nl": "Koud en warm water",
+                  "de": "Kälte und Warmwasser",
+                  "fr": "Froid et eau chaude"
                 }
               },
               {
                 "id": "heating_and_hot_water",
                 "title": {
                   "en": "Heating and hot water",
-                  "nl": "Verwarming en warmwater",
+                  "nl": "Verwarmen en warm water",
                   "de": "Heizen und Warmwasser",
                   "fr": "Chauffage et eau chaude"
                 }
@@ -4701,7 +4652,7 @@
                 "id": "floor_heatign_and_hot_water",
                 "title": {
                   "en": "Floor heating and hot water",
-                  "nl": "Vloerverwarming en warmwater",
+                  "nl": "Vloerverwarming en warm water",
                   "de": "Fußbodenheizung und Warmwasser",
                   "fr": "Chauffage au sol et eau chaude"
                 }
@@ -7150,22 +7101,22 @@
       {
         "id": "set_heating_mode",
         "title": {
-          "en": "Set operating mode",
-          "nl": "Bedrijfsmodus instellen",
-          "de": "Betriebsmodus einstellen",
-          "fr": "Régler le mode de fonctionnement"
+          "en": "Set heating mode",
+          "nl": "Verwarmingsmodus instellen",
+          "de": "Heizmodus einstellen",
+          "fr": "Régler le mode de chauffage"
         },
         "titleFormatted": {
-          "en": "Set operating mode to [[mode]]",
-          "nl": "Bedrijfsmodus instellen op [[mode]]",
-          "de": "Betriebsmodus einstellen auf [[mode]]",
-          "fr": "Régler le mode de fonctionnement sur [[mode]]"
+          "en": "Set heating mode to [[mode]]",
+          "nl": "Verwarmingsmodus instellen op [[mode]]",
+          "de": "Heizmodus einstellen auf [[mode]]",
+          "fr": "Régler le mode de chauffage sur [[mode]]"
         },
         "hint": {
-          "en": "Set the operating mode",
-          "nl": "Stel de bedrijfsmodus in",
-          "de": "Betriebsmodus einstellen",
-          "fr": "Régler le mode de fonctionnement"
+          "en": "Set the heating operation mode",
+          "nl": "Stel de verwarming bedrijfsmodus in",
+          "de": "Heizbetriebsmodus einstellen",
+          "fr": "Régler le mode de fonctionnement du chauffage"
         },
         "highlight": true,
         "args": [
@@ -7178,26 +7129,26 @@
             "type": "dropdown",
             "name": "mode",
             "title": {
-              "en": "Operating mode",
-              "nl": "Bedrijfsmodus",
-              "de": "Betriebsmodus",
-              "fr": "Mode de fonctionnement"
+              "en": "Heating mode",
+              "nl": "Verwarmingsmodus",
+              "de": "Heizmodus",
+              "fr": "Mode de chauffage"
             },
             "values": [
               {
                 "id": "cold",
                 "title": {
-                  "en": "Cooling",
-                  "nl": "Koeling",
-                  "de": "Kühlung",
-                  "fr": "Refroidissement"
+                  "en": "Cold",
+                  "nl": "Koud",
+                  "de": "Kalt",
+                  "fr": "Froid"
                 }
               },
               {
                 "id": "heating",
                 "title": {
                   "en": "Heating",
-                  "nl": "Verwarming",
+                  "nl": "Verwarmen",
                   "de": "Heizung",
                   "fr": "Chauffage"
                 }
@@ -7215,7 +7166,7 @@
                 "id": "hot_water",
                 "title": {
                   "en": "Hot water",
-                  "nl": "Warmwater",
+                  "nl": "Warm water",
                   "de": "Warmwasser",
                   "fr": "Eau chaude"
                 }
@@ -7223,17 +7174,17 @@
               {
                 "id": "cold_and_hotwater",
                 "title": {
-                  "en": "Cooling and hot water",
-                  "nl": "Koeling en warmwater",
-                  "de": "Kühlung und Warmwasser",
-                  "fr": "Refroidissement et eau chaude"
+                  "en": "Cold and hot water",
+                  "nl": "Koud en warm water",
+                  "de": "Kalt- und Warmwasser",
+                  "fr": "Eau froide et eau chaude"
                 }
               },
               {
                 "id": "heating_and_hot_water",
                 "title": {
                   "en": "Heating and hot water",
-                  "nl": "Verwarming en warmwater",
+                  "nl": "Verwarmen en warm water",
                   "de": "Heizung und Warmwasser",
                   "fr": "Chauffage et eau chaude"
                 }
@@ -7242,7 +7193,7 @@
                 "id": "floor_heatign_and_hot_water",
                 "title": {
                   "en": "Floor heating and hot water",
-                  "nl": "Vloerverwarming en warmwater",
+                  "nl": "Vloerverwarming en warm water",
                   "de": "Fußbodenheizung und Warmwasser",
                   "fr": "Chauffage au sol et eau chaude"
                 }
@@ -7672,11 +7623,7 @@
         "heating_curve_slope",
         "heating_curve_intercept",
         "heating_curve_ref_outdoor",
-        "heating_curve_ref_temp",
-        "adlar_enum_countdown_set",
-        "adlar_enum_work_mode",
-        "adlar_enum_capacity_set",
-        "adlar_evi_step"
+        "heating_curve_ref_temp"
       ],
       "capabilitiesOptions": {
         "target_temperature": {
@@ -8712,7 +8659,7 @@
         "en": "EEV opening steps",
         "nl": "EEV-openingsstappen"
       },
-      "icon": "/assets/pulse-steps.svg",
+      "icon": "/assets/adlar-icon-white.svg",
       "uiComponent": "sensor",
       "getable": true,
       "setable": false,
@@ -9795,50 +9742,43 @@
         {
           "id": "0",
           "title": {
-            "en": "Cooling",
-            "nl": "Koeling"
-          }
-        },
-        {
-          "id": "1",
-          "title": {
             "en": "Heating",
             "nl": "Verwarming"
           }
         },
         {
-          "id": "2",
+          "id": "1",
           "title": {
-            "en": "Hot Water",
-            "nl": "Warmwater"
+            "en": "Cooling",
+            "nl": "Koeling"
           }
         },
         {
           "id": "3",
           "title": {
-            "en": "Floor Heating",
-            "nl": "Vloerverwarming"
+            "en": "DHW",
+            "nl": "Warmwater"
           }
         },
         {
           "id": "4",
           "title": {
-            "en": "Cooling + Hot Water",
-            "nl": "Koeling + Warmwater"
+            "en": "Heating + DHW",
+            "nl": "Verwarming + Warmwater"
           }
         },
         {
           "id": "5",
           "title": {
-            "en": "Heating + Hot Water",
-            "nl": "Verwarming + Warmwater"
+            "en": "Cooling + DHW",
+            "nl": "Koeling + Warmwater"
           }
         },
         {
           "id": "7",
           "title": {
-            "en": "Floor Heating + Hot Water",
-            "nl": "Vloerverwarming + Warmwater"
+            "en": "Auto",
+            "nl": "Automatisch"
           }
         }
       ]

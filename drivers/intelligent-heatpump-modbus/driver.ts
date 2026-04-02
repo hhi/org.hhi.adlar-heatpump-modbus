@@ -58,8 +58,6 @@ class ModbusDriver extends Homey.Driver {
             modbus_host: credentials.host,
             modbus_port: credentials.port,
             modbus_unit_id: credentials.unitId,
-            has_flow_meter: false,
-            default_flow_lpm: 20,
             poll_fast_s: 10,
             poll_medium_s: 30,
             poll_slow_s: 300,

@@ -1,6 +1,6 @@
 {
   "name": "org.hhi.adlar-heatpump-modbus",
-  "version": "1.1.1",
+  "version": "1.2.1",
   "engines": {
     "node": ">=12.16.1"
   },
@@ -18,5 +18,8 @@
   },
   "dependencies": {
     "jsmodbus": "^4.0.10"
+  },
+    "overrides": {
+    "minimatch": "^9.0.7"
   }
 }

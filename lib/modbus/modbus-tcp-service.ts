@@ -369,10 +369,9 @@ export class ModbusTcpService extends EventEmitter {
       }
     } catch (err) {
       this.stats.errors++;
-      const msg = err instanceof Error ? err.message : ((err as Record<string, unknown>)?.message as string | undefined) ?? String(err);
-      this._log(`  ✗ FC03 ${addrHex}: ${msg}`);
+      this._log(`  ✗ FC03 ${addrHex}: ${(err as Error).message}`);
       this.emit('error', err as Error, `fc03:${addrHex}`);
-      throw new Error(`FC03 read failed (${addrHex}): ${msg}`);
+      throw err;
     }
   }
 
@@ -393,10 +392,9 @@ export class ModbusTcpService extends EventEmitter {
       await this._batchDelay();
     } catch (err) {
       this.stats.errors++;
-      const msg = err instanceof Error ? err.message : ((err as Record<string, unknown>)?.message as string | undefined) ?? String(err);
-      this._log(`  ✗ FC06 ${addrHex}: ${msg}`);
+      this._log(`  ✗ FC06 ${addrHex}: ${(err as Error).message}`);
       this.emit('error', err as Error, `fc06:${addrHex}`);
-      throw new Error(`FC06 write failed (${addrHex}): ${msg}`);
+      throw err;
     }
   }
 
@@ -414,10 +412,9 @@ export class ModbusTcpService extends EventEmitter {
       await this._batchDelay();
     } catch (err) {
       this.stats.errors++;
-      const msg = err instanceof Error ? err.message : ((err as Record<string, unknown>)?.message as string | undefined) ?? String(err);
-      this._log(`  ✗ FC05 ${addrHex}: ${msg}`);
+      this._log(`  ✗ FC05 ${addrHex}: ${(err as Error).message}`);
       this.emit('error', err as Error, `fc05:${addrHex}`);
-      throw new Error(`FC05 write failed (${addrHex}): ${msg}`);
+      throw err;
     }
   }
 

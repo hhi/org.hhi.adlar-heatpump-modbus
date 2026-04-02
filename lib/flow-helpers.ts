@@ -262,25 +262,34 @@ export const FLOW_PATTERNS = {
   // Compressor, defrost, and backwater states automatically generate "when turned on/off" flow cards
   stateChanges: [],
   /**
-   * Simple action cards that directly map flow actions to capability changes.
-   * NOTE: set_heating_mode and set_heating_curve are handled via custom handlers
-   * in FlowCardManagerService (not via simpleActions) to ensure correct Modbus
-   * register targeting (0x0314 for heating curve, 0x0304 for operating mode).
+   * Simple action cards that directly map flow actions to capability changes
+   *
+   * IMPORTANT NAMING NOTE (Tuya DPS naming constraints):
+   * - 'set_capacity' -> 'adlar_enum_capacity_set' (DPS 11) -> Controls HOT WATER curve (not capacity)
+   * - 'set_heating_curve' -> 'adlar_enum_countdown_set' (DPS 13) -> Controls HEATING curve (not countdown)
+   *
+   * The flow card names are descriptive of function, capability names follow Tuya DPS naming.
    */
   simpleActions: [
     { cardId: 'set_target_temperature', pattern: 'simple_action' as const, capabilityName: 'target_temperature' },
+    { cardId: 'set_desired_indoor_temperature', pattern: 'simple_action' as const, capabilityName: 'target_temperature.indoor' },
     { cardId: 'set_hotwater_temperature', pattern: 'simple_action' as const, capabilityName: 'adlar_hotwater' },
-    // set_device_onoff: handled via custom handler in FlowCardManagerService (dropdown gives "on"/"off" string, onoff needs boolean)
-    // set_desired_indoor_temperature: handled via custom handler (no capability listener for target_temperature.indoor)
+    { cardId: 'set_heating_mode', pattern: 'simple_action' as const, capabilityName: 'adlar_enum_mode' },
     { cardId: 'set_work_mode', pattern: 'simple_action' as const, capabilityName: 'adlar_enum_work_mode' },
+    // NOTE: Despite capability name "capacity_set", this controls HOT WATER curve settings (OFF, H1-H4)
     { cardId: 'set_capacity', pattern: 'simple_action' as const, capabilityName: 'adlar_enum_capacity_set' },
+    { cardId: 'set_volume', pattern: 'simple_action' as const, capabilityName: 'adlar_enum_volume_set' },
+    { cardId: 'set_device_onoff', pattern: 'simple_action' as const, capabilityName: 'onoff' },
+    { cardId: 'set_water_mode', pattern: 'simple_action' as const, capabilityName: 'adlar_enum_water_mode' },
+    // NOTE: Despite capability name "countdown_set", this controls HEATING curve settings (H1-H8, L1-L8)
+    { cardId: 'set_heating_curve', pattern: 'simple_action' as const, capabilityName: 'adlar_enum_countdown_set' },
   ],
 
   // Simple condition cards
   simpleConditions: [
-    { cardId: 'fault_active', pattern: 'simple_condition' as const, capabilityName: 'adlar_fault_active' },
-    { cardId: 'temperature_above', pattern: 'simple_condition' as const, capabilityName: 'measure_temperature.ambient' },
-    { cardId: 'compressor_running', pattern: 'simple_condition' as const, capabilityName: 'adlar_compressor_on' },
+    { cardId: 'fault_active', pattern: 'simple_condition' as const, capabilityName: 'adlar_fault' },
+    { cardId: 'temperature_above', pattern: 'simple_condition' as const, capabilityName: 'measure_temperature.around_temp' },
+    { cardId: 'compressor_running', pattern: 'simple_condition' as const, capabilityName: 'adlar_state_compressor_state' },
     {
       cardId: 'power_above_threshold', pattern: 'simple_condition' as const, capabilityName: 'measure_power', requiresCapability: 'measure_power',
     },
