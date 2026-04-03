@@ -1682,14 +1682,16 @@ export class AdaptiveControlService {
         try {
           // Execute reset
           await this.buildingModel.reset();
-
-          // Automatically turn off the toggle
-          await this.device.setSettings({ reset_building_model: false });
-          this.logger('✅ Building model reset complete - toggle automatically disabled');
+          this.logger('✅ Building model reset complete');
         } catch (error) {
           this.device.error('❌ Building model reset failed:', error);
-          // Still turn off toggle to prevent repeated failures
-          await this.device.setSettings({ reset_building_model: false });
+        } finally {
+          // Defer setSettings to avoid race condition with onSettings() still pending
+          this.device.homey.setTimeout(() => {
+            this.device.setSettings({ reset_building_model: false })
+              .then(() => this.logger('🔄 Building model reset toggle automatically disabled'))
+              .catch((err: unknown) => this.device.error('Failed to reset building_model toggle:', err));
+          }, DeviceConstants.SETTINGS_DEFER_DELAY_MS);
         }
       }
     }

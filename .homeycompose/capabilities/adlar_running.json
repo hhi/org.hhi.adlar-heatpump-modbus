@@ -5,7 +5,7 @@
     "en": "Unit running",
     "nl": "Unit in bedrijf"
   },
-  "icon": "/assets/adlar-icon-white.svg",
+  "icon": "/assets/compressor-state.svg",
   "uiComponent": "sensor",
   "getable": true,
   "setable": false,

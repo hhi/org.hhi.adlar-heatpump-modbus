@@ -5,7 +5,7 @@
     "en": "Pump PWM",
     "nl": "Pomp PWM"
   },
-  "icon": "/assets/adlar-icon-white.svg",
+  "icon": "/assets/external-flow.svg",
   "uiComponent": "sensor",
   "getable": true,
   "setable": false,

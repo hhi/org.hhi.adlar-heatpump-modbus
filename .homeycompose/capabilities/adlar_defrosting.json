@@ -5,7 +5,7 @@
     "en": "Defrosting",
     "nl": "Ontdooien"
   },
-  "icon": "/assets/adlar-icon-white.svg",
+  "icon": "/assets/defrost-state.svg",
   "uiComponent": "sensor",
   "getable": true,
   "setable": false,

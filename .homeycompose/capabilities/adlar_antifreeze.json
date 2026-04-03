@@ -5,7 +5,7 @@
     "en": "Antifreeze protection active",
     "nl": "Antivriesbeveiliging actief"
   },
-  "icon": "/assets/adlar-icon-white.svg",
+  "icon": "/assets/fault.svg",
   "uiComponent": "sensor",
   "getable": true,
   "setable": false,
