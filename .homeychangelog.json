@@ -1,4 +1,8 @@
 {
+  "1.2.2": {
+    "en": "Added Building Insights: insulation performance, pre-heating strategy, thermal storage, and building profile analysis. Added 11 advanced settings groups: COP, adaptive control, building model, weather forecast, price optimizer, COP optimizer, wind/solar correction, and priority weights. Added min/max/step constraints to temperature setpoint capabilities.",
+    "nl": "Toegevoegd: Building Insights met analyses voor isolatieprestatie, voorverwarmingsstrategie, thermische opslag en gebouwprofiel. Toegevoegd: 11 geavanceerde instellingsgroepen: COP, adaptieve regeling, gebouwmodel, weersvoorspelling, prijsoptimalisatie, COP-optimizer, wind-/zonneenergie correctie en prioriteitsgewichten. Min/max/step-beperkingen toegevoegd aan temperatuurinstelpunt-capabilities."
+  },
   "1.0.4": {
     "en": "Fixed: connection status no longer shows 'Disconnected' for brief Modbus interruptions shorter than 1 minute. Fixed: hot water setpoint slider now reflects the actual device value and writes changes to the heat pump.",
     "nl": "Opgelost: verbindingsstatus toont niet langer 'Verbroken' bij korte Modbus-onderbrekingen van minder dan 1 minuut. Opgelost: warmwater-instelpuntschuifregelaar toont nu de actuele apparaatwaarde en schrijft wijzigingen naar de warmtepomp.",

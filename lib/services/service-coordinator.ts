@@ -9,6 +9,7 @@ import { EnergyTrackingService } from './energy-tracking-service';
 import { ModbusConnectionService, ModbusConnectionConfig } from './modbus-connection-service';
 import { FlowCardManagerService } from './flow-card-manager-service';
 import { AdaptiveControlService } from './adaptive-control-service';
+import { BuildingInsightsService } from './building-insights-service';
 import { SnapshotTriggerService } from './snapshot-trigger-service';
 import { DataSnapshot } from '../modbus/adlar2-modbus-service';
 
@@ -35,6 +36,7 @@ export class ServiceCoordinator {
   private modbusConnection!: ModbusConnectionService;
   private flowCardManager!: FlowCardManagerService;
   private adaptiveControl!: AdaptiveControlService;
+  private buildingInsights!: BuildingInsightsService;
   private snapshotTrigger!: SnapshotTriggerService;
 
   // Service state
@@ -73,6 +75,13 @@ export class ServiceCoordinator {
       ...opts,
     });
 
+    this.buildingInsights = new BuildingInsightsService({
+      device: this.device,
+      buildingModelService: this.adaptiveControl.getBuildingModelService(),
+      adaptiveControlService: this.adaptiveControl,
+      logger: this.logger,
+    });
+
     this.flowCardManager = new FlowCardManagerService({
       ...opts,
       onExternalPowerData: this.energyTracking.receiveExternalPowerData.bind(this.energyTracking),
@@ -83,6 +92,7 @@ export class ServiceCoordinator {
           count: Object.keys(prices).length,
         });
       },
+      buildingInsightsService: this.buildingInsights,
     });
 
     this.snapshotTrigger = new SnapshotTriggerService();
@@ -185,6 +195,16 @@ export class ServiceCoordinator {
       } catch (err) {
         this.logger('ServiceCoordinator: AdaptiveControl init failed (non-critical)', err);
         result.failedServices.push('adaptive');
+        result.errors.push(err as Error);
+      }
+
+      // Initialize BuildingInsightsService (non-critical — requires building model data)
+      try {
+        await this.buildingInsights.initialize();
+        this.logger('ServiceCoordinator: BuildingInsights initialized');
+      } catch (err) {
+        this.logger('ServiceCoordinator: BuildingInsights init failed (non-critical)', err);
+        result.failedServices.push('buildingInsights');
         result.errors.push(err as Error);
       }
 
@@ -359,6 +379,11 @@ export class ServiceCoordinator {
     if (this.adaptiveControl) {
       await this.adaptiveControl.onSettings(oldSettings, newSettings, changedKeys);
     }
+    if (this.buildingInsights) {
+      await this.buildingInsights.onSettingsChanged(newSettings).catch((error) => {
+        this.logger('ServiceCoordinator: BuildingInsights settings update failed (non-critical)', error);
+      });
+    }
   }
 
   getAdaptiveControl(): AdaptiveControlService {
@@ -433,6 +458,7 @@ export class ServiceCoordinator {
       this.capabilityHealth.destroy();
       this.energyTracking.destroy();
       this.flowCardManager.destroy();
+      await this.buildingInsights.destroy();
       await this.adaptiveControl.saveEnergyOptimizerState().catch((e) => {
         this.logger('ServiceCoordinator: saveEnergyOptimizerState failed', e);
       });
