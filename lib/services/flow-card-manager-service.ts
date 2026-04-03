@@ -6,7 +6,7 @@ import Homey from 'homey';
 import { TuyaErrorCategorizer } from '../error-types';
 import { calculatePreHeatDuration } from '../utils/preheat-calculator';
 import { CapabilityCategories, UserFlowPreferences } from '../types/shared-interfaces';
-import type { BuildingInsightsService } from './building-insights-service';
+import type { BuildingInsightsService, InsightCategory } from './building-insights-service';
 import { PerformanceReportService } from './performance-report-service';
 
 /* eslint-disable camelcase */
@@ -781,7 +781,7 @@ export class FlowCardManagerService {
           throw new Error('Building Insights service not available');
         }
 
-        const result = await this.buildingInsightsService.forceInsightAnalysis() as Record<string, unknown>;
+        const result = await this.buildingInsightsService.forceInsightAnalysis() as unknown as Record<string, unknown>;
         this.logger(`FlowCardManagerService: Force analysis complete - ${result['insights_detected']} insights at ${result['confidence']}% confidence`);
 
         // Return tokens for use in flows
@@ -886,7 +886,7 @@ export class FlowCardManagerService {
           return false;
         }
 
-        const isActive = this.buildingInsightsService.isInsightActive(args.category);
+        const isActive = this.buildingInsightsService.isInsightActive(args.category as InsightCategory);
         this.logger(`FlowCardManagerService: Insight ${args.category} is ${isActive ? 'active' : 'not active'}`);
         return isActive;
       });
@@ -918,7 +918,7 @@ export class FlowCardManagerService {
           return false;
         }
 
-        const isAbove = this.buildingInsightsService.areSavingsAbove(args.category, args.threshold);
+        const isAbove = this.buildingInsightsService.areSavingsAbove(args.category as InsightCategory, args.threshold);
         this.logger(`FlowCardManagerService: Savings for ${args.category} are ${isAbove ? 'above' : 'below'} €${args.threshold}/month`);
         return isAbove;
       });
