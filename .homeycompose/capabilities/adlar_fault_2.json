@@ -5,7 +5,7 @@
     "en": "Fault register 2 active",
     "nl": "Foutregister 2 actief"
   },
-  "icon": "/assets/adlar-icon-white.svg",
+  "icon": "/assets/fault.svg",
   "uiComponent": "sensor",
   "getable": true,
   "setable": false,

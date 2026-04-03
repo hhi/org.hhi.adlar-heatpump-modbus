@@ -5,7 +5,7 @@
     "en": "Fault shutdown",
     "nl": "Fout - unit gestopt"
   },
-  "icon": "/assets/adlar-icon-white.svg",
+  "icon": "/assets/fault.svg",
   "uiComponent": "sensor",
   "getable": true,
   "setable": false,

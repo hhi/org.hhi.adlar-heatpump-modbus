@@ -5,7 +5,7 @@
     "en": "Compressor active",
     "nl": "Compressor actief"
   },
-  "icon": "/assets/adlar-icon-white.svg",
+  "icon": "/assets/compressor-state.svg",
   "uiComponent": "sensor",
   "getable": true,
   "setable": false,
