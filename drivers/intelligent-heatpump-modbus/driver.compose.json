@@ -134,25 +134,37 @@
       "title": {
         "en": "Heating setpoint",
         "nl": "Verwarming setpoint"
-      }
+      },
+      "min": 25,
+      "max": 60,
+      "step": 1
     },
     "target_temperature.cooling": {
       "title": {
         "en": "Cooling setpoint",
         "nl": "Koeling setpoint"
-      }
+      },
+      "min": 5,
+      "max": 25,
+      "step": 1
     },
     "target_temperature.dhw": {
       "title": {
         "en": "DHW setpoint",
         "nl": "Warmwater setpoint"
-      }
+      },
+      "min": 40,
+      "max": 75,
+      "step": 1
     },
     "target_temperature.floor": {
       "title": {
         "en": "Floor heating setpoint",
         "nl": "Vloerverwarming setpoint"
-      }
+      },
+      "min": 15,
+      "max": 45,
+      "step": 1
     },
     "measure_temperature": {
       "title": {
@@ -285,6 +297,10 @@
         "en": "C-phase current",
         "nl": "C-fase stroom"
       }
+    },
+    "measure_power": {
+      "min": 0,
+      "max": 20000
     }
   },
   "images": {
