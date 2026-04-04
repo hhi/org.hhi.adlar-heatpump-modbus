@@ -115,7 +115,7 @@
         "type": "checkbox",
         "label": {
           "en": "Enable outlier detection",
-          "nl": "Uitbijterdetectie inschakelen"
+          "nl": "Detectie van uitschieters inschakelen"
         },
         "value": true,
         "hint": {
