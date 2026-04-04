@@ -11,8 +11,6 @@ export interface ModbusConnectionConfig {
   host: string;
   port?: number;
   unitId?: number;
-  hasFlowMeter?: boolean;
-  defaultFlowLpm?: number;
   pollFastMs?: number;
   pollMediumMs?: number;
   pollSlowMs?: number;
@@ -75,8 +73,6 @@ export class ModbusConnectionService extends EventEmitter {
         batchDelayMs: 90,
         maxReconnects: 0,
       },
-      hasFlowMeter: config.hasFlowMeter ?? false,
-      defaultFlowLpm: config.defaultFlowLpm ?? 20,
       timerProvider,
     });
 
@@ -184,6 +180,13 @@ export class ModbusConnectionService extends EventEmitter {
       hasService: !!this.service,
       hasRetryTimer: !!this.retryTimer,
     };
+  }
+
+  /**
+   * Update the external flow rate used for COP calculations.
+   */
+  setExternalFlow(lpm: number | null): void {
+    this.service?.setExternalFlow(lpm);
   }
 
   /**

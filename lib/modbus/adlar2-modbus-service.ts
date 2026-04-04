@@ -212,19 +212,12 @@ const HEATING_MIN_FREQ_DEFINITIONS: Record<FreqZone, NumericRegisterDefinition> 
 
 export interface Adlar2ModbusConfig {
   transport: Partial<ModbusTcpConfig> & { host: string };
-  hasFlowMeter: boolean;
-  defaultFlowLpm: number;
   /**
    * Optionele timer-facade — geef `this.homey` timers mee vanuit het Homey device.
    * Laat leeg voor CLI/test gebruik.
    */
   timerProvider?: TimerProvider;
 }
-
-const ADLAR_DEFAULTS = {
-  hasFlowMeter: false,
-  defaultFlowLpm: 20,
-};
 
 function toRuntimePollGroup(
   def: RegisterPollGroupDefinition,
@@ -298,16 +291,12 @@ function clonePollGroup(group: PollGroup, intervalMs: number): PollGroup {
 export class Adlar2ModbusService extends EventEmitter {
 
   private readonly tcp: ModbusTcpService;
-  private readonly cfg: { hasFlowMeter: boolean; defaultFlowLpm: number };
+  private externalFlowLpm: number | null = null;
   private lastFaults: string[] = [];
 
   constructor(config: Adlar2ModbusConfig) {
     super();
 
-    this.cfg = {
-      hasFlowMeter: config.hasFlowMeter ?? ADLAR_DEFAULTS.hasFlowMeter,
-      defaultFlowLpm: config.defaultFlowLpm ?? ADLAR_DEFAULTS.defaultFlowLpm,
-    };
     this.tcp = new ModbusTcpService({ ...config.transport, timerProvider: config.timerProvider });
 
     this.tcp.on('disconnected', (reason) => this.emit('disconnected', reason));
@@ -496,7 +485,10 @@ export class Adlar2ModbusService extends EventEmitter {
   async setFlowRate(lpm: number): Promise<void> {
     assertRange(L_PARAMETERS.L31_externalPumpFlowRate, lpm);
     await this.tcp.writeSingleRegister(L_PARAMETERS.L31_externalPumpFlowRate.address, lpm);
-    this.cfg.defaultFlowLpm = lpm;
+  }
+
+  setExternalFlow(lpm: number | null): void {
+    this.externalFlowLpm = lpm;
   }
 
   private async runInitValidation(): Promise<void> {
@@ -592,7 +584,9 @@ export class Adlar2ModbusService extends EventEmitter {
     const deltaT = outletTemp - inletTemp;
 
     const rawFlow = this.tcp.u16(SENSOR_REGISTERS.waterFlow.address);
-    const flow = this.cfg.hasFlowMeter && rawFlow > 0 ? rawFlow : this.cfg.defaultFlowLpm;
+    const flow = (this.externalFlowLpm !== null && this.externalFlowLpm > 0)
+      ? this.externalFlowLpm
+      : (rawFlow > 0 ? rawFlow : 0);
     const thermalPowerKw = Math.abs(deltaT) * flow * WATER_THERMAL_FACTOR;
 
     const power = this.buildPower();

@@ -1,4 +1,8 @@
 {
+  "1.2.4": {
+    "en": "External flow rate (L/min) can now be sent to the heat pump via a flow card for COP calculations. External flow takes priority over the internal sensor; if neither is available, COP uses 0 W thermal power. Removed the manual 'Default flow rate' and 'Flow meter connected' settings. Fixed: external power value is no longer reset to null on Modbus reconnects. Fixed: external indoor temperature is now correctly stored in the capability.",
+    "nl": "Extern debiet (L/min) kan nu via een flow kaart naar de warmtepomp worden gestuurd voor COP-berekeningen. Extern debiet heeft voorrang op de interne sensor; als geen van beide beschikbaar is, gebruikt de COP 0 W thermisch vermogen. De handmatige instellingen 'Standaard debiet' en 'Debietmeter aangesloten' zijn verwijderd. Opgelost: externe vermogenswaarde wordt niet meer gereset naar null bij Modbus-herverbinding. Opgelost: externe binnentemperatuur wordt nu correct opgeslagen in de capability."
+  },
   "1.2.3": {
     "en": "Updated capability icons: compressor, defrost, fault, mode, pump, water flow, and heating curve capabilities now show dedicated icons. Fixed: building model reset no longer causes a settings save timeout.",
     "nl": "Capability-iconen bijgewerkt: compressor, ontdooiing, storing, modus, pomp, waterflow en verwarmingscurve-capabilities tonen nu specifieke iconen. Opgelost: gebouwmodel resetten veroorzaakt geen instellingen-opslaan timeout meer."

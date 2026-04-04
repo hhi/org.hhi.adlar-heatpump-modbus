@@ -585,15 +585,13 @@ export class EnergyTrackingService {
     this.isDeviceConnected = connected;
 
     if (!connected) {
-      // Clear stale external power so Priority 1 falls through after reconnect
-      if (this.device.hasCapability('adlar_external_power')) {
-        await this.device.setCapabilityValue('adlar_external_power', null);
-      }
       // Show 0W while disconnected — state is unknown
+      // Note: adlar_external_power is fed by Homey flow cards, not by the Modbus connection,
+      // so it must NOT be cleared here.
       if (this.device.hasCapability('measure_power')) {
         await this.device.setCapabilityValue('measure_power', 0);
       }
-      this.logger('EnergyTrackingService: Device disconnected — power data cleared');
+      this.logger('EnergyTrackingService: Device disconnected — power display cleared');
     } else {
       this.logger('EnergyTrackingService: Device connected — power measurement resumed');
     }

@@ -53,6 +53,7 @@ export class ServiceCoordinator {
   private onHealthReportHandler?: (report: unknown) => void;
   private onEnergyTotalResetHandler?: () => void;
   private onEnergyDailyResetHandler?: () => void;
+  private onExternalFlowHandler?: (lpm: number) => void;
 
   constructor(options: ServiceCoordinatorOptions) {
     this.device = options.device;
@@ -163,6 +164,14 @@ export class ServiceCoordinator {
       this.energyTracking.resetDailyCost();
     };
     this.device.on('energy:daily-reset', this.onEnergyDailyResetHandler);
+
+    if (this.onExternalFlowHandler) {
+      this.device.removeListener('external-data:flow', this.onExternalFlowHandler);
+    }
+    this.onExternalFlowHandler = (lpm: number) => {
+      this.modbusConnection.setExternalFlow(lpm);
+    };
+    this.device.on('external-data:flow', this.onExternalFlowHandler);
   }
 
   /**
@@ -487,6 +496,10 @@ export class ServiceCoordinator {
     if (this.onEnergyDailyResetHandler) {
       this.device.removeListener('energy:daily-reset', this.onEnergyDailyResetHandler);
       this.onEnergyDailyResetHandler = undefined;
+    }
+    if (this.onExternalFlowHandler) {
+      this.device.removeListener('external-data:flow', this.onExternalFlowHandler);
+      this.onExternalFlowHandler = undefined;
     }
 
     this.serviceHealth.clear();
