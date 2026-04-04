@@ -209,6 +209,8 @@ class AdlarModbusDevice extends Homey.Device {
     set('adlar_antifreeze', snap.status.antifreeze);
     set('adlar_sterilization', snap.status.sterilization);
     set('adlar_fault_shutdown', snap.status.faultShutdown);
+    set('adlar_state_compressor_state', snap.status.compressorOn);
+    set('adlar_state_defrost_state', snap.status.defrosting);
     if (snap.status.activeFaults.length > 0) {
       set('alarm_generic', true);
     }
@@ -267,6 +269,7 @@ class AdlarModbusDevice extends Homey.Device {
 
     // Fault register aggregation
     const faults = snap.status.activeFaults;
+    set('adlar_fault', faults.length);
     set('adlar_fault_1', faults.some((f: string) => f.startsWith('FAULT_1_')));
     set('adlar_fault_2', faults.some((f: string) => f.startsWith('FAULT_2_')));
     set('adlar_fault_3', faults.some((f: string) => f.startsWith('FAULT_3_') || f.startsWith('SYS1_')));
@@ -276,6 +279,15 @@ class AdlarModbusDevice extends Homey.Device {
         ? faults.map((f: string) => FAULT_DESCRIPTIONS[f] ?? f).join('; ')
         : '',
     );
+
+    // DIY heating curve parameters
+    if (snap.diy) {
+      set('heating_curve_slope', snap.diy.slopeK);
+      set('heating_curve_intercept', snap.diy.interceptB);
+      set('heating_curve_formula', `${snap.diy.slopeK.toFixed(1)} × T + ${snap.diy.interceptB.toFixed(1)}`);
+      set('heating_curve_ref_outdoor', -7);
+      set('heating_curve_ref_temp', snap.diy.calcSetpoint(-7));
+    }
 
   }
 
@@ -461,6 +473,21 @@ class AdlarModbusDevice extends Homey.Device {
       if (!this.coordinator) return;
       await this.coordinator.setHotWaterCurve(enumIdToHotWaterCurve(value));
     });
+  }
+
+  // ── Device helper methods (used by services via duck-typing) ─────────────────
+
+  /**
+   * Returns the best available outdoor temperature.
+   * Priority 1: External ambient sensor (flow card)
+   * Priority 2: Heat pump's own ambient sensor (T1)
+   */
+  public getOutdoorTemperatureWithFallback(): number | null {
+    let temp = this.getCapabilityValue('adlar_external_ambient') as number | null;
+    if (temp === null || temp === undefined) {
+      temp = this.getCapabilityValue('measure_temperature.ambient') as number | null;
+    }
+    return (temp !== null && temp !== undefined) ? temp : null;
   }
 
   // ── Flow card trigger hook ─────────────────────────────────────────────────
