@@ -45,46 +45,6 @@
     ]
   },
   {
-    "id": "flow_meter",
-    "type": "group",
-    "label": {
-      "en": "Water Flow Meter",
-      "nl": "Waterdebietmeter"
-    },
-    "children": [
-      {
-        "id": "has_flow_meter",
-        "type": "checkbox",
-        "label": {
-          "en": "External flow meter connected",
-          "nl": "Externe debietmeter aangesloten"
-        },
-        "value": false,
-        "hint": {
-          "en": "Enable if a physical flow meter is connected to the heat pump.",
-          "nl": "Inschakelen als er een fysieke debietmeter op de warmtepomp is aangesloten."
-        }
-      },
-      {
-        "id": "default_flow_lpm",
-        "type": "number",
-        "label": {
-          "en": "Default flow rate (L/min)",
-          "nl": "Standaard debiet (L/min)"
-        },
-        "value": 20,
-        "hint": {
-          "en": "Used for COP calculation when no flow meter is connected.",
-          "nl": "Gebruikt voor COP-berekening als er geen debietmeter is."
-        },
-        "attr": {
-          "min": 1,
-          "max": 100
-        }
-      }
-    ]
-  },
-  {
     "id": "polling",
     "type": "group",
     "label": {

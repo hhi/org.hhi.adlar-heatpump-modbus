@@ -27,7 +27,6 @@ interface DeviceSettings {
   modbus_host: string;
   modbus_port: number;
   modbus_unit_id: number;
-  default_flow_lpm: number;
   poll_fast_s: number;
   poll_medium_s: number;
   poll_slow_s: number;
@@ -42,6 +41,8 @@ interface DeviceSettings {
 class AdlarModbusDevice extends Homey.Device {
 
   private coordinator: ServiceCoordinator | null = null;
+  // Exposed as serviceCoordinator for shared services (e.g. FlowCardManagerService) that access it via duck-typing
+  get serviceCoordinator(): ServiceCoordinator | null { return this.coordinator; }
   private logger!: Logger;
   private rollingCOP: RollingCOPCalculator | null = null;
   private scopCalc: SCOPCalculator | null = null;
@@ -80,7 +81,6 @@ class AdlarModbusDevice extends Homey.Device {
       host: settings.modbus_host,
       port: settings.modbus_port ?? 502,
       unitId: settings.modbus_unit_id ?? 1,
-      defaultFlowLpm: settings.default_flow_lpm ?? 0,
       pollFastMs: (settings.poll_fast_s ?? 10) * 1000,
       pollMediumMs: (settings.poll_medium_s ?? 30) * 1000,
       pollSlowMs: (settings.poll_slow_s ?? 300) * 1000,
@@ -128,7 +128,7 @@ class AdlarModbusDevice extends Homey.Device {
     }
 
     // Restart connection if connection settings changed
-    const connectionKeys = ['modbus_host', 'modbus_port', 'modbus_unit_id', 'default_flow_lpm', 'poll_fast_s', 'poll_medium_s', 'poll_slow_s'];
+    const connectionKeys = ['modbus_host', 'modbus_port', 'modbus_unit_id', 'poll_fast_s', 'poll_medium_s', 'poll_slow_s'];
     if (changedKeys.some((k) => connectionKeys.includes(k))) {
       this.logger.info('Connection settings changed — restarting coordinator');
       await this._restartCoordinator(newSettings as DeviceSettings);
@@ -171,7 +171,6 @@ class AdlarModbusDevice extends Homey.Device {
       host: settings.modbus_host,
       port: settings.modbus_port ?? 502,
       unitId: settings.modbus_unit_id ?? 1,
-      defaultFlowLpm: settings.default_flow_lpm ?? 0,
       pollFastMs: (settings.poll_fast_s ?? 10) * 1000,
       pollMediumMs: (settings.poll_medium_s ?? 30) * 1000,
       pollSlowMs: (settings.poll_slow_s ?? 300) * 1000,
