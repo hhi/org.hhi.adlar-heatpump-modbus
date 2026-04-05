@@ -399,6 +399,10 @@ export class ServiceCoordinator {
     return this.adaptiveControl;
   }
 
+  getEnergyTracking(): EnergyTrackingService {
+    return this.energyTracking;
+  }
+
   async updateFlowCards(): Promise<void> {
     const capabilitiesWithData = await this.capabilityHealth.detectCapabilitiesWithData();
     return this.flowCardManager.updateFlowCards(capabilitiesWithData);

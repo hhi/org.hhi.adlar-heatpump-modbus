@@ -50,7 +50,7 @@ class ModbusDriver extends Homey.Driver {
 
       return [
         {
-          name: `Adlar Heat Pump (${credentials.host})`,
+          name: `Adlar Heat Pump Modbus (${credentials.host})`,
           data: {
             id: `modbus-${credentials.host}-${credentials.unitId}`,
           },
