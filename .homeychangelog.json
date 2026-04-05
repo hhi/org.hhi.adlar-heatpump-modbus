@@ -1,4 +1,8 @@
 {
+  "1.2.8": {
+    "en": "Fixed: building model now correctly collects samples — power measurement was not accessible due to a missing service method. App and driver names updated to 'Aurora-II Modbus' to reflect supported device series.",
+    "nl": "Opgelost: gebouwmodel verzamelt nu correct samples — vermogensmeting was niet beschikbaar door een ontbrekende service-methode. App- en driver-namen bijgewerkt naar 'Aurora-II Modbus' om de ondersteunde apparaatserie te weerspiegelen."
+  },
   "1.2.7": {
     "en": "Added MCU firmware version and protocol version capabilities (read from Modbus registers 0x0360 and 0x0363, displayed as e.g. 'v1.3.0'). Added flow card handlers: temperature differential condition, water flow rate check condition, get seasonal mode action, calculate curve value action, calculate linear heating curve action, calculate time-based value action. Removed 3 flow cards without a Modbus equivalent: electrical balance check, system pulse-steps differential, COP calculation method.",
     "nl": "Toegevoegd: MCU-firmware-versie en protocolversie capabilities (uitgelezen uit Modbus-registers 0x0360 en 0x0363, weergegeven als bijv. 'v1.3.0'). Toegevoegd: flow kaart handlers voor temperatuurverschil conditie, waterdebiet controle conditie, seizoensmodus actie, curvewaarde berekenen actie, lineaire verwarmingscurve berekenen actie en tijdgebaseerde waarde berekenen actie. Verwijderd: 3 flow kaarten zonder Modbus-equivalent: elektrische balanscontrole, systeem puls-stappen verschil, COP berekeningsmethode."

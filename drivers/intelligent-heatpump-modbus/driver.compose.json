@@ -1,7 +1,7 @@
 {
   "name": {
-    "en": "Adlar Castra Heat Pump",
-    "nl": "Adlar Castra Warmtepomp"
+    "en": "Adlar Castra Heat Pump (Aurora-II Modbus)",
+    "nl": "Adlar Castra Warmtepomp (Aurora-II Modbus)"
   },
   "class": "thermostat",
   "capabilities": [
