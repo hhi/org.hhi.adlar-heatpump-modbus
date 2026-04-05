@@ -8,6 +8,9 @@ import { calculatePreHeatDuration } from '../utils/preheat-calculator';
 import { CapabilityCategories, UserFlowPreferences } from '../types/shared-interfaces';
 import type { BuildingInsightsService, InsightCategory } from './building-insights-service';
 import { PerformanceReportService } from './performance-report-service';
+import { SeasonalModeCalculator } from '../seasonal-mode-calculator';
+import { CurveCalculator } from '../curve-calculator';
+import { TimeScheduleCalculator } from '../time-schedule-calculator';
 
 /* eslint-disable camelcase */
 interface PreHeatArgs {
@@ -156,6 +159,9 @@ export class FlowCardManagerService {
 
       // Register Performance Report action card (v2.9.0)
       await this.registerPerformanceReportCard();
+
+      // Register utility action cards (ADR-036 §4.1 — stateless calculators)
+      await this.registerUtilityActionCards();
 
       this.logger('FlowCardManagerService: Flow cards updated successfully');
     } catch (error) {
@@ -752,6 +758,46 @@ export class FlowCardManagerService {
       });
       this.flowCardListeners.set('price_vs_daily_average', priceVsDailyAverageListener);
 
+      // Temperature differential condition (ADR-036 §4.1)
+      const temperatureDifferentialCard = this.device.homey.flow.getConditionCard('temperature_differential');
+      const temperatureDifferentialListener = temperatureDifferentialCard.registerRunListener(async (args) => {
+        this.logger('FlowCardManagerService: Temperature differential condition triggered', { args });
+
+        const inlet = this.device.getCapabilityValue('measure_temperature.inlet') as number | null;
+        const outlet = this.device.getCapabilityValue('measure_temperature.outlet') as number | null;
+
+        if (inlet === null || outlet === null) {
+          this.logger('FlowCardManagerService: Temperature differential skipped — inlet or outlet unavailable');
+          return false;
+        }
+
+        const differential = Math.abs(inlet - outlet);
+        const threshold = args.differential || 5;
+
+        this.logger(`FlowCardManagerService: ΔT=${differential.toFixed(1)}°C (inlet=${inlet}°C, outlet=${outlet}°C, threshold=${threshold}°C)`);
+        return differential > threshold;
+      });
+      this.flowCardListeners.set('temperature_differential', temperatureDifferentialListener);
+
+      // Water flow rate check condition (ADR-036 §4.1)
+      const waterFlowRateCard = this.device.homey.flow.getConditionCard('water_flow_rate_check');
+      const waterFlowRateListener = waterFlowRateCard.registerRunListener(async (args) => {
+        this.logger('FlowCardManagerService: Water flow rate check triggered', { args });
+
+        const waterFlow = this.device.getCapabilityValue('adlar_water_flow') as number | null;
+
+        if (waterFlow === null) {
+          this.logger('FlowCardManagerService: Water flow rate check skipped — capability unavailable');
+          return false;
+        }
+
+        const threshold = args.flow_rate || 10;
+
+        this.logger(`FlowCardManagerService: Water flow=${waterFlow} L/min, threshold=${threshold} L/min`);
+        return waterFlow > threshold;
+      });
+      this.flowCardListeners.set('water_flow_rate_check', waterFlowRateListener);
+
       this.logger('FlowCardManagerService: Action-based condition cards registered');
     } catch (error) {
       this.logger('FlowCardManagerService: Error registering action-based condition cards:', error);
@@ -1090,6 +1136,102 @@ export class FlowCardManagerService {
           this.logger('FlowCardManagerService: Initial daily report schedule failed:', error);
         });
     }, msUntil2300);
+  }
+
+  /**
+   * Register utility action cards (ADR-036 §4.1)
+   * Stateless calculator actions: seasonal mode, curve, heating curve, time schedule
+   */
+  private async registerUtilityActionCards(): Promise<void> {
+    try {
+      // Action 1: Get seasonal mode (ADR-036)
+      const getSeasonalModeCard = this.device.homey.flow.getActionCard('get_seasonal_mode');
+      const getSeasonalModeListener = getSeasonalModeCard.registerRunListener(async () => {
+        this.logger('FlowCardManagerService: Get seasonal mode action triggered');
+
+        const result = SeasonalModeCalculator.getCurrentSeason();
+
+        this.logger(`FlowCardManagerService: Seasonal mode=${result.mode}, heating=${result.isHeatingSeason}, days_until_change=${result.daysUntilSeasonChange}`);
+
+        return {
+          mode: result.mode,
+          is_heating_season: result.isHeatingSeason,
+          is_cooling_season: result.isCoolingSeason,
+          days_until_season_change: result.daysUntilSeasonChange ?? 0,
+        };
+      });
+      this.flowCardListeners.set('get_seasonal_mode', getSeasonalModeListener);
+
+      // Action 2: Calculate curve value (ADR-036)
+      const calculateCurveCard = this.device.homey.flow.getActionCard('calculate_curve_value');
+      const calculateCurveListener = calculateCurveCard.registerRunListener(async (args) => {
+        this.logger('FlowCardManagerService: Calculate curve value action triggered', { args });
+
+        const inputValue = parseFloat(String(args.input_value));
+        if (Number.isNaN(inputValue) || !Number.isFinite(inputValue)) {
+          throw new Error(`Invalid input value: '${args.input_value}'. Must be a number.`);
+        }
+
+        const resultValue = CurveCalculator.evaluate(inputValue, args.curve);
+
+        this.logger(`FlowCardManagerService: Curve result: input=${inputValue} → output=${resultValue}`);
+
+        return { result_value: resultValue };
+      });
+      this.flowCardListeners.set('calculate_curve_value', calculateCurveListener);
+
+      // Action 3: Calculate linear heating curve (ADR-036)
+      const calculateHeatingCurveCard = this.device.homey.flow.getActionCard('calculate_linear_heating_curve');
+      const calculateHeatingCurveListener = calculateHeatingCurveCard.registerRunListener(async (args) => {
+        this.logger('FlowCardManagerService: Calculate linear heating curve action triggered', { args });
+
+        const outdoorTemp = parseFloat(String(args.outdoor_temp));
+        if (Number.isNaN(outdoorTemp) || !Number.isFinite(outdoorTemp)) {
+          throw new Error(`Invalid outdoor temperature: '${args.outdoor_temp}'. Must be a number.`);
+        }
+
+        // eslint-disable-next-line camelcase
+        const referenceTemp = args.reference_temp as number; // L29: supply temp at -15°C
+        // eslint-disable-next-line camelcase
+        const slopeGrade = args.slope_grade as number;        // L28: slope per 10°C
+
+        // Adlar Custom curve: slope = slopeGrade / 10, intercept from reference point
+        // Formula: y = slope * x + intercept
+        // At x = -15: y = referenceTemp → intercept = referenceTemp - slope * (-15)
+        const slope = slopeGrade / 10;
+        const intercept = referenceTemp - slope * (-15);
+        const supplyTemperature = slope * outdoorTemp + intercept;
+
+        // Clamp to safe range
+        const clampedSupply = Math.max(20, Math.min(65, Math.round(supplyTemperature * 10) / 10));
+        const formula = `y = ${slope}x + ${intercept.toFixed(1)}`;
+
+        this.logger(`FlowCardManagerService: Heating curve: outdoor=${outdoorTemp}°C → supply=${clampedSupply}°C (${formula})`);
+
+        return {
+          supply_temperature: clampedSupply,
+          formula,
+        };
+      });
+      this.flowCardListeners.set('calculate_linear_heating_curve', calculateHeatingCurveListener);
+
+      // Action 4: Calculate time-based value (ADR-036)
+      const calculateTimeBasedCard = this.device.homey.flow.getActionCard('calculate_time_based_value');
+      const calculateTimeBasedListener = calculateTimeBasedCard.registerRunListener(async (args) => {
+        this.logger('FlowCardManagerService: Calculate time-based value action triggered', { args });
+
+        const resultValue = TimeScheduleCalculator.evaluate(args.schedule);
+
+        this.logger(`FlowCardManagerService: Time schedule result: ${resultValue}`);
+
+        return { result_value: resultValue };
+      });
+      this.flowCardListeners.set('calculate_time_based_value', calculateTimeBasedListener);
+
+      this.logger('FlowCardManagerService: Utility action cards registered (4 cards)');
+    } catch (error) {
+      this.logger('FlowCardManagerService: Error registering utility action cards:', error);
+    }
   }
 
   /**
