@@ -80,12 +80,13 @@ The Modbus columns show the current equivalent capability and register mapping.
 | `adlar_state_defrost_state` | 33 | `adlar_defrosting` | `0x0000` bit 8 | yes | no | no | Exact compatibility capability exists but is not populated |
 | `adlar_state_backwater` | 31 | - | - | no | no | no | Only backwater config registers `0x080B-0x080F`, no live state |
 | `adlar_fault` | 15 | `adlar_fault_active`, `adlar_fault_1/2/3` | `0x0002-0x0009` | yes | no | no | Semantically richer than single DPS fault code |
-| `adlar_firmware_mcu` | 14 | - | `0x0360-0x0363` | no | no | yes | Version registers exist, capability not yet wired |
+| `adlar_firmware_mcu` | 14 | `adlar_firmware_mcu` | `0x0360` | yes | no | no | Program version decoded as packed version number, e.g. `130 -> v1.3.0` |
 
 ## Summary
 
 - The currently write-wired DPS equivalents are: `onoff`, `target_temperature`,
   `adlar_hotwater` via `target_temperature.dhw`, and `adlar_enum_mode`.
 - Most temperature and primary electrical readings are already read-wired.
-- The main gaps are: curves, work mode, B/C phase voltage, EVI step, firmware,
+- Additional Modbus-only version info is exposed via `adlar_protocol_version` from `0x0363`.
+- The main gaps are: curves, work mode, B/C phase voltage, EVI step,
   and a few compatibility aliases that exist in the manifest but are not yet populated.

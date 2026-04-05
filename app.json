@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "org.hhi.adlar-heatpump-modbus",
-  "version": "1.2.5",
+  "version": "1.2.7",
   "compatibility": ">=12.2.0",
   "sdk": 3,
   "platforms": [
@@ -4057,82 +4057,6 @@
         ]
       },
       {
-        "id": "cop_calculation_method_is",
-        "title": {
-          "en": "COP calculation method is",
-          "nl": "COP berekeningsmethode is",
-          "de": "COP-Berechnungsmethode ist",
-          "fr": "La méthode de calcul COP est"
-        },
-        "titleFormatted": {
-          "en": "COP calculation method !{{is|is not}} [[method]]",
-          "nl": "COP berekeningsmethode !{{is|is niet}} [[method]]",
-          "de": "COP-Berechnungsmethode !{{ist|ist nicht}} [[method]]",
-          "fr": "La méthode de calcul COP !{{est|n'est pas}} [[method]]"
-        },
-        "hint": {
-          "en": "Check which calculation method was used for the current COP value - useful for automation based on data availability",
-          "nl": "Controleer welke berekeningsmethode werd gebruikt voor de huidige COP waarde - nuttig voor automatisering op basis van data beschikbaarheid",
-          "de": "Prüfen Sie, welche Berechnungsmethode für den aktuellen COP-Wert verwendet wurde - nützlich für Automatisierung basierend auf Datenverfügbarkeit",
-          "fr": "Vérifier quelle méthode de calcul a été utilisée pour la valeur COP actuelle - utile pour l'automatisation basée sur la disponibilité des données"
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=intelligent-heatpump-modbus&capabilities=adlar_cop_method"
-          },
-          {
-            "type": "dropdown",
-            "name": "method",
-            "title": {
-              "en": "Calculation method",
-              "nl": "Berekeningsmethode",
-              "de": "Berechnungsmethode",
-              "fr": "Méthode de calcul"
-            },
-            "values": [
-              {
-                "id": "direct_thermal",
-                "title": {
-                  "en": "Direct thermal (most accurate)",
-                  "nl": "Directe thermische (meest nauwkeurig)",
-                  "de": "Direkt thermisch (höchste Genauigkeit)",
-                  "fr": "Thermique direct (plus précis)"
-                }
-              },
-              {
-                "id": "carnot_estimation",
-                "title": {
-                  "en": "Carnot estimation (medium accuracy)",
-                  "nl": "Carnot schatting (gemiddelde nauwkeurigheid)",
-                  "de": "Carnot-Schätzung (mittlere Genauigkeit)",
-                  "fr": "Estimation Carnot (précision moyenne)"
-                }
-              },
-              {
-                "id": "temperature_difference",
-                "title": {
-                  "en": "Temperature difference (basic)",
-                  "nl": "Temperatuurverschil (basis)",
-                  "de": "Temperaturdifferenz (einfach)",
-                  "fr": "Différence de température (basique)"
-                }
-              },
-              {
-                "id": "insufficient_data",
-                "title": {
-                  "en": "Insufficient data",
-                  "nl": "Onvoldoende data",
-                  "de": "Unzureichende Daten",
-                  "fr": "Données insuffisantes"
-                }
-              }
-            ]
-          }
-        ]
-      },
-      {
         "id": "cop_efficiency_check",
         "title": {
           "en": "COP efficiency is",
@@ -4333,55 +4257,6 @@
                 }
               }
             ]
-          }
-        ]
-      },
-      {
-        "id": "electrical_balance_check",
-        "title": {
-          "en": "Electrical balance check",
-          "nl": "Elektrische balans controle",
-          "de": "Elektrische Bilanz prüfen",
-          "fr": "Vérification de l'équilibre électrique"
-        },
-        "titleFormatted": {
-          "en": "3-phase electrical balance is !{{within|outside}} [[tolerance]]% tolerance",
-          "nl": "3-fase elektrische balans is !{{binnen|buiten}} [[tolerance]]% tolerantie",
-          "de": "3-Phasen-Elektrische Bilanz ist !{{innerhalb|außerhalb}} [[tolerance]]% Toleranz",
-          "fr": "L'équilibre électrique triphasé est !{{dans|hors}} de [[tolerance]]% de tolérance"
-        },
-        "hint": {
-          "en": "Check if the 3-phase electrical currents are balanced within specified tolerance",
-          "nl": "Controleer of de 3-fase elektrische stromen gebalanceerd zijn binnen de tolerantie",
-          "de": "Prüfen Sie, ob die 3-Phasen-Elektrischen Ströme innerhalb der angegebenen Toleranz ausgeglichen sind",
-          "fr": "Vérifier si les courants électriques triphasés sont équilibrés dans la tolérance spécifiée"
-        },
-        "highlight": true,
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=intelligent-heatpump-modbus"
-          },
-          {
-            "type": "range",
-            "name": "tolerance",
-            "title": {
-              "en": " Balance tolerance ",
-              "nl": " Balans tolerantie ",
-              "de": " Bilanztoleranz ",
-              "fr": " Tolérance d'équilibre "
-            },
-            "min": 1,
-            "max": 20,
-            "step": 1,
-            "units": "%",
-            "placeholder": {
-              "en": "Electrical balance tolerance percentage",
-              "nl": "Elektrische balans tolerantie percentage",
-              "de": "Elektrische Bilanztoleranz-Prozentsatz",
-              "fr": "Pourcentage de tolérance d'équilibre électrique"
-            }
           }
         ]
       },
@@ -5238,55 +5113,6 @@
               "nl": "100",
               "de": "100",
               "fr": "100"
-            }
-          }
-        ]
-      },
-      {
-        "id": "system_pulse_steps_differential",
-        "title": {
-          "en": "System pulse-steps differential check",
-          "nl": "Systeem puls-stappen verschil controle",
-          "de": "System-Pulsschritte-Differenz prüfen",
-          "fr": "Vérification du différentiel des pas d'impulsion"
-        },
-        "titleFormatted": {
-          "en": "System pulse-steps differential is !{{above|below}} [[differential]]",
-          "nl": "Systeem puls-stappen verschil is !{{boven|onder}} [[differential]]",
-          "de": "System-Pulsschritte-Differenz ist !{{über|unter}} [[differential]]",
-          "fr": "Le différentiel des pas d'impulsion est !{{au-dessus|en dessous}} de [[differential]]"
-        },
-        "hint": {
-          "en": "Check if the pulse-steps difference between EEV and EVI is above or below a threshold",
-          "nl": "Controleer of het puls-stappen verschil tussen EEV en EVI boven of onder een drempel is",
-          "de": "Prüfen Sie, ob die Pulsschritte-Differenz zwischen EEV und EVI über oder unter einem Schwellenwert liegt",
-          "fr": "Vérifier si la différence des pas d'impulsion entre EEV et EVI est au-dessus ou en dessous d'un seuil"
-        },
-        "highlight": true,
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=intelligent-heatpump-modbus"
-          },
-          {
-            "type": "range",
-            "name": "differential",
-            "title": {
-              "en": " Pulse-steps differential",
-              "nl": " Puls-stappen verschil",
-              "de": " Pulsschritte-Differenz",
-              "fr": " Différentiel des pas d'impulsion"
-            },
-            "min": 0,
-            "max": 1000,
-            "step": 10,
-            "units": "Pulse-steps",
-            "placeholder": {
-              "en": "Pulse-steps differential threshold",
-              "nl": "Puls-stappen verschil drempel",
-              "de": "Pulsschritte-Differenz-Schwellenwert",
-              "fr": "Seuil du différentiel des pas d'impulsion"
             }
           }
         ]
@@ -7609,6 +7435,8 @@
         "measure_temperature.indoor",
         "adlar_connection_status",
         "adlar_connection_active",
+        "adlar_firmware_mcu",
+        "adlar_protocol_version",
         "adlar_cop_daily",
         "adlar_cop_weekly",
         "adlar_cop_monthly",
@@ -10541,6 +10369,25 @@
         "nl": "Fout-stop opgeheven"
       }
     },
+    "adlar_firmware_mcu": {
+      "id": "adlar_firmware_mcu",
+      "title": {
+        "en": "MCU Firmware Version",
+        "nl": "MCU Firmware versie",
+        "de": "MCU-Firmware-Version",
+        "fr": "Version du firmware MCU"
+      },
+      "type": "string",
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/firmware-mcu.svg",
+      "insights": false,
+      "description": {
+        "en": "MCU mainboard firmware version from Modbus register 0x0360, decoded as vX.Y.Z. Example: 100 = v1.0.0, 130 = v1.3.0.",
+        "nl": "MCU-hoofdprint firmwareversie uit Modbus-register 0x0360, gedecodeerd als vX.Y.Z. Voorbeeld: 100 = v1.0.0, 130 = v1.3.0."
+      }
+    },
     "adlar_forecast_advice": {
       "id": "adlar_forecast_advice",
       "type": "string",
@@ -10976,6 +10823,25 @@
       "uiComponent": "sensor",
       "insights": true,
       "icon": "/assets/price-savings-potential.svg"
+    },
+    "adlar_protocol_version": {
+      "id": "adlar_protocol_version",
+      "title": {
+        "en": "Protocol Version",
+        "nl": "Protocolversie",
+        "de": "Protokollversion",
+        "fr": "Version du protocole"
+      },
+      "type": "string",
+      "getable": true,
+      "setable": false,
+      "uiComponent": "sensor",
+      "icon": "/assets/firmware-mcu.svg",
+      "insights": false,
+      "description": {
+        "en": "Communication protocol version from Modbus register 0x0363, decoded as vX.Y.Z. Example: 100 = v1.0.0, 130 = v1.3.0.",
+        "nl": "Communicatieprotocolversie uit Modbus-register 0x0363, gedecodeerd als vX.Y.Z. Voorbeeld: 100 = v1.0.0, 130 = v1.3.0."
+      }
     },
     "adlar_pump_pwm": {
       "id": "adlar_pump_pwm",

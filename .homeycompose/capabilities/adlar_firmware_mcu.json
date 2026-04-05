@@ -1,0 +1,19 @@
+{
+  "id": "adlar_firmware_mcu",
+  "title": {
+    "en": "MCU Firmware Version",
+    "nl": "MCU Firmware versie",
+    "de": "MCU-Firmware-Version",
+    "fr": "Version du firmware MCU"
+  },
+  "type": "string",
+  "getable": true,
+  "setable": false,
+  "uiComponent": "sensor",
+  "icon": "/assets/firmware-mcu.svg",
+  "insights": false,
+  "description": {
+    "en": "MCU mainboard firmware version from Modbus register 0x0360, decoded as vX.Y.Z. Example: 100 = v1.0.0, 130 = v1.3.0.",
+    "nl": "MCU-hoofdprint firmwareversie uit Modbus-register 0x0360, gedecodeerd als vX.Y.Z. Voorbeeld: 100 = v1.0.0, 130 = v1.3.0."
+  }
+}

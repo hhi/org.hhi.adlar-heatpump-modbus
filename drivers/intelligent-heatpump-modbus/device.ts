@@ -67,6 +67,8 @@ class AdlarModbusDevice extends Homey.Device {
 
     this.logger.info('Device initializing:', this.getName());
 
+    await this._ensureCapabilities();
+
     this._initCOPCalculators();
     await this._restoreCOPData();
 
@@ -148,6 +150,24 @@ class AdlarModbusDevice extends Homey.Device {
     this._destroyCOPCalculators();
   }
 
+  private async _ensureCapabilities(): Promise<void> {
+    const requiredCapabilities = [
+      'adlar_firmware_mcu',
+      'adlar_protocol_version',
+    ];
+
+    for (const capability of requiredCapabilities) {
+      if (!this.hasCapability(capability)) {
+        try {
+          await this.addCapability(capability);
+          this.logger.info(`Added missing capability: ${capability}`);
+        } catch (error) {
+          this.logger.warn(`Failed to add missing capability ${capability}:`, error);
+        }
+      }
+    }
+  }
+
   // ── Coordinator lifecycle ──────────────────────────────────────────────────
 
   private async _destroyCoordinator(): Promise<void> {
@@ -213,6 +233,14 @@ class AdlarModbusDevice extends Homey.Device {
     set('adlar_state_defrost_state', snap.status.defrosting);
     if (snap.status.activeFaults.length > 0) {
       set('alarm_generic', true);
+    }
+
+    if (snap.version.programVersion) {
+      set('adlar_firmware_mcu', snap.version.programVersion);
+    }
+
+    if (snap.version.protocolVersionFormatted) {
+      set('adlar_protocol_version', snap.version.protocolVersionFormatted);
     }
 
     // Temperatures

@@ -29,10 +29,10 @@ Missing metadata is shown as `-`.
 
 | Metric | DPS | Modbus |
 |---|---:|---:|
-| Total capabilities | 102 | 123 |
-| Exact same capability id | 70 | 70 |
-| Only in DPS | 32 | - |
-| Only in Modbus | - | 53 |
+| Total capabilities | 102 | 125 |
+| Exact same capability id | 71 | 71 |
+| Only in DPS | 31 | - |
+| Only in Modbus | - | 54 |
 | Driver class | `heatpump` | `thermostat` |
 
 ## Functionally Equivalent But Renamed
@@ -121,7 +121,6 @@ These capability ids exist in both drivers, but their metadata is not identical.
 ### DPS-only miscellaneous
 
 - `adlar_enum_mode`
-- `adlar_firmware_mcu`
 
 ## Only In Modbus
 
@@ -187,6 +186,7 @@ These capability ids exist in both drivers, but their metadata is not identical.
 
 ### Extra derived / diagnostics outputs
 
+- `adlar_protocol_version`
 - `heating_curve_formula`
 - `heating_curve_slope`
 - `heating_curve_intercept`
@@ -201,4 +201,3 @@ These capability ids exist in both drivers, but their metadata is not identical.
   - renamed capability ids for the same function
   - more fine-grained temperature and status capabilities in Modbus
   - more explicit `min/max/step` and `uiComponent` metadata in DPS for some older capabilities
-

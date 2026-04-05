@@ -176,6 +176,15 @@ export interface CopSnapshot {
   reason?: string;
 }
 
+export interface VersionSnapshot {
+  programVersionRaw: number | null;
+  programVersion: string | null;
+  productType: number | null;
+  productTypeId: number | null;
+  protocolVersion: number | null;
+  protocolVersionFormatted: string | null;
+}
+
 export interface DiyHeatingCurve {
   active: boolean;
   slopeK: number;
@@ -189,6 +198,7 @@ export interface DataSnapshot {
   control: ControlSnapshot;
   power: PowerSnapshot;
   cop: CopSnapshot;
+  version: VersionSnapshot;
   sensors: Record<string, SensorValue>;
   diy?: DiyHeatingCurve;
 }
@@ -286,6 +296,18 @@ function clonePollGroup(group: PollGroup, intervalMs: number): PollGroup {
     intervalMs,
     blocks: group.blocks.map((block) => ({ ...block })),
   };
+}
+
+function formatPackedVersion(raw: number | null): string | null {
+  if (raw === null || raw <= 0) {
+    return null;
+  }
+
+  const major = Math.trunc(raw / 100);
+  const minor = Math.trunc((raw % 100) / 10);
+  const patch = raw % 10;
+
+  return `v${major}.${minor}.${patch}`;
 }
 
 export class Adlar2ModbusService extends EventEmitter {
@@ -517,6 +539,7 @@ export class Adlar2ModbusService extends EventEmitter {
       control: this.buildControl(),
       power: this.buildPower(),
       cop: this.buildCop(),
+      version: this.buildVersion(),
       sensors: this.buildSensors(),
       diy: this.buildDiy(),
     };
@@ -627,6 +650,29 @@ export class Adlar2ModbusService extends EventEmitter {
       ...base,
       cop: +(Math.min(thermalPowerKw / electricalPowerKw, MAX_VALID_COP)).toFixed(2),
       valid: true,
+    };
+  }
+
+  private buildVersion(): VersionSnapshot {
+    const programVersionRaw = this.tcp.has(VERSION_REGISTERS.programVersion.address)
+      ? this.tcp.u16(VERSION_REGISTERS.programVersion.address)
+      : null;
+
+    return {
+      programVersionRaw,
+      programVersion: formatPackedVersion(programVersionRaw),
+      productType: this.tcp.has(VERSION_REGISTERS.productType.address)
+        ? this.tcp.u16(VERSION_REGISTERS.productType.address)
+        : null,
+      productTypeId: this.tcp.has(VERSION_REGISTERS.productTypeId.address)
+        ? this.tcp.u16(VERSION_REGISTERS.productTypeId.address)
+        : null,
+      protocolVersion: this.tcp.has(VERSION_REGISTERS.protocolVersion.address)
+        ? this.tcp.u16(VERSION_REGISTERS.protocolVersion.address)
+        : null,
+      protocolVersionFormatted: this.tcp.has(VERSION_REGISTERS.protocolVersion.address)
+        ? formatPackedVersion(this.tcp.u16(VERSION_REGISTERS.protocolVersion.address))
+        : null,
     };
   }
 

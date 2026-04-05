@@ -60,6 +60,8 @@
     "measure_temperature.indoor",
     "adlar_connection_status",
     "adlar_connection_active",
+    "adlar_firmware_mcu",
+    "adlar_protocol_version",
     "adlar_cop_daily",
     "adlar_cop_weekly",
     "adlar_cop_monthly",
