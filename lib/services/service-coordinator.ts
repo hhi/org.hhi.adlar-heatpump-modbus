@@ -44,6 +44,7 @@ export class ServiceCoordinator {
   private _lastDisconnectCountMs = 0;
   private healthCheckInterval: NodeJS.Timeout | null = null;
   private _disconnectStatusTimer: NodeJS.Timeout | null = null;
+  private _disconnectDailyResetTimer: NodeJS.Timeout | null = null;
   private _prevDefrosting = false;
   private _defrostStartedAt: number | null = null;
 
@@ -295,6 +296,8 @@ export class ServiceCoordinator {
   }
 
   private _startHealthMonitoring(): void {
+    this._scheduleDailyDisconnectReset();
+
     this.healthCheckInterval = this.device.homey.setInterval(() => {
       const modbusHealthy = this.modbusConnection.isDeviceConnected();
       const prev = this.serviceHealth.get('modbus');
@@ -307,6 +310,22 @@ export class ServiceCoordinator {
         });
       }
     }, 60_000);
+  }
+
+  private _scheduleDailyDisconnectReset(): void {
+    if (this._disconnectDailyResetTimer) {
+      this.device.homey.clearTimeout(this._disconnectDailyResetTimer);
+    }
+    const now = new Date();
+    const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime();
+    this._disconnectDailyResetTimer = this.device.homey.setTimeout(() => {
+      this._disconnectDailyResetTimer = null;
+      if (this.device.hasCapability('adlar_daily_disconnect_count')) {
+        this.device.setCapabilityValue('adlar_daily_disconnect_count', 0).catch(() => {});
+        this.logger('ServiceCoordinator: Daily disconnect count reset at midnight');
+      }
+      this._scheduleDailyDisconnectReset();
+    }, msUntilMidnight);
   }
 
   // ── Data handlers ──────────────────────────────────────────────────────────
@@ -514,6 +533,11 @@ export class ServiceCoordinator {
     if (this._disconnectStatusTimer) {
       this.device.homey.clearTimeout(this._disconnectStatusTimer);
       this._disconnectStatusTimer = null;
+    }
+
+    if (this._disconnectDailyResetTimer) {
+      this.device.homey.clearTimeout(this._disconnectDailyResetTimer);
+      this._disconnectDailyResetTimer = null;
     }
 
     try {

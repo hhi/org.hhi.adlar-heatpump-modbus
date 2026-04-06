@@ -491,8 +491,8 @@ export class Adlar2ModbusService extends EventEmitter {
     assertRange(L_PARAMETERS.L29_heatingCurveConstantB, b);
 
     await this.tcp.writeSingleRegister(L_PARAMETERS.L27_heatingLowTempCurveDIY.address, 0);
-    await this.tcp.writeSingleRegister(L_PARAMETERS.L28_heatingCurveCoeffK.address, Math.round(k * -10));
-    await this.tcp.writeSingleRegister(L_PARAMETERS.L29_heatingCurveConstantB.address, encodeTemperature(b));
+    await this.tcp.writeSingleRegister(L_PARAMETERS.L28_heatingCurveCoeffK.address, Math.round(k * 10));
+    await this.tcp.writeSingleRegister(L_PARAMETERS.L29_heatingCurveConstantB.address, Math.round(b));
     await this.tcp.writeSingleRegister(CONTROL_REGISTERS.heatingCurve.address, 0);
   }
 
@@ -703,8 +703,8 @@ export class Adlar2ModbusService extends EventEmitter {
     }
 
     const active = this.tcp.u16(L_PARAMETERS.L27_heatingLowTempCurveDIY.address) === 0;
-    const slopeK = -(this.tcp.u16(L_PARAMETERS.L28_heatingCurveCoeffK.address) / 10);
-    const interceptB = this.tcp.u16(L_PARAMETERS.L29_heatingCurveConstantB.address) / 10;
+    const slopeK = this.tcp.s16(L_PARAMETERS.L28_heatingCurveCoeffK.address) / 10;
+    const interceptB = this.tcp.u16(L_PARAMETERS.L29_heatingCurveConstantB.address);
 
     return {
       active,
