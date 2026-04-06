@@ -564,6 +564,21 @@ export class COPOptimizer {
     this.logger(`COPOptimizer: minSupplyTemp updated to ${minTemp}°C`);
   }
 
+  public updateMinAcceptableCOP(value: number): void {
+    this.config.minAcceptableCOP = value;
+    this.logger(`COPOptimizer: minAcceptableCOP updated to ${value}`);
+  }
+
+  public updateTargetCOP(value: number): void {
+    this.config.targetCOP = value;
+    this.logger(`COPOptimizer: targetCOP updated to ${value}`);
+  }
+
+  public updateStrategy(strategy: COPOptimizerConfig['strategy']): void {
+    this.config.strategy = strategy;
+    this.logger(`COPOptimizer: strategy updated to ${strategy}`);
+  }
+
   public destroy(): void {
     const historySize = this.history.length;
     const settingsSize = this.optimalSettings.size;

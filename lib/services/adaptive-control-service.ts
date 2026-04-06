@@ -1674,6 +1674,18 @@ export class AdaptiveControlService {
       });
     }
 
+    // Handle COP optimizer parameter changes
+    if (changedKeys.includes('cop_min_acceptable')) {
+      this.copOptimizer.updateMinAcceptableCOP(newSettings.cop_min_acceptable as number ?? 2.5);
+    }
+    if (changedKeys.includes('cop_target')) {
+      this.copOptimizer.updateTargetCOP(newSettings.cop_target as number ?? 3.5);
+    }
+    if (changedKeys.includes('cop_strategy')) {
+      const strategy = newSettings.cop_strategy as 'conservative' | 'balanced' | 'aggressive';
+      this.copOptimizer.updateStrategy(strategy ?? 'balanced');
+    }
+
     // Handle building model reset toggle
     if (changedKeys.includes('reset_building_model')) {
       const shouldReset = newSettings.reset_building_model as boolean;
