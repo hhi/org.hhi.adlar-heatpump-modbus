@@ -293,23 +293,6 @@
     },
     "children": [
       {
-        "id": "enable_curve_controls",
-        "type": "checkbox",
-        "label": {
-          "en": "Show curve picker controls in device UI",
-          "nl": "Toon curve instelbediening in apparaat UI",
-          "de": "Kurvensteuerung in Geräte-UI anzeigen",
-          "fr": "Afficher les contrôles de courbe dans l'interface"
-        },
-        "hint": {
-          "en": "Show picker controls for heating curves in device UI. When disabled, only sensor displays are visible (read-only). Flow cards always work regardless of this setting. Requires app restart to take effect.",
-          "nl": "Toon instelbediening voor verwarmingscurves in apparaat UI. Indien uitgeschakeld zijn alleen sensor weergaven zichtbaar (alleen-lezen). Flow kaarten werken altijd ongeacht deze instelling. Vereist app herstart om effect te hebben.",
-          "de": "Zeigen Sie Auswahlsteuerungen für Heizungskurven in der Geräte-UI an. Wenn deaktiviert, sind nur Sensoranzeigen sichtbar (schreibgeschützt). Flow-Karten funktionieren immer unabhängig von dieser Einstellung. Erfordert App-Neustart zur Aktivierung.",
-          "fr": "Afficher les contrôles de sélection pour les courbes de chauffage dans l'interface de l'appareil. Lorsque désactivé, seuls les affichages de capteur sont visibles (lecture seule). Les cartes de flux fonctionnent toujours indépendamment de ce paramètre. Nécessite un redémarrage de l'app."
-        },
-        "value": false
-      },
-      {
         "id": "enable_power_measurements",
         "type": "checkbox",
         "label": {
