@@ -389,6 +389,9 @@ export class AdaptiveControlService {
 
       // v2.5.1: Removed late sync code - now done EARLY at start of initialize() (before any failing operations)
 
+      // Restore external temperature capability from store
+      await this.externalTemperature.initialize();
+
       // Start control loop if enabled
       if (this.isEnabled) {
         await this.start();

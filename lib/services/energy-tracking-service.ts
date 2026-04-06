@@ -233,26 +233,18 @@ export class EnergyTrackingService {
         this.logger('EnergyTrackingService: External energy tracking initialized');
       }
 
-      // Initialize cumulative energy from store (or capability as fallback)
+      // Initialize cumulative energy from store (authoritative source)
       const storedEnergy = await this.device.getStoreValue('cumulative_energy_kwh');
       if (typeof storedEnergy === 'number') {
         this.currentCumulativeEnergy = storedEnergy;
-      } else {
-        // Fallback to capability value if store is empty (legacy migration)
-        const capabilityEnergy = this.device.getCapabilityValue('meter_power.electric_total');
-        if (typeof capabilityEnergy === 'number') {
-          this.currentCumulativeEnergy = capabilityEnergy;
-        }
       }
 
-      // Initialize cumulative energy capability if zero/null
-      if (this.device.hasCapability('meter_power.electric_total')) {
-        const currentTotal = this.device.getCapabilityValue('meter_power.electric_total');
-        if (!currentTotal || currentTotal === 0) {
-          if (this.currentCumulativeEnergy > 0) {
-            await this.device.setCapabilityValue('meter_power.electric_total', this.currentCumulativeEnergy);
-            this.logger(`EnergyTrackingService: Restored cumulative energy: ${this.currentCumulativeEnergy} kWh`);
-          }
+      // Restore meter_power capability from store
+      if (this.device.hasCapability('meter_power')) {
+        const currentTotal = this.device.getCapabilityValue('meter_power');
+        if ((!currentTotal || currentTotal === 0) && this.currentCumulativeEnergy > 0) {
+          await this.device.setCapabilityValue('meter_power', this.currentCumulativeEnergy);
+          this.logger(`EnergyTrackingService: Restored cumulative energy: ${this.currentCumulativeEnergy} kWh`);
         }
       }
 
@@ -345,23 +337,20 @@ export class EnergyTrackingService {
         await this.device.setStoreValue('cumulative_energy_kwh', newTotal);
 
         // Update capability if it exists (for visualization only - decoupling v1.1.2)
-        if (this.device.hasCapability('meter_power.electric_total')) {
-          await this.device.setCapabilityValue('meter_power.electric_total', Math.round(newTotal * 100) / 100);
-
-          // Check for energy milestones (v1.0.7 - total_consumption_milestone trigger)
-          await this.checkEnergyMilestones(newTotal);
+        if (this.device.hasCapability('meter_power')) {
+          await this.device.setCapabilityValue('meter_power', Math.round(newTotal * 100) / 100);
         }
 
-        // Update daily consumption
-        if (this.device.hasCapability('meter_power.power_consumption')) {
-          const dailyConsumption = await this.device.getStoreValue('daily_consumption_kwh') || 0;
-          const newDailyTotal = dailyConsumption + energyIncrement;
-          await this.device.setCapabilityValue('meter_power.power_consumption', Math.round(newDailyTotal * 100) / 100);
-          await this.device.setStoreValue('daily_consumption_kwh', newDailyTotal);
+        // Check for energy milestones (v1.0.7 - total_consumption_milestone trigger)
+        await this.checkEnergyMilestones(newTotal);
 
-          // Check daily consumption threshold (v1.0.8)
-          await this.checkDailyConsumptionThreshold(newDailyTotal);
-        }
+        // Update daily consumption (store only — no dedicated capability)
+        const dailyConsumption = await this.device.getStoreValue('daily_consumption_kwh') || 0;
+        const newDailyTotal = dailyConsumption + energyIncrement;
+        await this.device.setStoreValue('daily_consumption_kwh', newDailyTotal);
+
+        // Check daily consumption threshold (v1.0.8)
+        await this.checkDailyConsumptionThreshold(newDailyTotal);
 
         // === UNIFIED COST CALCULATION (v1.1.0) ===
         // Calculate costs regardless of power source (internal/external/calculated)
@@ -544,11 +533,8 @@ export class EnergyTrackingService {
         await this.device.setStoreValue('external_daily_consumption_kwh', 0);
       }
 
-      // Reset internal daily consumption
-      if (this.device.hasCapability('meter_power.power_consumption')) {
-        await this.device.setCapabilityValue('meter_power.power_consumption', 0);
-        await this.device.setStoreValue('daily_consumption_kwh', 0);
-      }
+      // Reset internal daily consumption (store only — no dedicated capability)
+      await this.device.setStoreValue('daily_consumption_kwh', 0);
 
       // Reset daily cost via EnergyPriceOptimizer
       this.resetDailyCost();
@@ -585,13 +571,10 @@ export class EnergyTrackingService {
     this.isDeviceConnected = connected;
 
     if (!connected) {
-      // Show 0W while disconnected — state is unknown
-      // Note: adlar_external_power is fed by Homey flow cards, not by the Modbus connection,
-      // so it must NOT be cleared here.
-      if (this.device.hasCapability('measure_power')) {
-        await this.device.setCapabilityValue('measure_power', 0);
-      }
-      this.logger('EnergyTrackingService: Device disconnected — power display cleared');
+      // Note: measure_power is intentionally NOT reset to 0 on disconnect.
+      // adlar_external_power comes from flow cards and is unaffected by Modbus state.
+      // Injecting 0 causes energy dashboard noise on short reconnect cycles.
+      this.logger('EnergyTrackingService: Device disconnected — power display retained at last known value');
     } else {
       this.logger('EnergyTrackingService: Device connected — power measurement resumed');
     }

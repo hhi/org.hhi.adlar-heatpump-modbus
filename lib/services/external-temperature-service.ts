@@ -51,6 +51,39 @@ export class ExternalTemperatureService {
   }
 
   /**
+   * Restore indoor temperature capability from store on startup.
+   * Values older than 4 hours are discarded — stale data is worse than no data
+   * for BuildingModelService and AdaptiveControlService.
+   */
+  async initialize(): Promise<void> {
+    const TTL_MS = 4 * 60 * 60 * 1000;
+    const stored = await this.device.getStoreValue('external_indoor_temp') as number | null;
+    const storedTs = await this.device.getStoreValue('external_indoor_temp_timestamp') as number | null;
+
+    if (typeof stored !== 'number') {
+      this.logger('ExternalTemperatureService: No stored indoor temperature — skipping restore');
+      return;
+    }
+
+    const age = storedTs ? Date.now() - storedTs : null;
+    if (age !== null && age > TTL_MS) {
+      this.logger(`ExternalTemperatureService: Stored indoor temperature too old (${Math.round(age / 60000)}min) — skipping restore`);
+      return;
+    }
+
+    if (this.device.hasCapability('measure_temperature.indoor')) {
+      await this.device.setCapabilityValue('measure_temperature.indoor', stored);
+    }
+    if (this.device.hasCapability('adlar_external_indoor_temperature')) {
+      await this.device.setCapabilityValue('adlar_external_indoor_temperature', stored);
+    }
+    if (storedTs) {
+      this.lastReceivedTimestamp = storedTs;
+    }
+    this.logger(`ExternalTemperatureService: Restored indoor temperature ${stored}°C from store`);
+  }
+
+  /**
    * Get current indoor temperature from external sensor
    *
    * Reads the `measure_temperature.indoor` subcapability which is
@@ -123,6 +156,7 @@ export class ExternalTemperatureService {
 
       // Store for persistence across app updates
       await this.device.setStoreValue('external_indoor_temp', temperature);
+      await this.device.setStoreValue('external_indoor_temp_timestamp', Date.now());
 
       this.lastReceivedTimestamp = Date.now();
 

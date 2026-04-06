@@ -69,6 +69,8 @@ class AdlarModbusDevice extends Homey.Device {
 
     await this._ensureCapabilities();
 
+    await this._logRestoreDiagnostics();
+
     this._initCOPCalculators();
     await this._restoreCOPData();
 
@@ -267,7 +269,8 @@ class AdlarModbusDevice extends Homey.Device {
 
     // Power
     set('measure_power', snap.power.inputPowerKw * 1000);
-    set('meter_power', snap.power.totalEnergyKwh);
+    // meter_power is written exclusively by EnergyTrackingService (ETS).
+    // ETS abstracts internal/external power sources and handles hardware that lacks register 0x005D.
     set('measure_voltage', snap.power.inputVoltageV);
     set('measure_current', snap.power.inputCurrentA);
 
@@ -322,6 +325,39 @@ class AdlarModbusDevice extends Homey.Device {
   }
 
   // ── COP Calculators ────────────────────────────────────────────────────────
+
+  private async _logRestoreDiagnostics(): Promise<void> {
+    const storeKeys: Record<string, string> = {
+      cumulative_energy_kwh: 'meter_power (ETS cumulative)',
+      daily_consumption_kwh: 'daily consumption (ETS)',
+      external_cumulative_energy_kwh: 'adlar_external_energy_total',
+      external_indoor_temp: 'adlar_external_indoor_temperature (no restore yet)',
+      external_outdoor_temp: 'outdoor temp fallback (no restore yet)',
+      external_wind_speed: 'wind speed (no restore yet)',
+      external_solar_power: 'solar power (no restore yet)',
+      external_solar_radiation: 'solar radiation (no restore yet)',
+      rolling_cop_data: 'RollingCOPCalculator state',
+      scop_data: 'SCOPCalculator state',
+      adaptive_last_target: 'AdaptiveControlService target',
+      adaptive_control_enabled: 'AdaptiveControlService enabled flag',
+      building_model_state: 'BuildingModelLearner state',
+      building_insights_state: 'BuildingInsightsService state',
+      energy_optimizer_state: 'EnergyPriceOptimizer state',
+      cop_optimizer_state: 'COPOptimizer state',
+      defrost_learning_state: 'DefrostLearner state',
+    };
+
+    const lines: string[] = ['[RestoreDiagnostics] Store state at startup:'];
+    for (const [key, description] of Object.entries(storeKeys)) {
+      const value = await this.getStoreValue(key);
+      const present = value !== null && value !== undefined;
+      const summary = present
+        ? (typeof value === 'object' ? `{present, ${JSON.stringify(value).length} chars}` : String(value))
+        : 'absent';
+      lines.push(`  ${present ? '✓' : '○'} ${key} → ${summary} (${description})`);
+    }
+    this.logger.info(lines.join('\n'));
+  }
 
   private _initCOPCalculators(): void {
     this.rollingCOP = new RollingCOPCalculator({

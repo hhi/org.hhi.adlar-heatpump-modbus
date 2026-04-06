@@ -217,6 +217,10 @@ export class ServiceCoordinator {
         result.errors.push(err as Error);
       }
 
+      // Restore external input capabilities from store
+      await this._restoreExternalInputs();
+      this.logger('ServiceCoordinator: External inputs restored');
+
       // Connect Modbus last (most likely to fail transiently)
       try {
         await this.modbusConnection.connect(config);
@@ -242,6 +246,52 @@ export class ServiceCoordinator {
     }
 
     return result;
+  }
+
+  private async _restoreExternalInputs(): Promise<void> {
+    const TEMP_TTL_MS = 4 * 60 * 60 * 1000;
+
+    // Outdoor temperature (TTL 4h)
+    const outdoorTemp = await this.device.getStoreValue('external_outdoor_temp') as number | null;
+    const outdoorTs = await this.device.getStoreValue('external_outdoor_temp_timestamp') as number | null;
+    if (typeof outdoorTemp === 'number') {
+      const age = outdoorTs ? Date.now() - outdoorTs : null;
+      if (age === null || age <= TEMP_TTL_MS) {
+        if (this.device.hasCapability('adlar_external_ambient')) {
+          await this.device.setCapabilityValue('adlar_external_ambient', outdoorTemp);
+        }
+        this.logger(`ServiceCoordinator: Restored external outdoor temp: ${outdoorTemp}°C`);
+      } else {
+        this.logger(`ServiceCoordinator: External outdoor temp too old (${Math.round(age / 60000)}min) — skipped`);
+      }
+    }
+
+    // Wind speed (no TTL — building model compensates for stale wind data)
+    const windSpeed = await this.device.getStoreValue('external_wind_speed') as number | null;
+    if (typeof windSpeed === 'number') {
+      if (this.device.hasCapability('adlar_external_wind_speed')) {
+        await this.device.setCapabilityValue('adlar_external_wind_speed', windSpeed);
+      }
+      this.logger(`ServiceCoordinator: Restored external wind speed: ${windSpeed} m/s`);
+    }
+
+    // Solar power (no TTL)
+    const solarPower = await this.device.getStoreValue('external_solar_power') as number | null;
+    if (typeof solarPower === 'number') {
+      if (this.device.hasCapability('adlar_external_solar_power')) {
+        await this.device.setCapabilityValue('adlar_external_solar_power', solarPower);
+      }
+      this.logger(`ServiceCoordinator: Restored external solar power: ${solarPower}W`);
+    }
+
+    // Solar radiation (no TTL)
+    const solarRadiation = await this.device.getStoreValue('external_solar_radiation') as number | null;
+    if (typeof solarRadiation === 'number') {
+      if (this.device.hasCapability('adlar_external_solar_radiation')) {
+        await this.device.setCapabilityValue('adlar_external_solar_radiation', solarRadiation);
+      }
+      this.logger(`ServiceCoordinator: Restored external solar radiation: ${solarRadiation} W/m²`);
+    }
   }
 
   private _startHealthMonitoring(): void {

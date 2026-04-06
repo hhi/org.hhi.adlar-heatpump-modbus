@@ -294,7 +294,7 @@ export const FLOW_PATTERNS = {
       cardId: 'power_above_threshold', pattern: 'simple_condition' as const, capabilityName: 'measure_power', requiresCapability: 'measure_power',
     },
     {
-      cardId: 'total_consumption_above', pattern: 'simple_condition' as const, capabilityName: 'meter_power.electric_total', requiresCapability: 'meter_power.electric_total',
+      cardId: 'total_consumption_above', pattern: 'simple_condition' as const, capabilityName: 'meter_power', requiresCapability: 'meter_power',
     },
   ],
 };
