@@ -298,9 +298,9 @@ class AdlarModbusDevice extends Homey.Device {
     // Fault register aggregation
     const faults = snap.status.activeFaults;
     set('adlar_fault', faults.length);
-    set('adlar_fault_1', faults.some((f: string) => f.startsWith('FAULT_1_')));
-    set('adlar_fault_2', faults.some((f: string) => f.startsWith('FAULT_2_')));
-    set('adlar_fault_3', faults.some((f: string) => f.startsWith('FAULT_3_') || f.startsWith('SYS1_')));
+    set('adlar_fault_1', faults.some((f: string) => f.startsWith('F1.')));
+    set('adlar_fault_2', faults.some((f: string) => f.startsWith('F2.')));
+    set('adlar_fault_3', faults.some((f: string) => f.startsWith('F3.') || f.startsWith('SYS1_')));
     set(
       'adlar_fault_active',
       faults.length > 0
@@ -312,7 +312,9 @@ class AdlarModbusDevice extends Homey.Device {
     if (snap.diy) {
       set('heating_curve_slope', snap.diy.slopeK);
       set('heating_curve_intercept', snap.diy.interceptB);
-      set('heating_curve_formula', `${snap.diy.slopeK.toFixed(1)} × T + ${snap.diy.interceptB.toFixed(1)}`);
+      // Expand k×(T+15)+b → k×T + (k×15+b) to match the Tuya app formula display
+      const effectiveIntercept = snap.diy.slopeK * 15 + snap.diy.interceptB;
+      set('heating_curve_formula', `${snap.diy.slopeK.toFixed(1)} × T + ${effectiveIntercept.toFixed(1)}`);
       set('heating_curve_ref_outdoor', -7);
       set('heating_curve_ref_temp', snap.diy.calcSetpoint(-7));
     }
