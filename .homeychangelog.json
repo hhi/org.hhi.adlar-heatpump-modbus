@@ -1,4 +1,8 @@
 {
+  "1.4.0": {
+    "en": "Prepared internal Modbus connection layer to support a second driver with a different register set.",
+    "nl": "Interne Modbus-verbindingslaag voorbereid voor ondersteuning van een tweede driver met een andere registerset."
+  },
   "1.3.2": {
     "en": "Fixed: heating curve formula now shows correct values (e.g. '-0.5 × T + 47.5') when DIY curve (L8) is active — register L28 was read as unsigned instead of signed. Fixed: hot water setpoint slider now shows correct title. Removed unused 'Show curve picker controls' setting.",
     "nl": "Opgelost: verwarmingscurve-formule toont nu correcte waarden (bijv. '-0.5 × T + 47.5') wanneer de DIY-curve (L8) actief is — register L28 werd als unsigned in plaats van signed gelezen. Opgelost: warmwater setpoint-slider toont nu de correcte titel. Niet-gebruikte instelling 'Toon curve instelbediening' verwijderd."

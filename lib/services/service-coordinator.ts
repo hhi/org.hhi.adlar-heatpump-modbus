@@ -11,7 +11,7 @@ import { FlowCardManagerService } from './flow-card-manager-service';
 import { AdaptiveControlService } from './adaptive-control-service';
 import { BuildingInsightsService } from './building-insights-service';
 import { SnapshotTriggerService } from './snapshot-trigger-service';
-import { DataSnapshot } from '../modbus/adlar2-modbus-service';
+import { Adlar2ModbusService, DataSnapshot } from '../modbus/adlar2-modbus-service';
 
 export interface ServiceCoordinatorOptions {
   device: Homey.Device;
@@ -101,6 +101,17 @@ export class ServiceCoordinator {
 
     this.modbusConnection = new ModbusConnectionService({
       ...opts,
+      createService: ({ config, timerProvider }) => new Adlar2ModbusService({
+        transport: {
+          host: config.host,
+          port: config.port ?? 502,
+          unitId: config.unitId ?? 1,
+          timeoutMs: 5_000,
+          batchDelayMs: 90,
+          maxReconnects: 0,
+        },
+        timerProvider,
+      }),
       onData: this._handleModbusData.bind(this),
       onConnected: this._handleConnected.bind(this),
       onDisconnected: this._handleDisconnected.bind(this),
