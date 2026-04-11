@@ -4,8 +4,9 @@
 /* eslint-disable import/extensions */
 import { EventEmitter } from 'events';
 import Homey from 'homey';
-import { Adlar2ModbusService, DataSnapshot } from '../modbus/adlar2-modbus-service';
+import { DataSnapshot } from '../modbus/adlar2-modbus-service';
 import { TimerProvider } from '../modbus/modbus-tcp-service';
+import { ModbusRuntimeService } from '../modbus/modbus-runtime-service';
 
 export interface ModbusConnectionConfig {
   host: string;
@@ -16,35 +17,45 @@ export interface ModbusConnectionConfig {
   pollSlowMs?: number;
 }
 
-export interface ModbusConnectionOptions {
+export interface ModbusConnectionOptions<TSnapshot = DataSnapshot> {
   device: Homey.Device;
   logger?: (message: string, ...args: unknown[]) => void;
-  onData: (snapshot: DataSnapshot) => void;
+  createService: (args: {
+    config: ModbusConnectionConfig;
+    timerProvider: TimerProvider;
+  }) => ModbusRuntimeService<TSnapshot>;
+  onData: (snapshot: TSnapshot) => void;
   onConnected: () => void;
   onDisconnected: (reason: string) => void;
   onError: (err: Error, context: string) => void;
 }
 
 /**
- * ModbusConnectionService wraps Adlar2ModbusService and exposes a clean interface
- * to the ServiceCoordinator — mirroring TuyaConnectionService's role in the Tuya app.
+ * ModbusConnectionService wraps a ModbusRuntimeService and exposes a clean
+ * interface to the ServiceCoordinator. The concrete service implementation is
+ * injected via the createService factory — ModbusConnectionService has no
+ * direct dependency on Adlar2ModbusService or any other concrete class.
+ *
+ * ADR-031: ModbusConnectionService ontkoppelen van Adlar-registerset.
  */
-export class ModbusConnectionService extends EventEmitter {
+export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmitter {
   private device: Homey.Device;
   private logger: (message: string, ...args: unknown[]) => void;
-  private service: Adlar2ModbusService | null = null;
+  private service: ModbusRuntimeService<TSnapshot> | null = null;
   private connected = false;
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
 
-  private readonly onData: (snapshot: DataSnapshot) => void;
+  private readonly createService: ModbusConnectionOptions<TSnapshot>['createService'];
+  private readonly onData: (snapshot: TSnapshot) => void;
   private readonly onConnected: () => void;
   private readonly onDisconnected: (reason: string) => void;
   private readonly onError: (err: Error, context: string) => void;
 
-  constructor(options: ModbusConnectionOptions) {
+  constructor(options: ModbusConnectionOptions<TSnapshot>) {
     super();
     this.device = options.device;
     this.logger = options.logger || (() => {});
+    this.createService = options.createService;
     this.onData = options.onData;
     this.onConnected = options.onConnected;
     this.onDisconnected = options.onDisconnected;
@@ -64,17 +75,7 @@ export class ModbusConnectionService extends EventEmitter {
       clearInterval: this.device.homey.clearInterval.bind(this.device.homey),
     };
 
-    this.service = new Adlar2ModbusService({
-      transport: {
-        host: config.host,
-        port: config.port ?? 502,
-        unitId: config.unitId ?? 1,
-        timeoutMs: 5_000,
-        batchDelayMs: 90,
-        maxReconnects: 0,
-      },
-      timerProvider,
-    });
+    this.service = this.createService({ config, timerProvider });
 
     this.service.on('connected', () => {
       this.connected = true;
@@ -96,7 +97,7 @@ export class ModbusConnectionService extends EventEmitter {
       this.logger(`ModbusConnectionService: Reconnect attempt #${attempt} in ${delayMs}ms`);
     });
 
-    this.service.on('data', (snapshot: DataSnapshot) => {
+    this.service.on('data', (snapshot: TSnapshot) => {
       this.onData(snapshot);
     });
 
