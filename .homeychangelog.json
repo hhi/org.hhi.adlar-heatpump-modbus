@@ -1,4 +1,8 @@
 {
+  "1.5.0": {
+    "en": "Local dashboard added: open http://<homey-ip>:8090/ to view a live register table with all known Modbus registers, current values, units, poll group, and fault state.",
+    "nl": "Lokaal dashboard toegevoegd: open http://<homey-ip>:8090/ voor een live registertabel met alle bekende Modbus-registers, huidige waarden, eenheden, pollgroep en foutstatus."
+  },
   "1.4.0": {
     "en": "Prepared internal Modbus connection layer to support a second driver with a different register set.",
     "nl": "Interne Modbus-verbindingslaag voorbereid voor ondersteuning van een tweede driver met een andere registerset."
