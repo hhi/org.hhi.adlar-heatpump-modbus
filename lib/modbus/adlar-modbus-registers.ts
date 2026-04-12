@@ -1715,18 +1715,20 @@ export const POLL_GROUP_MEDIUM = {
     { start: 0x0019, count: 8, label: 'Relay 1-4 + Switch 1-4 (0x190x20)' }, // v2.2: was 68
     { start: 0x0072, count: 12, label: 'Aux/Buffer/Grid/Zone' },
     { start: 0x0300, count: 8, label: 'Control 0x3000x307' },
+    { start: 0x0313, count: 4, label: 'Curves 0x03130x0316' }, // verplaatst van SLOW: max 40s feedback na write
+    { start: 0x01FF, count: 2, label: 'P255/P256 Smart Grid' }, // verplaatst van SLOW: max 40s feedback na write
   ],
 } as const;
 
 /**
  * Poll elke 300s Configuratie & COP-relevante parameters
+ * Bevat alleen vaste configuratie die niet via flow cards geschreven wordt.
+ * Schrijfbare registers (curves, Smart Grid) zitten in POLL_GROUP_MEDIUM.
  */
 export const POLL_GROUP_SLOW = {
   name: 'slow',
   interval: 300_000,
   reads: [
-    { start: 0x0313, count: 4, label: 'Curves 0x3130x316' },
-    { start: 0x01FF, count: 2, label: 'P255/P256 Smart Grid' },
     { start: 0x0174, count: 5, label: 'P116P120 (temp ctrl, antifreeze, refrigerant)' },
     { start: 0x011E, count: 1, label: 'P30 defrost mode' },
     { start: 0x0132, count: 10, label: 'P50P59 freq limits (constants+cooling+heating)' }, // v2.2: was 0x0133/9 0x0132/10

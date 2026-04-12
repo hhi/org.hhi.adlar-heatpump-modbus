@@ -256,7 +256,7 @@ export class WeightedDecisionMaker {
     const effectiveEfficiencyWeight = basePriorities.efficiency * confidenceMetrics.copConfidence * existingScale;
     const effectiveCostWeight = basePriorities.cost * costMultiplier * (confidenceMetrics.priceDataAvailable ? 1.0 : 0.0) * existingScale;
     const effectiveThermalWeight = basePriorities.thermal * (confidenceMetrics.buildingModelConfidence >= 0.5 ? 1.0 : 0.0) * existingScale;
-    const effectiveCoastWeight = coastStrength;
+    const effectiveCoastWeight = (coastAdjust < 0) ? coastStrength : 0;
 
     // Calculate total effective weight
     const totalEffectiveWeight = effectiveComfortWeight + effectiveEfficiencyWeight + effectiveCostWeight + effectiveThermalWeight + effectiveCoastWeight;

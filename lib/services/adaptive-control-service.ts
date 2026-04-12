@@ -97,6 +97,8 @@ export class AdaptiveControlService {
   private _cooldownCycleCount = 0;
   private _indoorTempHistory: number[] = [];
   private static readonly TREND_WINDOW_SIZE = 3; // 3 measurements × 5 min = 15 min window
+  private _outletTempHistory: number[] = [];
+  private static readonly OUTLET_TREND_WINDOW_SIZE = 4; // 4 measurements × 5 min = 20 min window
 
   // Control loop state
   private controlLoopInterval: NodeJS.Timeout | null = null;
@@ -498,6 +500,7 @@ export class AdaptiveControlService {
     this._coastActive = false;
     this._cooldownCycleCount = 0;
     this._indoorTempHistory = [];
+    this._outletTempHistory = [];
     this.logger('AdaptiveControlService: Coast-state gereset bij stop');
 
     this.isEnabled = false;
@@ -601,7 +604,28 @@ export class AdaptiveControlService {
 
     const offset = (this.device.getSetting('adaptive_cooldown_offset') as number | null) ?? 1.0;
     const strength = (this.device.getSetting('adaptive_cooldown_strength') as number | null) ?? 0.80;
-    const rawAdjustment = (outletTemp - offset) - currentSetpoint;
+
+    // Update outlet temperature history (ADR-040 Decision B)
+    this._outletTempHistory.push(outletTemp);
+    if (this._outletTempHistory.length > AdaptiveControlService.OUTLET_TREND_WINDOW_SIZE) {
+      this._outletTempHistory.shift();
+    }
+
+    // Compute outlet drop rate: negative = dropping (good), zero/positive = stalling (needs extra push)
+    // outletDropRate < 0 means outlet is falling — coast is working
+    // outletDropRate >= 0 means outlet is stable or rising — add extra correction to break hydraulic lag
+    let outletDropRate = 0;
+    if (this._outletTempHistory.length >= 2) {
+      const oldest = this._outletTempHistory[0];
+      const windowCycles = this._outletTempHistory.length - 1;
+      outletDropRate = (outletTemp - oldest) / windowCycles; // °C/cycle; negative = falling
+    }
+
+    // Scale adjustment: when outlet is stalling (outletDropRate ≥ 0), amplify the correction
+    // by adding the stall magnitude as extra offset pressure. When outlet is already falling fast,
+    // no extra correction needed.
+    const stallBoost = outletDropRate >= 0 ? outletDropRate : 0;
+    const rawAdjustment = (outletTemp - offset - stallBoost) - currentSetpoint;
 
     // Guard: coast delta must always be negative.
     // If outletTemp has already dropped below currentSetpoint + offset (after multiple coast cycles),
@@ -609,9 +633,12 @@ export class AdaptiveControlService {
     // Math.min(0, ...) prevents this: coast contributes 0 and the other components decide.
     const adjustment = Math.min(0, rawAdjustment);
 
+    const trendNote = this._outletTempHistory.length >= 2
+      ? `, trend ${outletDropRate.toFixed(2)}°C/cyclus`
+      : '';
     return {
       adjustment,
-      reason: `Coast: uitlaattemp ${outletTemp.toFixed(1)}°C − offset ${offset}°C → delta ${adjustment.toFixed(1)}°C`,
+      reason: `Coast: uitlaattemp ${outletTemp.toFixed(1)}°C − offset ${offset}°C${trendNote} → delta ${adjustment.toFixed(1)}°C`,
       priority: 'high',
       strength,
     };
