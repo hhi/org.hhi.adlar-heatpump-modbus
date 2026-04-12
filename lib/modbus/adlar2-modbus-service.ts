@@ -192,6 +192,14 @@ export interface DiyHeatingCurve {
   calcSetpoint(ambientC: number): number;
 }
 
+/** ADR-042: diagnostics toegevoegd door ServiceCoordinator na snapshot-aanmaak */
+export interface DiagnosticsSnapshot {
+  connectionQuality: 'online' | 'degraded' | 'offline';
+  consecutiveFastPollFailures: number;
+  lastSuccessfulFastPollAt: number | null;
+  lastErrorContext: string | null;
+}
+
 export interface DataSnapshot {
   ts: number;
   status: StatusSnapshot;
@@ -201,6 +209,7 @@ export interface DataSnapshot {
   version: VersionSnapshot;
   sensors: Record<string, SensorValue>;
   diy?: DiyHeatingCurve;
+  diagnostics?: DiagnosticsSnapshot; // ADR-042
 }
 
 type SetpointType = 'heating' | 'cooling' | 'dhw' | 'floor' | 'indoor';

@@ -241,9 +241,7 @@ class AdlarModbusDevice extends Homey.Device {
     set('adlar_fault_shutdown', snap.status.faultShutdown);
     set('adlar_state_compressor_state', snap.status.compressorOn);
     set('adlar_state_defrost_state', snap.status.defrosting);
-    if (snap.status.activeFaults.length > 0) {
-      set('alarm_generic', true);
-    }
+    set('alarm_generic', snap.status.activeFaults.length > 0);
 
     if (snap.version.programVersion) {
       set('adlar_firmware_mcu', snap.version.programVersion);
