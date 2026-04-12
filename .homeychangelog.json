@@ -1,4 +1,8 @@
 {
+  "1.5.1": {
+    "en": "Added full Modbus register test file (adlar2full-modbusregs.mbs) covering all 225 known registers. Added ADR-042 design document for connection quality state handling.",
+    "nl": "Volledig Modbus-register testbestand toegevoegd (adlar2full-modbusregs.mbs) met alle 225 bekende registers. ADR-042 ontwerpdocument toegevoegd voor verbindingskwaliteit en foutstatus-afhandeling."
+  },
   "1.5.0": {
     "en": "Local dashboard added: open http://<homey-ip>:8090/ to view a live register table with all known Modbus registers, current values, units, poll group, and fault state.",
     "nl": "Lokaal dashboard toegevoegd: open http://<homey-ip>:8090/ voor een live registertabel met alle bekende Modbus-registers, huidige waarden, eenheden, pollgroep en foutstatus."
