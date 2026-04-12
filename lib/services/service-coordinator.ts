@@ -16,6 +16,7 @@ import { Adlar2ModbusService, DataSnapshot } from '../modbus/adlar2-modbus-servi
 export interface ServiceCoordinatorOptions {
   device: Homey.Device;
   logger?: (message: string, ...args: unknown[]) => void;
+  onSnapshot?: (snapshot: DataSnapshot) => void;
 }
 
 export interface ServiceInitializationResult {
@@ -48,6 +49,9 @@ export class ServiceCoordinator {
   private _prevDefrosting = false;
   private _defrostStartedAt: number | null = null;
 
+  // Dashboard snapshot callback (ADR-041a)
+  private readonly onSnapshot?: (snapshot: DataSnapshot) => void;
+
   // Event handler references (prevent memory leaks)
   private onHealthDegradedHandler?: (data: { capability: string; healthData: unknown }) => void;
   private onHealthRecoveredHandler?: (data: { capability: string; healthData: unknown }) => void;
@@ -59,6 +63,7 @@ export class ServiceCoordinator {
   constructor(options: ServiceCoordinatorOptions) {
     this.device = options.device;
     this.logger = options.logger || (() => {});
+    this.onSnapshot = options.onSnapshot;
 
     this._initializeServices();
     this._setupEventHandlers();
@@ -383,6 +388,9 @@ export class ServiceCoordinator {
       });
     }
     this._prevDefrosting = defrosting;
+
+    // Forward naar dashboard (ADR-041a)
+    this.onSnapshot?.(snapshot);
   }
 
   private _handleConnected(): void {

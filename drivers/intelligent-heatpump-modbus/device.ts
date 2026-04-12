@@ -77,6 +77,10 @@ class AdlarModbusDevice extends Homey.Device {
     this.coordinator = new ServiceCoordinator({
       device: this,
       logger: (msg, ...args) => this.logger.debug(msg, ...args),
+      onSnapshot: (snapshot) => {
+        const app = this.homey.app as unknown as { dashboard: { setSnapshot(s: DataSnapshot): void } | null };
+        app.dashboard?.setSnapshot(snapshot);
+      },
     });
 
     this._registerCapabilityListeners();
@@ -185,6 +189,10 @@ class AdlarModbusDevice extends Homey.Device {
     this.coordinator = new ServiceCoordinator({
       device: this,
       logger: (msg, ...args) => this.logger.debug(msg, ...args),
+      onSnapshot: (snapshot) => {
+        const app = this.homey.app as unknown as { dashboard: { setSnapshot(s: DataSnapshot): void } | null };
+        app.dashboard?.setSnapshot(snapshot);
+      },
     });
 
     this._registerCapabilityListeners();

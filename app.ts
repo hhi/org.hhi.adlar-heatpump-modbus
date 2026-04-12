@@ -5,6 +5,7 @@ import { App } from 'homey';
 import enableDebugInspector from './app-debug';
 import { SelfHealingRegistry } from './lib/self-healing-registry';
 import { Logger, LogLevel } from './lib/logger';
+import { DashboardService } from './lib/services/dashboard-service';
 
 class MyApp extends App {
 
@@ -13,6 +14,11 @@ class MyApp extends App {
 
   // Structured logger with configurable log levels
   private logger!: Logger;
+
+  // Local HTTP dashboard server (ADR-041a)
+  private _dashboard: DashboardService | null = null;
+
+  get dashboard(): DashboardService | null { return this._dashboard; }
 
   /**
    * Override Homey's log() method to route through Logger
@@ -73,10 +79,21 @@ class MyApp extends App {
       }).catch(() => {});
     });
 
+    this._dashboard = new DashboardService({
+      appDir: __dirname,
+      logger: (msg, ...args) => this.logger.info(String(msg), ...args),
+    });
+    this._dashboard.start();
+
     this.logger.info('App initialized');
   }
 
   async onUninit() {
+    if (this._dashboard) {
+      await this._dashboard.destroy();
+      this._dashboard = null;
+    }
+
     if (this.selfHealing) {
       this.selfHealing.destroy();
     }
