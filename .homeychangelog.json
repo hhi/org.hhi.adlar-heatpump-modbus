@@ -1,4 +1,8 @@
 {
+  "1.5.2": {
+    "en": "Connection quality monitoring added: device now shows a warning when Modbus communication is degraded and becomes unavailable only after a sustained disconnect. Fixed: active fault alarm now correctly resets to inactive when all faults clear.",
+    "nl": "Verbindingskwaliteitsbewaking toegevoegd: het apparaat toont een waarschuwing bij gedeeltelijke Modbus-communicatieproblemen en wordt pas onbeschikbaar bij een aanhoudende verbreking. Opgelost: actief storingsalarm wordt nu correct gereset wanneer alle storingen verdwijnen."
+  },
   "1.5.1": {
     "en": "Added full Modbus register test file (adlar2full-modbusregs.mbs) covering all 225 known registers. Added ADR-042 design document for connection quality state handling.",
     "nl": "Volledig Modbus-register testbestand toegevoegd (adlar2full-modbusregs.mbs) met alle 225 bekende registers. ADR-042 ontwerpdocument toegevoegd voor verbindingskwaliteit en foutstatus-afhandeling."

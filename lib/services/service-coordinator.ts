@@ -13,6 +13,9 @@ import { BuildingInsightsService } from './building-insights-service';
 import { SnapshotTriggerService } from './snapshot-trigger-service';
 import { Adlar2ModbusService, DataSnapshot } from '../modbus/adlar2-modbus-service';
 
+// ADR-042: Verbindingskwaliteit als expliciete runtime-state
+export type ConnectionQuality = 'online' | 'degraded' | 'offline';
+
 export interface ServiceCoordinatorOptions {
   device: Homey.Device;
   logger?: (message: string, ...args: unknown[]) => void;
@@ -48,6 +51,13 @@ export class ServiceCoordinator {
   private _disconnectDailyResetTimer: NodeJS.Timeout | null = null;
   private _prevDefrosting = false;
   private _defrostStartedAt: number | null = null;
+
+  // ADR-042: Connection quality state machine
+  private _connectionQuality: ConnectionQuality = 'offline';
+  private _lastSuccessfulFastPollAt: number | null = null;
+  private _consecutiveFastPollFailures = 0;
+  private _lastErrorContext: string | null = null;
+  private _errorCountByContext = new Map<string, number>();
 
   // Dashboard snapshot callback (ADR-041a)
   private readonly onSnapshot?: (snapshot: DataSnapshot) => void;
@@ -347,6 +357,13 @@ export class ServiceCoordinator {
   // ── Data handlers ──────────────────────────────────────────────────────────
 
   private _handleModbusData(snapshot: DataSnapshot): void {
+    // ADR-042: fast-poll succes registreren
+    this._lastSuccessfulFastPollAt = Date.now();
+    this._consecutiveFastPollFailures = 0;
+    if (this._connectionQuality !== 'online') {
+      this._setConnectionQuality('online');
+    }
+
     // Forward snapshot to device for capability updates
     const device = this.device as unknown as {
       applyModbusSnapshot?: (s: DataSnapshot) => void;
@@ -389,6 +406,14 @@ export class ServiceCoordinator {
     }
     this._prevDefrosting = defrosting;
 
+    // ADR-042: diagnostics toevoegen aan snapshot voordat deze doorgegeven wordt
+    snapshot.diagnostics = {
+      connectionQuality: this._connectionQuality,
+      consecutiveFastPollFailures: this._consecutiveFastPollFailures,
+      lastSuccessfulFastPollAt: this._lastSuccessfulFastPollAt,
+      lastErrorContext: this._lastErrorContext,
+    };
+
     // Forward naar dashboard (ADR-041a)
     this.onSnapshot?.(snapshot);
   }
@@ -404,7 +429,11 @@ export class ServiceCoordinator {
       this.logger('ServiceCoordinator: Disconnect status timer cancelled (reconnected in time)');
     }
 
-    this.device.setAvailable().catch(() => {});
+    // ADR-042: reset failure counters en zet quality op online via _setConnectionQuality
+    // (die roept ook setAvailable() aan)
+    this._consecutiveFastPollFailures = 0;
+    this._errorCountByContext.clear();
+    this._setConnectionQuality('online');
     this.energyTracking.setConnectionState(true).catch((e) => {
       this.logger('ServiceCoordinator: setConnectionState(true) failed', e);
     });
@@ -415,6 +444,8 @@ export class ServiceCoordinator {
   private _handleDisconnected(reason: string): void {
     this.logger('ServiceCoordinator: Modbus disconnected:', reason);
     this.serviceHealth.set('modbus', false);
+    // ADR-042: direct offline markeren (grace period bepaalt Homey-zichtbaarheid)
+    this._setConnectionQuality('offline');
     this.energyTracking.setConnectionState(false).catch((e) => {
       this.logger('ServiceCoordinator: setConnectionState(false) failed', e);
     });
@@ -428,6 +459,8 @@ export class ServiceCoordinator {
       this.logger('ServiceCoordinator: Disconnect grace period elapsed, updating status');
       this._setConnectionCapabilities(false, reason);
       this._incrementDailyDisconnectCount();
+      // ADR-042: pas na grace period setUnavailable()
+      this.device.setUnavailable('Modbus-verbinding verbroken').catch(() => {});
     }, 60_000);
   }
 
@@ -460,6 +493,44 @@ export class ServiceCoordinator {
 
   private _handleError(err: Error, context: string): void {
     this.logger(`ServiceCoordinator: Modbus error [${context}]:`, err.message);
+
+    // ADR-042: fout-classificatie en failure counters
+    this._lastErrorContext = context;
+    const count = (this._errorCountByContext.get(context) ?? 0) + 1;
+    this._errorCountByContext.set(context, count);
+
+    if (context.startsWith('poll:fast') || context.startsWith('fc03')) {
+      this._consecutiveFastPollFailures++;
+      this.logger(`ServiceCoordinator: Fast poll failures: ${this._consecutiveFastPollFailures}`);
+      this._evaluateConnectionQuality();
+    }
+  }
+
+  // ADR-042: evalueer of verbindingskwaliteit naar degraded moet
+  private _evaluateConnectionQuality(): void {
+    const DEGRADED_THRESHOLD = 3;
+    if (
+      this._connectionQuality === 'online'
+      && this._consecutiveFastPollFailures >= DEGRADED_THRESHOLD
+    ) {
+      this._setConnectionQuality('degraded');
+    }
+  }
+
+  // ADR-042: stel verbindingskwaliteit in en koppel aan Homey-status
+  private _setConnectionQuality(quality: ConnectionQuality): void {
+    if (this._connectionQuality === quality) return;
+    this.logger(`ServiceCoordinator: Connection quality: ${this._connectionQuality} → ${quality}`);
+    this._connectionQuality = quality;
+
+    if (quality === 'online') {
+      this.device.setAvailable().catch(() => {});
+    } else if (quality === 'degraded') {
+      this.device
+        .setWarning('Gedeeltelijke Modbus-communicatiefout — data kan verouderd zijn')
+        .catch(() => {});
+    }
+    // 'offline' wordt via de bestaande _disconnectStatusTimer afgehandeld
   }
 
   // ── Public API ─────────────────────────────────────────────────────────────
