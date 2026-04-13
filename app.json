@@ -8020,7 +8020,7 @@
                 "de": "Zeigen/Verbergen Sie Leistungsmessfunktionen (Stromverbrauch). Deaktivieren für eine übersichtlichere Oberfläche, wenn Ihr Gerät keine Leistungsüberwachung hat. Erfordert App-Neustart zur Aktivierung.",
                 "fr": "Afficher/Masquer les capacités de mesure de puissance (consommation). Désactiver pour une interface plus claire si votre appareil n'a pas de surveillance de puissance. Nécessite un redémarrage de l'app."
               },
-              "value": true
+              "value": false
             },
             {
               "id": "enable_intelligent_energy_tracking",
