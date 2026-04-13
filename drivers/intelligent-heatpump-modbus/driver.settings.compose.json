@@ -302,12 +302,12 @@
           "fr": "Activer les fonctionnalités de mesure de puissance interne"
         },
         "hint": {
-          "en": "Show/hide power measurement capabilities (power consumption). Disable for a cleaner interface if your device lacks power monitoring. Requires app restart to take effect.",
-          "nl": "Toon/verberg vermogingsmeting capabilities (stroomverbruik). Uitschakelen voor schonere interface als uw apparaat geen vermogingsmonitoring heeft. Vereist app herstart om effect te hebben.",
-          "de": "Zeigen/Verbergen Sie Leistungsmessfunktionen (Stromverbrauch). Deaktivieren für eine übersichtlichere Oberfläche, wenn Ihr Gerät keine Leistungsüberwachung hat. Erfordert App-Neustart zur Aktivierung.",
-          "fr": "Afficher/Masquer les capacités de mesure de puissance (consommation). Désactiver pour une interface plus claire si votre appareil n'a pas de surveillance de puissance. Nécessite un redémarrage de l'app."
+          "en": "Show/hide power measurement capabilities (power consumption). Disable for a cleaner interface if your device lacks power monitoring.",
+          "nl": "Toon/verberg vermogingsmeting capabilities (stroomverbruik). Uitschakelen voor schonere interface als uw apparaat geen vermogingsmonitoring heeft.",
+          "de": "Zeigen/Verbergen Sie Leistungsmessfunktionen (Stromverbrauch). Deaktivieren für eine übersichtlichere Oberfläche, wenn Ihr Gerät keine Leistungsüberwachung hat.",
+          "fr": "Afficher/Masquer les capacités de mesure de puissance (consommation). Désactiver pour une interface plus claire si votre appareil n'a pas de surveillance de puissance."
         },
-        "value": true
+        "value": false
       },
       {
         "id": "enable_intelligent_energy_tracking",
