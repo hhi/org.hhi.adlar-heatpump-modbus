@@ -19,6 +19,20 @@ import { RollingCOPCalculator, type COPDataPoint } from '../../lib/services/roll
 import { SCOPCalculator, type COPMeasurement } from '../../lib/services/scop-calculator';
 
 // ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const INTERNAL_POWER_CAPABILITIES = [
+  'measure_power',
+  'meter_power',
+  'measure_voltage',
+  'measure_current',
+  'measure_current.comp_phase',
+  'measure_current.b_phase',
+  'measure_current.c_phase',
+] as const;
+
+// ============================================================================
 // DEVICE SETTINGS
 // ============================================================================
 
@@ -31,6 +45,7 @@ interface DeviceSettings {
   poll_medium_s: number;
   poll_slow_s: number;
   log_level: string;
+  enable_power_measurements: boolean;
 }
 /* eslint-enable camelcase */
 
@@ -133,6 +148,19 @@ class AdlarModbusDevice extends Homey.Device {
 
     if (this.coordinator) {
       await this.coordinator.onSettings({}, newSettings as Record<string, unknown>, changedKeys);
+    }
+
+    if (changedKeys.includes('enable_power_measurements')) {
+      const enabled = (newSettings.enable_power_measurements ?? true) as boolean;
+      for (const cap of INTERNAL_POWER_CAPABILITIES) {
+        if (!enabled && this.hasCapability(cap)) {
+          await this.removeCapability(cap);
+          this.logger.info(`Removed capability: ${cap}`);
+        } else if (enabled && !this.hasCapability(cap)) {
+          await this.addCapability(cap);
+          this.logger.info(`Added capability: ${cap}`);
+        }
+      }
     }
 
     // Restart connection if connection settings changed
