@@ -83,6 +83,7 @@ class AdlarModbusDevice extends Homey.Device {
     this.logger.info('Device initializing:', this.getName());
 
     await this._ensureCapabilities();
+    await this._applyPowerCapabilities(settings.enable_power_measurements ?? true);
 
     await this._logRestoreDiagnostics();
 
@@ -151,16 +152,7 @@ class AdlarModbusDevice extends Homey.Device {
     }
 
     if (changedKeys.includes('enable_power_measurements')) {
-      const enabled = (newSettings.enable_power_measurements ?? true) as boolean;
-      for (const cap of INTERNAL_POWER_CAPABILITIES) {
-        if (!enabled && this.hasCapability(cap)) {
-          await this.removeCapability(cap);
-          this.logger.info(`Removed capability: ${cap}`);
-        } else if (enabled && !this.hasCapability(cap)) {
-          await this.addCapability(cap);
-          this.logger.info(`Added capability: ${cap}`);
-        }
-      }
+      await this._applyPowerCapabilities((newSettings.enable_power_measurements ?? true) as boolean);
     }
 
     // Restart connection if connection settings changed
@@ -182,6 +174,18 @@ class AdlarModbusDevice extends Homey.Device {
     this.logger.info('Device deleted');
     await this._destroyCoordinator();
     this._destroyCOPCalculators();
+  }
+
+  private async _applyPowerCapabilities(enabled: boolean): Promise<void> {
+    for (const cap of INTERNAL_POWER_CAPABILITIES) {
+      if (enabled && !this.hasCapability(cap)) {
+        await this.addCapability(cap);
+        this.logger.info(`Added capability: ${cap}`);
+      } else if (!enabled && this.hasCapability(cap)) {
+        await this.removeCapability(cap);
+        this.logger.info(`Removed capability: ${cap}`);
+      }
+    }
   }
 
   private async _ensureCapabilities(): Promise<void> {
