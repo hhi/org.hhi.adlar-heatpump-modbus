@@ -132,6 +132,9 @@
     "adlar_enum_capacity_set"
   ],
   "capabilitiesOptions": {
+    "onoff": {
+      "uiQuickAction": false
+    },
     "adlar_hotwater": {
       "title": {
         "en": "Hot water setpoint",

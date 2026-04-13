@@ -1,4 +1,8 @@
 {
+  "1.5.4": {
+    "en": "Added setting to enable or disable internal power measurements (power, voltage, current). The on/off switch no longer appears as a quick action on the device card.",
+    "nl": "Instelling toegevoegd om interne vermogensmetingen (vermogen, spanning, stroom) in of uit te schakelen. De aan/uit-schakelaar verschijnt niet meer als snelactie op de apparaatkaart."
+  },
   "1.5.3": {
     "en": "Improved coast (passive cooldown) effectiveness: coast weight now drops to zero when the outlet temperature stalls after a setpoint reduction (hydraulic lag), allowing the PI controller to fully compensate. Added outlet temperature trend tracking (20-minute window) to amplify corrections when the outlet is slow to respond.",
     "nl": "Coast (passieve afkoeling) effectiviteit verbeterd: coast-gewicht valt terug naar nul wanneer de uitlaattemperatuur stagneert na een setpointverlaging (hydraulische vertraging), zodat de PI-controller het volledige gewichtsbudget overneemt. Uitlaattemperatuurtrend bijgehouden over een venster van 20 minuten om correcties te versterken wanneer de uitlaattemperatuur traag reageert. Curves en Smart Grid-registers van SLOW naar MEDIUM pollgroep verplaatst (feedback na schrijven maximaal 40s in plaats van 310s)."
