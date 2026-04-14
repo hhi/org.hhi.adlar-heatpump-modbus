@@ -1,4 +1,8 @@
 {
+  "1.5.6": {
+    "en": "Fixed: a failing optional Modbus register block (e.g. relay registers not present on single-zone units) no longer skips the remaining blocks in the same poll cycle. Variant-specific register failures no longer affect connection quality. Added: sustained MEDIUM/SLOW poll failures now set connection status to degraded after 6 consecutive failures; degraded status transitions to offline after 10 minutes without a successful fast poll. Fixed: coil writes (e.g. powerful mode, silent mode) are now correctly refused when the protocol version register has not yet been read.",
+    "nl": "Opgelost: een mislukt optioneel Modbus-registerblok (bijv. relaisregisters die niet aanwezig zijn op enkelvoudige units) slaat de overige blokken in dezelfde pollcyclus niet meer over. Variant-specifieke registerfouten hebben geen invloed meer op de verbindingskwaliteit. Toegevoegd: aanhoudende MEDIUM/SLOW-pollfouten zetten de verbindingsstatus na 6 opeenvolgende fouten op degraded; degraded gaat na 10 minuten zonder succesvolle fast poll naar offline. Opgelost: coil-schrijfoperaties (bijv. powerful mode, silent mode) worden nu correct geweigerd wanneer het protocolversieregister nog niet gelezen is."
+  },
   "1.5.4": {
     "en": "Added setting to enable or disable internal power measurements (power, voltage, current). The on/off switch no longer appears as a quick action on the device card.",
     "nl": "Instelling toegevoegd om interne vermogensmetingen (vermogen, spanning, stroom) in of uit te schakelen. De aan/uit-schakelaar verschijnt niet meer als snelactie op de apparaatkaart."

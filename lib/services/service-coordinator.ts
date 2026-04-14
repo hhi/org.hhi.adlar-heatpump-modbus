@@ -12,6 +12,7 @@ import { AdaptiveControlService } from './adaptive-control-service';
 import { BuildingInsightsService } from './building-insights-service';
 import { SnapshotTriggerService } from './snapshot-trigger-service';
 import { Adlar2ModbusService, DataSnapshot } from '../modbus/adlar2-modbus-service';
+import { ModbusBlockError } from '../modbus/modbus-tcp-service';
 
 // ADR-042: Verbindingskwaliteit als expliciete runtime-state
 export type ConnectionQuality = 'online' | 'degraded' | 'offline';
@@ -56,6 +57,10 @@ export class ServiceCoordinator {
   private _connectionQuality: ConnectionQuality = 'offline';
   private _lastSuccessfulFastPollAt: number | null = null;
   private _consecutiveFastPollFailures = 0;
+  private _consecutiveNonFastRequiredFailures = 0;  // ADR-043
+  private _structurallyUnsupportedFast = false;      // ADR-043
+  private _degradedSinceTimer: ReturnType<typeof setTimeout> | null = null; // ADR-043
+  private static readonly DEGRADED_TO_OFFLINE_MS = 10 * 60 * 1000; // 10 minuten
   private _lastErrorContext: string | null = null;
   private _errorCountByContext = new Map<string, number>();
 
@@ -131,6 +136,7 @@ export class ServiceCoordinator {
       onConnected: this._handleConnected.bind(this),
       onDisconnected: this._handleDisconnected.bind(this),
       onError: this._handleError.bind(this),
+      onPollGroupSucceeded: this._onPollGroupSucceeded.bind(this),
     });
 
     this.serviceHealth.set('settings', true);
@@ -357,10 +363,27 @@ export class ServiceCoordinator {
   // ── Data handlers ──────────────────────────────────────────────────────────
 
   private _handleModbusData(snapshot: DataSnapshot): void {
-    // ADR-042: fast-poll succes registreren
+    // ADR-042/043: fast-poll succes registreren
     this._lastSuccessfulFastPollAt = Date.now();
     this._consecutiveFastPollFailures = 0;
-    if (this._connectionQuality !== 'online') {
+
+    // ADR-043 Fase 3c: annuleer degraded-naar-offline timer bij succesvolle FAST poll
+    if (this._degradedSinceTimer) {
+      this.device.homey.clearTimeout(this._degradedSinceTimer);
+      this._degradedSinceTimer = null;
+    }
+
+    // ADR-043 Fase 2c: reset structurele vlag als FAST nu wél slaagt
+    if (this._structurallyUnsupportedFast) {
+      this._structurallyUnsupportedFast = false;
+      if (this._connectionQuality === 'online') {
+        this.device.setAvailable().catch(() => {});
+      }
+    }
+
+    // ADR-043 Fase 2c: reset naar online alleen als non-fast teller ook schoon is
+    if (this._connectionQuality !== 'online'
+        && this._consecutiveNonFastRequiredFailures === 0) {
       this._setConnectionQuality('online');
     }
 
@@ -429,9 +452,10 @@ export class ServiceCoordinator {
       this.logger('ServiceCoordinator: Disconnect status timer cancelled (reconnected in time)');
     }
 
-    // ADR-042: reset failure counters en zet quality op online via _setConnectionQuality
+    // ADR-042/043: reset failure counters en zet quality op online via _setConnectionQuality
     // (die roept ook setAvailable() aan)
     this._consecutiveFastPollFailures = 0;
+    this._consecutiveNonFastRequiredFailures = 0;
     this._errorCountByContext.clear();
     this._setConnectionQuality('online');
     this.energyTracking.setConnectionState(true).catch((e) => {
@@ -444,6 +468,9 @@ export class ServiceCoordinator {
   private _handleDisconnected(reason: string): void {
     this.logger('ServiceCoordinator: Modbus disconnected:', reason);
     this.serviceHealth.set('modbus', false);
+    // ADR-043: reset non-fast teller bij disconnect; _structurallyUnsupportedFast NIET resetten
+    // (structureel unsupported blokken verdwijnen niet door een reconnect)
+    this._consecutiveNonFastRequiredFailures = 0;
     // ADR-042: direct offline markeren (grace period bepaalt Homey-zichtbaarheid)
     this._setConnectionQuality('offline');
     this.energyTracking.setConnectionState(false).catch((e) => {
@@ -494,19 +521,50 @@ export class ServiceCoordinator {
   private _handleError(err: Error, context: string): void {
     this.logger(`ServiceCoordinator: Modbus error [${context}]:`, err.message);
 
-    // ADR-042: fout-classificatie en failure counters
+    // ADR-042/043: fout-classificatie en failure counters
     this._lastErrorContext = context;
     const count = (this._errorCountByContext.get(context) ?? 0) + 1;
     this._errorCountByContext.set(context, count);
 
-    if (context.startsWith('poll:fast') || context.startsWith('fc03')) {
+    // Niet-blok-fouten (socket, FC06, FC05) — legacy pad
+    if (!(err instanceof ModbusBlockError)) {
+      if (context.startsWith('poll:fast') || context.startsWith('fc03')) {
+        this._consecutiveFastPollFailures++;
+        this.logger(`ServiceCoordinator: Fast poll failures: ${this._consecutiveFastPollFailures}`);
+        this._evaluateConnectionQuality();
+      }
+      return;
+    }
+
+    const { code, groupName, optional } = err;
+
+    // Optional failures raken quality niet
+    if (optional) return;
+
+    if (code === 'unsupported' && groupName === 'fast') {
+      // Structureel stil: FAST required blok bestaat niet op deze variant
+      if (!this._structurallyUnsupportedFast) {
+        this._structurallyUnsupportedFast = true;
+        this.logger('ServiceCoordinator: FAST required block unsupported — device structurally silent');
+        this.device.setWarning('FAST required block unsupported — no data').catch(() => {});
+      }
+      return; // Geen quality-teller — geen verbindingsprobleem
+    }
+
+    if (code === 'unsupported') return; // Non-fast unsupported: geen quality-effect
+
+    if (groupName === 'fast') {
       this._consecutiveFastPollFailures++;
       this.logger(`ServiceCoordinator: Fast poll failures: ${this._consecutiveFastPollFailures}`);
       this._evaluateConnectionQuality();
+    } else {
+      this._consecutiveNonFastRequiredFailures++;
+      this.logger(`ServiceCoordinator: Non-fast required failures: ${this._consecutiveNonFastRequiredFailures}`);
+      this._evaluateNonFastConnectionQuality();
     }
   }
 
-  // ADR-042: evalueer of verbindingskwaliteit naar degraded moet
+  // ADR-042: evalueer of verbindingskwaliteit naar degraded moet (FAST-fouten)
   private _evaluateConnectionQuality(): void {
     const DEGRADED_THRESHOLD = 3;
     if (
@@ -517,14 +575,61 @@ export class ServiceCoordinator {
     }
   }
 
-  // ADR-042: stel verbindingskwaliteit in en koppel aan Homey-status
+  // ADR-043 Fase 1i: reset non-fast teller bij succesvolle non-fast poll
+  private _onPollGroupSucceeded(groupName: string): void {
+    if (groupName === 'fast') return; // FAST gebruikt data-event, niet deze methode
+
+    this._consecutiveNonFastRequiredFailures = 0;
+    this.logger(`ServiceCoordinator: Poll group succeeded: ${groupName} — non-fast teller gereset`);
+
+    if (this._connectionQuality === 'degraded'
+        && this._consecutiveFastPollFailures === 0) {
+      this._setConnectionQuality('online');
+    }
+  }
+
+  // ADR-043 Fase 2b: evalueer of non-fast failures kwaliteit degraderen
+  private _evaluateNonFastConnectionQuality(): void {
+    const NON_FAST_DEGRADED_THRESHOLD = 6;
+    if (
+      this._connectionQuality === 'online'
+      && this._consecutiveNonFastRequiredFailures >= NON_FAST_DEGRADED_THRESHOLD
+    ) {
+      this._setConnectionQuality('degraded');
+    }
+  }
+
+  // ADR-042/043: stel verbindingskwaliteit in en koppel aan Homey-status
   private _setConnectionQuality(quality: ConnectionQuality): void {
     if (this._connectionQuality === quality) return;
     this.logger(`ServiceCoordinator: Connection quality: ${this._connectionQuality} → ${quality}`);
     this._connectionQuality = quality;
 
+    // ADR-043 Fase 3b: start/annuleer degraded-naar-offline timer
+    if (quality === 'degraded') {
+      if (!this._degradedSinceTimer) {
+        this._degradedSinceTimer = this.device.homey.setTimeout(() => {
+          this._degradedSinceTimer = null;
+          this.logger('ServiceCoordinator: Degraded timeout — setting offline');
+          this._setConnectionQuality('offline');
+        }, ServiceCoordinator.DEGRADED_TO_OFFLINE_MS);
+      }
+    } else {
+      if (this._degradedSinceTimer) {
+        this.device.homey.clearTimeout(this._degradedSinceTimer);
+        this._degradedSinceTimer = null;
+      }
+    }
+
     if (quality === 'online') {
-      this.device.setAvailable().catch(() => {});
+      // ADR-043 Fase 2d: structurele warning heeft hogere prioriteit dan schone online-status
+      if (this._structurallyUnsupportedFast) {
+        this.device
+          .setWarning('FAST required block unsupported — no data')
+          .catch(() => {});
+      } else {
+        this.device.setAvailable().catch(() => {});
+      }
     } else if (quality === 'degraded') {
       this.device
         .setWarning('Gedeeltelijke Modbus-communicatiefout — data kan verouderd zijn')
@@ -628,6 +733,11 @@ export class ServiceCoordinator {
     if (this._disconnectDailyResetTimer) {
       this.device.homey.clearTimeout(this._disconnectDailyResetTimer);
       this._disconnectDailyResetTimer = null;
+    }
+
+    if (this._degradedSinceTimer) {
+      this.device.homey.clearTimeout(this._degradedSinceTimer);
+      this._degradedSinceTimer = null;
     }
 
     try {
