@@ -28,6 +28,7 @@ export interface ModbusConnectionOptions<TSnapshot = DataSnapshot> {
   onConnected: () => void;
   onDisconnected: (reason: string) => void;
   onError: (err: Error, context: string) => void;
+  onPollGroupSucceeded?: (groupName: string) => void;
 }
 
 /**
@@ -50,6 +51,7 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
   private readonly onConnected: () => void;
   private readonly onDisconnected: (reason: string) => void;
   private readonly onError: (err: Error, context: string) => void;
+  private readonly onPollGroupSucceeded?: (groupName: string) => void;
 
   constructor(options: ModbusConnectionOptions<TSnapshot>) {
     super();
@@ -60,6 +62,7 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
     this.onConnected = options.onConnected;
     this.onDisconnected = options.onDisconnected;
     this.onError = options.onError;
+    this.onPollGroupSucceeded = options.onPollGroupSucceeded;
   }
 
   /**
@@ -104,6 +107,10 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
     this.service.on('error', (err: Error, ctx: string) => {
       this.logger(`ModbusConnectionService: Error [${ctx}]:`, err.message);
       this.onError(err, ctx);
+    });
+
+    this.service.on('poll-group-succeeded', (groupName: string) => {
+      this.onPollGroupSucceeded?.(groupName);
     });
 
     try {

@@ -31,4 +31,5 @@ export interface ModbusRuntimeService<TSnapshot> {
   on(event: 'reconnecting', cb: (attempt: number, delayMs: number) => void): this;
   on(event: 'error', cb: (err: Error, ctx: string) => void): this;
   on(event: 'data', cb: (snapshot: TSnapshot) => void): this;
+  on(event: 'poll-group-succeeded', cb: (groupName: string) => void): this;
 }

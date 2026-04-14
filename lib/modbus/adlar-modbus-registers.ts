@@ -1712,8 +1712,8 @@ export const POLL_GROUP_MEDIUM = {
   interval: 30_000,
   reads: [
     { start: 0x0002, count: 8, label: 'Fault State 13 + Sys1 Faults (0x020x09)' }, // v2.2: was 38
-    { start: 0x0019, count: 8, label: 'Relay 1-4 + Switch 1-4 (0x190x20)' }, // v2.2: was 68
-    { start: 0x0072, count: 12, label: 'Aux/Buffer/Grid/Zone' },
+    { start: 0x0019, count: 8, label: 'Relay 1-4 + Switch 1-4 (0x190x20)', optional: true as const }, // v2.2: was 68
+    { start: 0x0072, count: 12, label: 'Aux/Buffer/Grid/Zone', optional: true as const },
     { start: 0x0300, count: 8, label: 'Control 0x3000x307' },
     { start: 0x0313, count: 4, label: 'Curves 0x03130x0316' }, // verplaatst van SLOW: max 40s feedback na write
     { start: 0x01FF, count: 2, label: 'P255/P256 Smart Grid' }, // verplaatst van SLOW: max 40s feedback na write
@@ -1737,7 +1737,7 @@ export const POLL_GROUP_SLOW = {
     { start: 0x0165, count: 1, label: 'P101 pump control mode' },
     { start: 0x01A4, count: 1, label: 'P164 energy level control' },
     { start: 0x0810, count: 3, label: 'L27L29 DIY stooklijn' }, // v2.2
-    { start: 0x0813, count: 7, label: 'L30L36 energieboekhouding' }, // v2.2
+    { start: 0x0813, count: 7, label: 'L30L36 energieboekhouding', optional: true as const }, // v2.2
   ],
 } as const;
 
@@ -1748,7 +1748,7 @@ export const POLL_GROUP_ONCE = { // v2.2
   name: 'once',
   interval: 0, // Eenmalig
   reads: [
-    { start: 0x0360, count: 4, label: 'Version Info (0x3600x363)' },
+    { start: 0x0360, count: 4, label: 'Version Info (0x3600x363)', optional: true as const },
     { start: 0x0100, count: 11, label: 'P00P10 Protection switches' },
     { start: 0x010B, count: 6, label: 'P11P16 Protection values' },
     { start: 0x0172, count: 2, label: 'P114/P115 System config' },

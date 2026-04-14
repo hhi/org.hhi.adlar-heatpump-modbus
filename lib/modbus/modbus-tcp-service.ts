@@ -20,6 +20,39 @@ import * as net from 'net';
 import { EventEmitter } from 'events';
 
 // ============================================================================
+// MODBUS BLOCK ERROR — ADR-043
+// ============================================================================
+
+export type ModbusErrorCode =
+  | 'unsupported'   // Illegal Data Address (Modbus exception 0x02)
+  | 'protocol'      // Illegal Data Value (Modbus exception 0x03)
+  | 'timeout'       // Request timeout
+  | 'disconnect'    // Socket-level close/reset
+  | 'unknown';
+
+export class ModbusBlockError extends Error {
+  constructor(
+    message: string,
+    public readonly code: ModbusErrorCode,
+    public readonly blockStart: number,
+    public readonly groupName: string,
+    public readonly optional: boolean,
+  ) {
+    super(message);
+    this.name = 'ModbusBlockError';
+  }
+}
+
+function classifyError(err: Error): ModbusErrorCode {
+  const msg = err.message.toLowerCase();
+  if (msg.includes('illegal data address')) return 'unsupported';
+  if (msg.includes('illegal data value'))   return 'protocol';
+  if (msg.includes('timeout'))              return 'timeout';
+  if (msg.includes('connection closed') || msg.includes('econnreset')) return 'disconnect';
+  return 'unknown';
+}
+
+// ============================================================================
 // TIMER FACADE
 // ============================================================================
 
@@ -94,6 +127,7 @@ export interface PollBlock {
   start: number;
   count: number;
   label: string;
+  optional?: true;   // Afwezig = required
 }
 
 export interface PollGroup {
@@ -119,7 +153,8 @@ const BACKOFF_MAX = 60_000;
  *   'disconnected' (reason: string) — verbinding verbroken
  *   'reconnecting' (attempt: number, delayMs: number)
  *   'error' (err: Error, ctx: string)
- *   'poll-complete' (groupName: string) — poll-groep voltooid
+ *   'poll-complete' (groupName: string) — alle blokken in poll-groep geslaagd
+ *   'poll-partial'  (groupName: string) — required blokken OK, ≥1 optional blok gefaald
  */
 export class ModbusTcpService extends EventEmitter {
 
@@ -370,7 +405,6 @@ export class ModbusTcpService extends EventEmitter {
     } catch (err) {
       this.stats.errors++;
       this._log(`  ✗ FC03 ${addrHex}: ${(err as Error).message}`);
-      this.emit('error', err as Error, `fc03:${addrHex}`);
       throw err;
     }
   }
@@ -488,16 +522,32 @@ export class ModbusTcpService extends EventEmitter {
 
   private async _runPollGroup(group: PollGroup): Promise<void> {
     if (!this._connected) return;
-    try {
-      for (const blk of group.blocks) {
+    let requiredFailed = false;
+    let optionalFailed = false;
+
+    for (const blk of group.blocks) {
+      try {
         await this.readHoldingRegisters(blk.start, blk.count);
         await this._batchDelay();
+      } catch (e) {
+        const blockError = new ModbusBlockError(
+          (e as Error).message,
+          classifyError(e as Error),
+          blk.start,
+          group.name,
+          blk.optional ?? false,
+        );
+        this.emit('error', blockError, `poll:${group.name}:block:0x${blk.start.toString(16)}`);
+
+        if (blk.optional) { optionalFailed = true; }
+        else               { requiredFailed = true; }
       }
-      this.stats.polls++;
-      this.stats.lastPollMs = Date.now();
-      this.emit('poll-complete', group.name);
-    } catch (e) {
-      this.emit('error', e as Error, `poll:${group.name}`);
     }
+
+    if (requiredFailed) return; // Geen poll-complete — ModbusBlockError is al geëmit
+
+    this.stats.polls++;
+    this.stats.lastPollMs = Date.now();
+    this.emit(optionalFailed ? 'poll-partial' : 'poll-complete', group.name);
   }
 }

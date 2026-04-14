@@ -1,14 +1,14 @@
 # Implementatieplan: ADR-043 — Unsupported Register Blok-isolatie en ADR-042 Aanvullingen
 
 **Datum:** 2026-04-13  
-**ADR:** [ADR-043](../../../org.hhi.adlar-heatpump-modbus/ADR/ADR-043-unsupported-register-blok-isolatie.md)  
+**ADR:** [ADR-043](ADR-043-unsupported-register-blok-isolatie.md)  
 **Repo:** `org.hhi.adlar-heatpump-modbus`
 
 ---
 
 ## Overzicht
 
-5 fases in vaste volgorde. Elke fase is zelfstandig compileerbaar en releasbaar. De dependencies lopen van laag naar hoog: Fase 1 legt het fundament (emit-architectuur + event-keten) waarop alle latere fases bouwen.
+5 fases met vaste dependency-richting. Elke fase is zelfstandig compileerbaar en releasbaar. De hoofdroute is Fase 1 → 2 → 3 → 5; Fase 4 is inhoudelijk onafhankelijk van Fase 1–3 en kan desgewenst apart eerder worden uitgerold. Fase 1 legt het fundament (emit-architectuur + event-keten) waarop de quality-logica en dashboard-integratie bouwen.
 
 | Fase | Bestanden | Aard |
 | --- | --- | --- |
@@ -28,6 +28,7 @@
 - Per-blok isolatie: required failure stopt de cyclus; optional failure laat volgende blokken door
 - `poll-partial` event voor gedeeltelijk succes
 - Non-fast poll-succes bereikt `ServiceCoordinator` via nieuwe `poll-group-succeeded` event-keten
+- `ServiceCoordinator` heeft in Fase 1 al een werkend resetpad voor non-fast succes, zodat de event-keten inhoudelijk compleet is
 
 ### 1a — `ModbusBlockError` en `classifyError()` — `lib/modbus/modbus-tcp-service.ts`
 
@@ -159,6 +160,8 @@ Voeg `optional: true` toe aan de risicovolle blokken (huidige regels ~1715, ~171
 
 Vervang de huidige `poll-complete`-listener en voeg `poll-partial`-listener toe:
 
+Naast het forwarden van non-fast succes blijft `poll-partial` expliciet zichtbaar als gedeeltelijk succes: log in deze listener een waarschuwing voordat `poll-group-succeeded` wordt geëmit, zodat ADR §2.3 niet verloren gaat.
+
 ```typescript
 // Vervang bestaande this.tcp.on('poll-complete', ...) handler:
 this.tcp.on('poll-complete', (groupName) => {
@@ -210,12 +213,25 @@ export interface ModbusConnectionOptions<TSnapshot> {
 
 ### 1i — `ServiceCoordinator.onPollGroupSucceeded()` — `lib/services/service-coordinator.ts`
 
+Voeg bij de bestaande tellerdeclaraties toe:
+
+```typescript
+private _consecutiveNonFastRequiredFailures = 0;
+```
+
 Voeg toe als private methode naast `_handleModbusData` en `_handleError`:
 
 ```typescript
 private _onPollGroupSucceeded(groupName: string): void {
-  // Wordt later uitgebreid in Fase 2. Placeholder zodat de keten compleet is.
-  this.logger(`ServiceCoordinator: Poll group succeeded: ${groupName}`);
+  if (groupName === 'fast') return; // FAST gebruikt data-event, niet deze methode
+
+  this._consecutiveNonFastRequiredFailures = 0;
+  this.logger(`ServiceCoordinator: Poll group succeeded: ${groupName} — non-fast teller gereset`);
+
+  if (this._connectionQuality === 'degraded'
+      && this._consecutiveFastPollFailures === 0) {
+    this._setConnectionQuality('online');
+  }
 }
 ```
 
@@ -230,6 +246,7 @@ onPollGroupSucceeded: this._onPollGroupSucceeded.bind(this),
 - `npm run build` geeft geen fouten
 - Poll-groepen bevatten `optional`-velden waar verwacht
 - Log toont `poll:medium:block:0x0072` i.p.v. dubbele foutmelding bij gesimuleerde blok-failure
+- Succesvolle non-fast `poll-group-succeeded` reset `_consecutiveNonFastRequiredFailures`
 
 ---
 
@@ -242,12 +259,11 @@ onPollGroupSucceeded: this._onPollGroupSucceeded.bind(this),
 - FAST-succes cleart non-fast degradatie niet meer
 - `_structurallyUnsupportedFast` waarschuwing voor FAST required `unsupported`
 
-### 2a — Nieuwe tellers en vlag — `lib/services/service-coordinator.ts`
+### 2a — Nieuwe vlag — `lib/services/service-coordinator.ts`
 
-Voeg toe bij de bestaande `_consecutiveFastPollFailures` declaratie:
+Voeg toe bij de bestaande tellerdeclaraties:
 
 ```typescript
-private _consecutiveNonFastRequiredFailures = 0;
 private _structurallyUnsupportedFast = false;
 ```
 
@@ -335,25 +351,7 @@ private _handleModbusData(snapshot: DataSnapshot): void {
 }
 ```
 
-### 2d — `_onPollGroupSucceeded()` invullen — `lib/services/service-coordinator.ts`
-
-Vervang de placeholder uit Fase 1i:
-
-```typescript
-private _onPollGroupSucceeded(groupName: string): void {
-  if (groupName === 'fast') return; // FAST gebruikt data-event, niet deze methode
-
-  this._consecutiveNonFastRequiredFailures = 0;
-  this.logger(`ServiceCoordinator: Poll group succeeded: ${groupName} — non-fast teller gereset`);
-
-  if (this._connectionQuality === 'degraded'
-      && this._consecutiveFastPollFailures === 0) {
-    this._setConnectionQuality('online');
-  }
-}
-```
-
-### 2e — `_setConnectionQuality` bewust maken van structurele vlag — `lib/services/service-coordinator.ts:521`
+### 2d — `_setConnectionQuality` bewust maken van structurele vlag — `lib/services/service-coordinator.ts:521`
 
 Vervang de `online`-tak:
 
@@ -370,7 +368,7 @@ if (quality === 'online') {
 }
 ```
 
-### 2f — Reset tellers bij disconnect/reconnect — `lib/services/service-coordinator.ts`
+### 2e — Reset tellers bij disconnect/reconnect — `lib/services/service-coordinator.ts`
 
 In de bestaande `_handleDisconnected()` (of equivalent reset-methode) toevoegen:
 
@@ -431,7 +429,21 @@ private _setConnectionQuality(quality: ConnectionQuality): void {
 
 ### 3c — Timer annuleren bij succesvolle FAST poll — `lib/services/service-coordinator.ts`
 
-Controleer: als quality `online` wordt via `_handleModbusData`, cleart 3b de timer al via `_setConnectionQuality('online')`. Geen extra aanpassing nodig.
+Voeg expliciet toe aan `_handleModbusData()`: een succesvolle FAST snapshot annuleert de timer ook als quality nog `degraded` blijft door non-fast failures.
+
+```typescript
+private _handleModbusData(snapshot: DataSnapshot): void {
+  this._lastSuccessfulFastPollAt = Date.now();
+  this._consecutiveFastPollFailures = 0;
+
+  if (this._degradedSinceTimer) {
+    this.device.homey.clearTimeout(this._degradedSinceTimer);
+    this._degradedSinceTimer = null;
+  }
+
+  // ... bestaande reset-logica uit Fase 2c ...
+}
+```
 
 ### Verificatie na Fase 3
 
@@ -516,7 +528,7 @@ Voeg toe aan het `diagnostics`-veld van `DataSnapshot`:
 ```typescript
 diagnostics: {
   // ... bestaande velden ...
-  skippedOptionalBlocks: number[];  // blockStart-adressen van gefaalde optional blokken
+  skippedBlocks: number[];  // blockStart-adressen van gefaalde optional blokken
 }
 ```
 
@@ -524,7 +536,7 @@ Vul bij in `buildSnapshot()`: registreer welke optional-blok-adressen een `Modbu
 
 ### 5b — Dashboard tabel — `public/dashboard.html` of `lib/services/dashboard-service.ts`
 
-Toon de `skippedOptionalBlocks` als aparte rij/badge in de register-tabel zodat zichtbaar is welke blokken niet worden gelezen.
+Toon de `skippedBlocks` als aparte rij/badge in de register-tabel zodat zichtbaar is welke blokken niet worden gelezen.
 
 ### Verificatie na Fase 5
 

@@ -345,13 +345,21 @@ export class Adlar2ModbusService extends EventEmitter {
     });
 
     this.tcp.on('poll-complete', (groupName) => {
-      if (groupName !== ADLAR2_POLL_FAST.name) {
-        return;
+      if (groupName === ADLAR2_POLL_FAST.name) {
+        const snapshot = this.buildSnapshot();
+        this.emit('data', snapshot);
+        this.checkFaults(snapshot.status.activeFaults);
+      } else {
+        this.emit('poll-group-succeeded', groupName);
       }
+    });
 
-      const snapshot = this.buildSnapshot();
-      this.emit('data', snapshot);
-      this.checkFaults(snapshot.status.activeFaults);
+    this.tcp.on('poll-partial', (groupName) => {
+      // FAST heeft geen optional blokken — poll-partial kan hier nooit geëmit worden.
+      // Non-fast: required blokken OK, optional gefaald → telt als succes voor quality.
+      if (groupName !== ADLAR2_POLL_FAST.name) {
+        this.emit('poll-group-succeeded', groupName);
+      }
     });
   }
 
@@ -578,7 +586,10 @@ export class Adlar2ModbusService extends EventEmitter {
 
   private buildControl(): ControlSnapshot {
     const mode = this.tcp.u16(CONTROL_REGISTERS.mode.address);
-    const protocolVersion = this.tcp.u16(VERSION_REGISTERS.protocolVersion.address);
+    // ADR-043 Fase 4a: terugvallen op null totdat ONCE-blok gelezen is
+    const protocolVersion = this.tcp.has(VERSION_REGISTERS.protocolVersion.address)
+      ? this.tcp.u16(VERSION_REGISTERS.protocolVersion.address)
+      : null;
 
     return {
       on: this.tcp.u16(CONTROL_REGISTERS.mainSwitch.address) === 1,
@@ -591,8 +602,8 @@ export class Adlar2ModbusService extends EventEmitter {
       floorSetpointC: this.readScaledValue(CONTROL_REGISTERS.tempSetFloorHeating),
       heatingCurve: this.tcp.u16(CONTROL_REGISTERS.heatingCurve.address),
       hotWaterCurve: this.tcp.u16(CONTROL_REGISTERS.hotWaterCurve.address),
-      protocolVersion,
-      coilsAvailable: protocolSupportsCoils(protocolVersion),
+      protocolVersion: protocolVersion ?? 0,
+      coilsAvailable: protocolVersion !== null && protocolSupportsCoils(protocolVersion),
     };
   }
 
@@ -756,11 +767,16 @@ export class Adlar2ModbusService extends EventEmitter {
     def: { address: number; name: string },
     state: boolean,
   ): Promise<void> {
-    const protocolVersion = this.tcp.u16(VERSION_REGISTERS.protocolVersion.address);
-
-    if (protocolVersion > 0 && !protocolSupportsCoils(protocolVersion)) {
+    // ADR-043 Fase 4b: expliciet weigeren als ONCE-blok nog niet gelezen is
+    if (!this.tcp.has(VERSION_REGISTERS.protocolVersion.address)) {
       throw new Error(
-        `FC05 coil vereist protocol >= 130, huidig: ${protocolVersion}. Gebruik setUserMode() als fallback.`,
+        'Coil write geweigerd: protocol version nog niet gelezen (ONCE-blok ontbreekt).',
+      );
+    }
+    const protocolVersion = this.tcp.u16(VERSION_REGISTERS.protocolVersion.address);
+    if (!protocolSupportsCoils(protocolVersion)) {
+      throw new Error(
+        `FC05 coil vereist protocol >= 130, huidig: ${protocolVersion}.`,
       );
     }
 
