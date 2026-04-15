@@ -433,6 +433,35 @@ export class ModbusTcpService extends EventEmitter {
   }
 
   /**
+   * FC01 — Read Single Coil.
+   * Retourneert 1 als de coil actief is, 0 anders.
+   */
+  async readSingleCoil(coilAddr: number): Promise<number> {
+    if (!this._connected) throw new Error('Niet verbonden');
+    const addrHex = `0x${coilAddr.toString(16).padStart(4, '0')}`;
+    this._log(`FC01 COIL  ${addrHex} lezen`);
+
+    try {
+      const resp = await this.client.readCoils(coilAddr, 1);
+      const { values } = resp.response.body;
+      let result: number;
+      if (Array.isArray(values)) {
+        result = values[0] ? 1 : 0;
+      } else if (Buffer.isBuffer(values)) {
+        result = (values[0] & 0x01) ? 1 : 0;
+      } else {
+        throw new Error(`Onverwacht coil response type: ${typeof values}`);
+      }
+      this._log(`  → ${result}`);
+      return result;
+    } catch (err) {
+      this.stats.errors++;
+      this._log(`  ✗ FC01 ${addrHex}: ${(err as Error).message}`);
+      throw err;
+    }
+  }
+
+  /**
    * FC05 — Write Single Coil.
    */
   async writeSingleCoil(coilAddr: number, state: boolean): Promise<void> {

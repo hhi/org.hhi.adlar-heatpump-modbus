@@ -700,6 +700,21 @@ export class ServiceCoordinator {
     return this.modbusConnection.isDeviceConnected();
   }
 
+  /** FC03 — lees één holding register; retourneert de ruwe unsigned waarde. */
+  async readRegister(addr: number): Promise<number> {
+    return this.modbusConnection.readRegister(addr);
+  }
+
+  /** FC01 — lees één coil; retourneert 1 (aan) of 0 (uit). */
+  async readCoil(addr: number): Promise<number> {
+    return this.modbusConnection.readCoil(addr);
+  }
+
+  /** FC06 of FC05 — schrijf één register of coil met de ruwe waarde. */
+  async writeRaw(addr: number, rawValue: number, isCoil: boolean): Promise<void> {
+    return this.modbusConnection.writeRaw(addr, rawValue, isCoil);
+  }
+
   getServiceHealth(): Record<string, boolean> {
     return Object.fromEntries(this.serviceHealth);
   }

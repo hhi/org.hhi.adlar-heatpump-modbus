@@ -432,6 +432,11 @@ export class Adlar2ModbusService extends EventEmitter {
     await this.tcp.writeSingleCoil(addr, state);
   }
 
+  /** FC01 — lees één coil; retourneert 1 (aan) of 0 (uit). */
+  async readCoil(addr: number): Promise<number> {
+    return this.tcp.readSingleCoil(addr);
+  }
+
   async setMainSwitch(on: boolean): Promise<void> {
     await this.tcp.writeSingleRegister(CONTROL_REGISTERS.mainSwitch.address, on ? 1 : 0);
   }

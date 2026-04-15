@@ -110,6 +110,8 @@ class AdlarModbusDevice extends Homey.Device {
       pollSlowMs: (settings.poll_slow_s ?? 300) * 1000,
     });
 
+    this._registerDashboardCallbacks();
+
     // Populate read-only info settings with runtime values
     try {
       const uptimeSec = os.uptime();
@@ -236,6 +238,34 @@ class AdlarModbusDevice extends Homey.Device {
       pollFastMs: (settings.poll_fast_s ?? 10) * 1000,
       pollMediumMs: (settings.poll_medium_s ?? 30) * 1000,
       pollSlowMs: (settings.poll_slow_s ?? 300) * 1000,
+    });
+
+    this._registerDashboardCallbacks();
+  }
+
+  /** Bindt lees/schrijf-callbacks op het dashboard zodat HTTP-requests naar Modbus worden doorgestuurd. */
+  private _registerDashboardCallbacks(): void {
+    type DashboardApp = {
+      dashboard: {
+        setWriteRegisterCallback(fn: (addr: number, rawValue: number) => Promise<void>): void;
+        setReadRegisterCallback(fn: (addr: number, isCoil: boolean) => Promise<number>): void;
+        setWriteExpertCallback(fn: (addr: number, rawValue: number, isCoil: boolean) => Promise<void>): void;
+      } | null;
+    };
+    const app = this.homey.app as unknown as DashboardApp;
+    if (!app.dashboard || !this.coordinator) return;
+
+    app.dashboard.setWriteRegisterCallback(async (addr, rawValue) => {
+      await this.coordinator!.writeRaw(addr, rawValue, false);
+    });
+
+    app.dashboard.setReadRegisterCallback(async (addr, isCoil) => {
+      if (isCoil) return this.coordinator!.readCoil(addr);
+      return this.coordinator!.readRegister(addr);
+    });
+
+    app.dashboard.setWriteExpertCallback(async (addr, rawValue, isCoil) => {
+      await this.coordinator!.writeRaw(addr, rawValue, isCoil);
     });
   }
 

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adlar — Expert Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; padding: 1.5rem; }
+  h1 { font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem; }
+  .subtitle { font-size: 0.85rem; color: #94a3b8; margin-bottom: 1.5rem; }
+  a.nav { display: inline-block; margin-bottom: 1.5rem; font-size: 0.82rem; color: #3b82f6; text-decoration: none; }
+  a.nav:hover { text-decoration: underline; }
+  .status-bar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #94a3b8; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0; }
+  .dot.ok { background: #22c55e; }
+
+  /* Accordion */
+  .block { border: 1px solid #2d3548; border-radius: 10px; margin-bottom: 0.75rem; overflow: hidden; }
+  .block-header { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; background: #1a1f2e; cursor: pointer; user-select: none; }
+  .block-header:hover { background: #1e2433; }
+  .block-title { font-size: 0.9rem; font-weight: 600; color: #cbd5e1; flex: 1; }
+  .block-badge { font-size: 0.7rem; padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 600; }
+  .badge-ro { background: #1e3a5f; color: #60a5fa; }
+  .badge-rw { background: #14532d; color: #4ade80; }
+  .chevron { font-size: 0.75rem; color: #64748b; transition: transform 0.2s; }
+  .block.open .chevron { transform: rotate(90deg); }
+  .block-body { display: none; }
+  .block.open .block-body { display: block; }
+
+  /* Register tabel */
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  th { background: #161b27; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.04em; padding: 0.5rem 0.75rem; text-align: left; border-bottom: 1px solid #2d3548; }
+  td { padding: 0.45rem 0.75rem; border-bottom: 1px solid #1a1f2e; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #1a1f2e; }
+  .addr { font-family: monospace; color: #818cf8; }
+  .val-raw { font-family: monospace; color: #f1f5f9; }
+  .val-scaled { color: #94a3b8; font-size: 0.78rem; }
+  .unit { color: #475569; font-size: 0.75rem; }
+  .svc-badge { display: inline-block; font-size: 0.65rem; background: #7c2d12; color: #fca5a5; border-radius: 3px; padding: 0.1rem 0.3rem; margin-left: 0.3rem; }
+  .name-cell { max-width: 220px; }
+  .desc-text { font-size: 0.72rem; color: #475569; margin-top: 0.2rem; }
+  .bits-toggle { font-size: 0.7rem; color: #3b82f6; cursor: pointer; text-decoration: underline; margin-left: 0.4rem; }
+  .bits-row td { background: #0f1117; padding: 0.3rem 0.75rem 0.3rem 2rem; }
+  .bits-row { display: none; }
+  .bits-table { font-size: 0.75rem; border-collapse: collapse; }
+  .bits-table td { padding: 0.15rem 0.5rem; border: none; }
+  .bit-on { color: #22c55e; }
+  .bit-off { color: #4b5563; }
+
+  /* Acties */
+  .btn-read { padding: 0.25rem 0.6rem; border-radius: 5px; border: 1px solid #334155; background: transparent; color: #94a3b8; font-size: 0.75rem; cursor: pointer; }
+  .btn-read:hover { background: #1e2433; color: #f1f5f9; }
+  .btn-write { padding: 0.25rem 0.6rem; border-radius: 5px; border: none; background: #1d4ed8; color: #fff; font-size: 0.75rem; cursor: pointer; }
+  .btn-write:hover { background: #2563eb; }
+  .actions-cell { white-space: nowrap; }
+  .reading { color: #64748b; font-size: 0.75rem; font-style: italic; }
+
+  /* Dialog / popup */
+  dialog { background: #1e2433; border: 1px solid #2d3548; border-radius: 12px; color: #e2e8f0; padding: 1.5rem; max-width: 420px; width: 100%; }
+  dialog::backdrop { background: rgba(0,0,0,0.6); }
+  dialog h2 { font-size: 1rem; font-weight: 700; margin-bottom: 0.25rem; }
+  dialog .dlg-addr { font-size: 0.78rem; color: #64748b; margin-bottom: 1rem; font-family: monospace; }
+  dialog .dlg-current { font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem; }
+  dialog .dlg-warning { background: #7c2d12; color: #fca5a5; border-radius: 6px; padding: 0.6rem 0.75rem; font-size: 0.8rem; margin-bottom: 1rem; }
+  dialog label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.4rem; }
+  dialog input[type=number], dialog select { width: 100%; background: #0f1117; border: 1px solid #374151; border-radius: 6px; color: #f1f5f9; padding: 0.5rem 0.75rem; font-size: 0.9rem; margin-bottom: 0.5rem; }
+  dialog input:focus, dialog select:focus { outline: none; border-color: #3b82f6; }
+  .dlg-raw-preview { font-size: 0.78rem; color: #64748b; margin-bottom: 0.75rem; }
+  .dlg-range { font-size: 0.75rem; color: #475569; margin-bottom: 1rem; }
+  .dlg-buttons { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.25rem; }
+  .btn-cancel { padding: 0.5rem 1rem; border-radius: 6px; border: 1px solid #374151; background: transparent; color: #94a3b8; font-size: 0.85rem; cursor: pointer; }
+  .btn-cancel:hover { background: #1a1f2e; }
+  .btn-ok { padding: 0.5rem 1rem; border-radius: 6px; border: none; background: #3b82f6; color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+  .btn-ok:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-ok:hover:not(:disabled) { background: #2563eb; }
+  .dlg-feedback { font-size: 0.8rem; margin-top: 0.5rem; height: 1em; }
+  .dlg-feedback.ok { color: #22c55e; }
+  .dlg-feedback.err { color: #ef4444; }
+
+  .flash-green td { animation: flashGreen 1.2s ease; }
+  @keyframes flashGreen { 0%,100% { background: transparent; } 30% { background: rgba(34,197,94,0.15); } }
+
+  /* Tooltip */
+  [data-tip] { position: relative; }
+  [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f1117;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+    font-size: 0.72rem;
+    white-space: nowrap;
+    padding: 0.3rem 0.55rem;
+    border-radius: 5px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 100;
+  }
+  [data-tip]:hover::after { opacity: 1; }
+</style>
+</head>
+<body>
+
+<a href="/" class="nav">← Read-only dashboard</a>
+&nbsp;&nbsp;<a href="/interactive" class="nav">Interactief dashboard</a>
+<h1>Expert Dashboard</h1>
+<p class="subtitle">Adlar Castra / Aurora II &mdash; volledig registeroverzicht</p>
+
+<div class="status-bar">
+  <span class="dot" id="dot"></span>
+  <span id="status-text">Laden&hellip;</span>
+</div>
+
+<div id="blocks-container"></div>
+
+<!-- Write popup -->
+<dialog id="write-dialog">
+  <h2 id="dlg-title">Schrijf naar register</h2>
+  <div class="dlg-addr" id="dlg-addr"></div>
+  <div class="dlg-current" id="dlg-current"></div>
+  <div class="dlg-warning" id="dlg-warning" style="display:none"></div>
+  <label id="dlg-input-label">Nieuwe waarde</label>
+  <input type="number" id="dlg-input" step="any">
+  <select id="dlg-select" style="display:none"></select>
+  <div class="dlg-raw-preview" id="dlg-raw-preview"></div>
+  <div class="dlg-range" id="dlg-range"></div>
+  <div class="dlg-buttons">
+    <button class="btn-cancel" onclick="closeDialog()">Annuleren</button>
+    <button class="btn-ok" id="dlg-ok" onclick="confirmWrite()">OK Schrijven</button>
+  </div>
+  <div class="dlg-feedback" id="dlg-feedback"></div>
+</dialog>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────────
+let blocks = [];
+let pendingWrite = null; // { reg, rowEl }
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const r = await fetch('/api/registers');
+    if (!r.ok) throw new Error(r.statusText);
+    blocks = await r.json();
+    renderBlocks();
+    document.getElementById('dot').className = 'dot ok';
+    document.getElementById('status-text').textContent = 'Registermetadata geladen';
+  } catch (e) {
+    document.getElementById('status-text').textContent = 'Fout bij laden registerdata: ' + e.message;
+  }
+}
+
+// ── Rendering ─────────────────────────────────────────────────────────────────
+function renderBlocks() {
+  const container = document.getElementById('blocks-container');
+  container.innerHTML = '';
+  for (const block of blocks) {
+    const el = document.createElement('div');
+    el.className = 'block';
+    el.id = 'block-' + block.id;
+    el.innerHTML = `
+      <div class="block-header" onclick="toggleBlock('${block.id}')">
+        <span class="chevron">&#9654;</span>
+        <span class="block-title">${esc(block.label)}</span>
+        <span class="block-badge ${block.readOnly ? 'badge-ro' : 'badge-rw'}" data-tip="${block.readOnly ? 'Alleen lezen' : 'Lezen en schrijven'}">${block.readOnly ? 'R' : 'R/W'}</span>
+        <button class="btn-read" data-tip="Lees alle registers in dit blok live via Modbus" style="font-size:0.7rem;" onclick="event.stopPropagation();readBlock('${block.id}')">&#8635; Ververs blok</button>
+      </div>
+      <div class="block-body">
+        <table>
+          <thead><tr>
+            <th>Adres</th><th>Naam</th><th>Registerwaarde</th><th>Geschaald</th><th>Eenheid</th><th>Bereik</th><th></th>
+          </tr></thead>
+          <tbody id="tbody-${block.id}">
+            ${block.registers.map(reg => renderRow(block, reg)).join('')}
+          </tbody>
+        </table>
+      </div>`;
+    container.appendChild(el);
+  }
+}
+
+function renderRow(block, reg) {
+  const addrHex = '0x' + reg.address.toString(16).toUpperCase().padStart(4, '0');
+  const range = rangeStr(reg);
+  const nameHtml = `${esc(reg.name || reg.key)}${reg.serviceOnly ? '<span class="svc-badge">service</span>' : ''}${reg.desc ? `<div class="desc-text">${esc(reg.desc)}</div>` : ''}`;
+  const hasBits = reg.bits && Object.keys(reg.bits).length > 0;
+  const bitsBtn = hasBits ? `<span class="bits-toggle" data-tip="Toon/verberg afzonderlijke bits" onclick="toggleBits('${reg.address}')">bits</span>` : '';
+  const canWrite = !block.readOnly && !reg.readOnly;
+  const fc = reg.isCoil ? 'FC01' : 'FC03';
+  const readTip = `Lees register live (${fc}) — adres ${addrHex}`;
+  const writeTip = reg.serviceOnly
+    ? `Schrijf naar ${reg.name || reg.key} ⚠ service-only register`
+    : `Schrijf naar ${reg.name || reg.key}`;
+  const writeBtn = canWrite
+    ? `<button class="btn-write" data-tip="${esc(writeTip)}" onclick="openWriteDialog(${reg.address})">&#9998;</button>`
+    : '';
+
+  return `
+    <tr id="row-${reg.address}" data-addr="${reg.address}" data-multiply="${reg.multiply||1}" data-iscoil="${!!reg.isCoil}">
+      <td class="addr">${addrHex}${bitsBtn}</td>
+      <td class="name-cell">${nameHtml}</td>
+      <td class="val-raw" id="raw-${reg.address}">—</td>
+      <td class="val-scaled" id="scaled-${reg.address}">—</td>
+      <td class="unit">${esc(reg.unit||'')}</td>
+      <td class="unit">${range}</td>
+      <td class="actions-cell">
+        <button class="btn-read" data-tip="${esc(readTip)}" onclick="readRow(${reg.address},${!!reg.isCoil},${reg.multiply||1})">&#8635;</button>
+        ${writeBtn}
+      </td>
+    </tr>
+    ${hasBits ? `<tr class="bits-row" id="bits-${reg.address}"><td colspan="7">${renderBitsTable(reg)}</td></tr>` : ''}`;
+}
+
+function renderBitsTable(reg) {
+  if (!reg.bits) return '';
+  const rows = Object.entries(reg.bits).map(([name, mask]) =>
+    `<tr><td class="bit-off" id="bit-${reg.address}-${mask}">○</td><td>${esc(name)}</td><td style="color:#475569;font-family:monospace;">bit ${Math.log2(mask)|0}</td></tr>`
+  ).join('');
+  return `<table class="bits-table">${rows}</table>`;
+}
+
+function rangeStr(reg) {
+  if (reg.isCoil) return 'bool';
+  if (reg.min != null && reg.max != null) {
+    const mul = reg.multiply || 1;
+    return `${(reg.min*mul).toFixed(mul<1?1:0)}–${(reg.max*mul).toFixed(mul<1?1:0)}`;
+  }
+  return '—';
+}
+
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Toggle accordion ──────────────────────────────────────────────────────────
+function toggleBlock(id) {
+  const el = document.getElementById('block-' + id);
+  const wasOpen = el.classList.contains('open');
+  el.classList.toggle('open');
+  if (!wasOpen) readBlock(id); // automatisch ververs bij openen
+}
+
+function toggleBits(addr) {
+  const row = document.getElementById('bits-' + addr);
+  if (row) row.style.display = row.style.display === 'table-row' ? 'none' : 'table-row';
+}
+
+// ── Live lezen ────────────────────────────────────────────────────────────────
+async function readRow(addr, isCoil, multiply) {
+  const rawEl = document.getElementById('raw-' + addr);
+  const scEl  = document.getElementById('scaled-' + addr);
+  rawEl.innerHTML = '<span class="reading">…</span>';
+  try {
+    const r = await fetch('/api/expert/read', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address: addr, isCoil, multiply }),
+    });
+    const j = await r.json();
+    if (j.ok) {
+      rawEl.textContent = isCoil ? (j.rawValue ? '1 (aan)' : '0 (uit)') : String(j.rawValue);
+      scEl.textContent  = isCoil ? '' : String(j.scaledValue);
+      updateBits(addr, j.rawValue);
+      flashRow(addr);
+    } else {
+      rawEl.textContent = '⚠ ' + (j.error || 'fout');
+      scEl.textContent = '';
+    }
+  } catch (e) {
+    rawEl.textContent = '⚠ ' + e.message;
+    scEl.textContent = '';
+  }
+}
+
+async function readBlock(blockId) {
+  const block = blocks.find(b => b.id === blockId);
+  if (!block) return;
+  // Lees registers met korte pauze om Modbus niet te overbelasten
+  for (const reg of block.registers) {
+    await readRow(reg.address, !!reg.isCoil, reg.multiply || 1);
+    await sleep(120);
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function updateBits(addr, rawValue) {
+  const bitsRow = document.getElementById('bits-' + addr);
+  if (!bitsRow) return;
+  const block = blocks.find(b => b.registers.some(r => r.address === addr));
+  if (!block) return;
+  const reg = block.registers.find(r => r.address === addr);
+  if (!reg || !reg.bits) return;
+  for (const [, mask] of Object.entries(reg.bits)) {
+    const el = document.getElementById('bit-' + addr + '-' + mask);
+    if (!el) continue;
+    const on = (rawValue & Number(mask)) !== 0;
+    el.textContent = on ? '●' : '○';
+    el.className = on ? 'bit-on' : 'bit-off';
+  }
+}
+
+function flashRow(addr) {
+  const row = document.getElementById('row-' + addr);
+  if (!row) return;
+  row.classList.remove('flash-green');
+  void row.offsetWidth; // reflow
+  row.classList.add('flash-green');
+}
+
+// ── Write dialog ──────────────────────────────────────────────────────────────
+function openWriteDialog(addr) {
+  const block = blocks.find(b => b.registers.some(r => r.address === addr));
+  if (!block) return;
+  const reg = block.registers.find(r => r.address === addr);
+  if (!reg) return;
+
+  pendingWrite = { reg, addr };
+
+  const addrHex = '0x' + addr.toString(16).toUpperCase().padStart(4, '0');
+  document.getElementById('dlg-title').textContent = 'Schrijf naar ' + (reg.name || reg.key);
+  document.getElementById('dlg-addr').textContent = addrHex + (reg.isCoil ? '  ·  Type: Coil (FC05)' : '  ·  FC06');
+  document.getElementById('dlg-feedback').textContent = '';
+  document.getElementById('dlg-feedback').className = 'dlg-feedback';
+
+  // Haal huidige waarde op
+  const rawEl = document.getElementById('raw-' + addr);
+  const curRaw = rawEl ? rawEl.textContent : '—';
+  document.getElementById('dlg-current').textContent = 'Huidige waarde: ' + curRaw;
+
+  // Waarschuwing serviceOnly
+  const warn = document.getElementById('dlg-warning');
+  if (reg.serviceOnly) {
+    warn.textContent = '⚠ Service-only register. Ongeldige waarden kunnen de warmtepomp beschadigen. Alleen voor servicemonteurs.';
+    warn.style.display = 'block';
+  } else {
+    warn.style.display = 'none';
+  }
+
+  // Input of select
+  const inputEl  = document.getElementById('dlg-input');
+  const selectEl = document.getElementById('dlg-select');
+
+  if (reg.isCoil) {
+    inputEl.style.display = 'none';
+    selectEl.style.display = 'block';
+    selectEl.innerHTML = '<option value="1">Aan (1)</option><option value="0">Uit (0)</option>';
+    document.getElementById('dlg-input-label').textContent = 'Nieuwe toestand';
+    document.getElementById('dlg-raw-preview').textContent = '';
+    document.getElementById('dlg-range').textContent = 'Type: boolean coil';
+  } else {
+    inputEl.style.display = 'block';
+    selectEl.style.display = 'none';
+    const mul = reg.multiply || 1;
+    document.getElementById('dlg-input-label').textContent = 'Nieuwe waarde' + (reg.unit ? ' (' + reg.unit + ')' : '');
+    inputEl.value = '';
+    inputEl.step = mul < 1 ? String(mul) : '1';
+    if (reg.min != null) inputEl.min = String(reg.min * mul);
+    if (reg.max != null) inputEl.max = String(reg.max * mul);
+    document.getElementById('dlg-range').textContent = rangeStr(reg) + (reg.unit ? ' ' + reg.unit : '');
+    inputEl.oninput = () => updateRawPreview(reg);
+    updateRawPreview(reg);
+  }
+
+  validateDlgOk();
+  inputEl.oninput = () => { updateRawPreview(reg); validateDlgOk(); };
+  document.getElementById('write-dialog').showModal();
+}
+
+function updateRawPreview(reg) {
+  const inputEl = document.getElementById('dlg-input');
+  const previewEl = document.getElementById('dlg-raw-preview');
+  const v = parseFloat(inputEl.value);
+  if (isNaN(v)) { previewEl.textContent = ''; return; }
+  const mul = reg.multiply || 1;
+  const raw = Math.round(v / mul);
+  previewEl.textContent = '→ Registerwaarde: ' + raw;
+}
+
+function validateDlgOk() {
+  const reg = pendingWrite ? pendingWrite.reg : null;
+  const btn = document.getElementById('dlg-ok');
+  if (!reg) { btn.disabled = true; return; }
+  if (reg.isCoil) { btn.disabled = false; return; }
+  const v = parseFloat(document.getElementById('dlg-input').value);
+  if (isNaN(v)) { btn.disabled = true; return; }
+  const mul = reg.multiply || 1;
+  const ok = (reg.min == null || v >= reg.min * mul) && (reg.max == null || v <= reg.max * mul);
+  btn.disabled = !ok;
+}
+
+function closeDialog() {
+  document.getElementById('write-dialog').close();
+  pendingWrite = null;
+}
+
+async function confirmWrite() {
+  if (!pendingWrite) return;
+  const { reg, addr } = pendingWrite;
+  const fb = document.getElementById('dlg-feedback');
+  fb.textContent = 'Bezig…'; fb.className = 'dlg-feedback';
+
+  let rawValue;
+  if (reg.isCoil) {
+    rawValue = parseInt(document.getElementById('dlg-select').value, 10);
+  } else {
+    const v = parseFloat(document.getElementById('dlg-input').value);
+    rawValue = Math.round(v / (reg.multiply || 1));
+  }
+
+  try {
+    const r = await fetch('/api/expert/write', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address: addr, rawValue, isCoil: !!reg.isCoil }),
+    });
+    const j = await r.json();
+    if (j.ok) {
+      fb.textContent = 'Opgeslagen'; fb.className = 'dlg-feedback ok';
+      setTimeout(async () => {
+        closeDialog();
+        await sleep(1500);
+        readRow(addr, !!reg.isCoil, reg.multiply || 1);
+      }, 800);
+    } else {
+      fb.textContent = j.error || 'Fout'; fb.className = 'dlg-feedback err';
+    }
+  } catch (e) {
+    fb.textContent = e.message; fb.className = 'dlg-feedback err';
+  }
+}
+
+// Sluit dialog bij klik buiten
+document.getElementById('write-dialog').addEventListener('click', (e) => {
+  const rect = e.target.getBoundingClientRect();
+  if (rect.width === 0 && rect.height === 0) closeDialog();
+});
+
+init();
+</script>
+</body>
+</html>
