@@ -197,6 +197,27 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
     this.service?.setExternalFlow(lpm);
   }
 
+  /** FC03 — lees één holding register; retourneert de ruwe unsigned waarde. */
+  async readRegister(addr: number): Promise<number> {
+    if (!this.service) throw new Error('Niet verbonden');
+    return (this.service as unknown as { readRegister(a: number): Promise<number> }).readRegister(addr);
+  }
+
+  /** FC01 — lees één coil; retourneert 1 (aan) of 0 (uit). */
+  async readCoil(addr: number): Promise<number> {
+    if (!this.service) throw new Error('Niet verbonden');
+    return (this.service as unknown as { readCoil(a: number): Promise<number> }).readCoil(addr);
+  }
+
+  /** FC06 of FC05 — schrijf één register of coil met de ruwe waarde. */
+  async writeRaw(addr: number, rawValue: number, isCoil: boolean): Promise<void> {
+    if (!this.service) throw new Error('Niet verbonden');
+    if (isCoil) {
+      return (this.service as unknown as { writeCoil(a: number, s: boolean): Promise<void> }).writeCoil(addr, rawValue === 1);
+    }
+    return (this.service as unknown as { writeRegister(a: number, v: number): Promise<void> }).writeRegister(addr, rawValue);
+  }
+
   /**
    * Destroy the service and clean up all resources.
    */

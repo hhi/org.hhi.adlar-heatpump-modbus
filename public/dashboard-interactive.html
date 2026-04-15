@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adlar — Interactief Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; padding: 1.5rem; }
+  h1 { font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem; }
+  .subtitle { font-size: 0.85rem; color: #94a3b8; margin-bottom: 1.5rem; }
+  .status-bar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #94a3b8; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0; }
+  .dot.ok { background: #22c55e; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .card { background: #1e2433; border: 1px solid #2d3548; border-radius: 10px; padding: 1.25rem; }
+  .card-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 0.5rem; }
+  .card-value { font-size: 1.6rem; font-weight: 700; color: #f1f5f9; }
+  .card-unit { font-size: 0.85rem; color: #94a3b8; margin-left: 0.25rem; }
+  .section-title { font-size: 1rem; font-weight: 600; color: #cbd5e1; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #2d3548; }
+  .write-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+  .write-card { background: #1e2433; border: 1px solid #2d3548; border-radius: 10px; padding: 1.25rem; }
+  .write-card label { display: block; font-size: 0.8rem; font-weight: 600; color: #94a3b8; margin-bottom: 0.5rem; }
+  .write-row { display: flex; gap: 0.5rem; align-items: center; }
+  .write-row input { flex: 1; background: #0f1117; border: 1px solid #374151; border-radius: 6px; color: #f1f5f9; padding: 0.5rem 0.75rem; font-size: 0.9rem; }
+  .write-row input:focus { outline: none; border-color: #3b82f6; }
+  .write-row .unit { font-size: 0.8rem; color: #64748b; white-space: nowrap; }
+  .btn { padding: 0.5rem 1rem; border-radius: 6px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary { background: #3b82f6; color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: #2563eb; }
+  .feedback { font-size: 0.78rem; margin-top: 0.4rem; height: 1em; transition: color 0.2s; }
+  .feedback.ok { color: #22c55e; }
+  .feedback.err { color: #ef4444; }
+  .range-hint { font-size: 0.72rem; color: #475569; margin-top: 0.25rem; }
+  a.nav { display: inline-block; margin-bottom: 1.5rem; font-size: 0.82rem; color: #3b82f6; text-decoration: none; }
+  a.nav:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<a href="/" class="nav">← Terug naar read-only dashboard</a>
+<h1>Interactief Dashboard</h1>
+<p class="subtitle">Adlar Castra / Aurora II &mdash; lees &amp; schrijf gebruikerssetpoints</p>
+
+<div class="status-bar">
+  <span class="dot" id="dot"></span>
+  <span id="status-text">Ophalen&hellip;</span>
+  <span style="margin-left:auto;font-size:0.75rem;" id="last-update"></span>
+</div>
+
+<!-- Live lees-sectie -->
+<p class="section-title">Live sensorwaarden</p>
+<div class="grid" id="read-grid">
+  <div class="card"><div class="card-label">Aanvoer (T7)</div><div class="card-value" id="v-flow">&mdash;<span class="card-unit">°C</span></div></div>
+  <div class="card"><div class="card-label">Retour (T6)</div><div class="card-value" id="v-return">&mdash;<span class="card-unit">°C</span></div></div>
+  <div class="card"><div class="card-label">Buiten (T1)</div><div class="card-value" id="v-outdoor">&mdash;<span class="card-unit">°C</span></div></div>
+  <div class="card"><div class="card-label">Tapwater actueel (T4)</div><div class="card-value" id="v-dhw">&mdash;<span class="card-unit">°C</span></div></div>
+  <div class="card"><div class="card-label">Compressor frequentie</div><div class="card-value" id="v-comp">&mdash;<span class="card-unit">Hz</span></div></div>
+  <div class="card"><div class="card-label">Verwarming setpoint</div><div class="card-value" id="v-heat-sp">&mdash;<span class="card-unit">°C</span></div></div>
+  <div class="card"><div class="card-label">Tapwater setpoint</div><div class="card-value" id="v-dhw-sp">&mdash;<span class="card-unit">°C</span></div></div>
+  <div class="card"><div class="card-label">Status hoofdschakelaar</div><div class="card-value" id="v-switch">&mdash;</div></div>
+</div>
+
+<!-- Schrijf-sectie -->
+<p class="section-title" style="margin-top:1rem;">Setpoints aanpassen</p>
+<div class="write-grid">
+
+  <div class="write-card">
+    <label>Verwarming setpoint</label>
+    <div class="write-row">
+      <input type="number" id="i-heat" min="15" max="60" step="0.5" placeholder="15–60">
+      <span class="unit">°C</span>
+      <button class="btn btn-primary" onclick="doWrite('tempSetHeating','i-heat','fb-heat')">Stel in</button>
+    </div>
+    <div class="range-hint">Bereik: 15–60 °C</div>
+    <div class="feedback" id="fb-heat"></div>
+  </div>
+
+  <div class="write-card">
+    <label>Tapwater setpoint</label>
+    <div class="write-row">
+      <input type="number" id="i-dhw" min="20" max="75" step="0.5" placeholder="20–75">
+      <span class="unit">°C</span>
+      <button class="btn btn-primary" onclick="doWrite('tempSetHotWater','i-dhw','fb-dhw')">Stel in</button>
+    </div>
+    <div class="range-hint">Bereik: 20–75 °C</div>
+    <div class="feedback" id="fb-dhw"></div>
+  </div>
+
+  <div class="write-card">
+    <label>Koeling setpoint</label>
+    <div class="write-row">
+      <input type="number" id="i-cool" min="7" max="25" step="0.5" placeholder="7–25">
+      <span class="unit">°C</span>
+      <button class="btn btn-primary" onclick="doWrite('tempSetCooling','i-cool','fb-cool')">Stel in</button>
+    </div>
+    <div class="range-hint">Bereik: 7–25 °C</div>
+    <div class="feedback" id="fb-cool"></div>
+  </div>
+
+  <div class="write-card">
+    <label>Hoofdschakelaar</label>
+    <div class="write-row">
+      <select id="i-switch" style="flex:1;background:#0f1117;border:1px solid #374151;border-radius:6px;color:#f1f5f9;padding:0.5rem 0.75rem;font-size:0.9rem;">
+        <option value="1">Aan</option>
+        <option value="0">Uit</option>
+      </select>
+      <button class="btn btn-primary" onclick="doWriteSelect('mainSwitch','i-switch','fb-switch')">Stel in</button>
+    </div>
+    <div class="feedback" id="fb-switch"></div>
+  </div>
+
+  <div class="write-card">
+    <label>Gebruikersmodus</label>
+    <div class="write-row">
+      <select id="i-mode" style="flex:1;background:#0f1117;border:1px solid #374151;border-radius:6px;color:#f1f5f9;padding:0.5rem 0.75rem;font-size:0.9rem;">
+        <option value="0">Standaard</option>
+        <option value="1">Krachtig</option>
+        <option value="2">Stil</option>
+      </select>
+      <button class="btn btn-primary" onclick="doWriteSelect('runningMode','i-mode','fb-mode')">Stel in</button>
+    </div>
+    <div class="feedback" id="fb-mode"></div>
+  </div>
+
+</div>
+
+<p style="margin-top:2rem;font-size:0.75rem;color:#374151;">
+  <a href="/expert" style="color:#3b82f6;text-decoration:none;">Expert Dashboard (alle registers)</a>
+</p>
+
+<script>
+let refreshTimer = null;
+
+// sensors[key] is een SensorValue object { value, raw, unit, label }
+function sv(sensors, key) {
+  const obj = sensors[key];
+  if (obj == null) return null;
+  return typeof obj === 'object' ? obj.value : obj;
+}
+
+function fmt(v, decimals = 1) {
+  if (v == null) return '—';
+  return typeof v === 'number' ? v.toFixed(decimals) : String(v);
+}
+
+async function refresh() {
+  const dot = document.getElementById('dot');
+  const statusText = document.getElementById('status-text');
+  try {
+    const r = await fetch('/api/snapshot');
+    if (r.status === 204) { statusText.textContent = 'Wachten op eerste poll…'; return; }
+    if (!r.ok) throw new Error(r.statusText);
+    const d = await r.json();
+
+    dot.className = 'dot ok';
+    statusText.textContent = 'Verbonden';
+    document.getElementById('last-update').textContent = 'Bijgewerkt: ' + new Date().toLocaleTimeString('nl-NL');
+
+    const sensors  = d.sensors  ?? {};
+    const control  = d.control  ?? {};
+
+    // Live sensorwaarden — sensors zijn SensorValue objecten; gebruik .value
+    document.getElementById('v-flow').innerHTML    = fmt(sv(sensors, 'outletT7')) + '<span class="card-unit">°C</span>';
+    document.getElementById('v-return').innerHTML  = fmt(sv(sensors, 'inletT6'))  + '<span class="card-unit">°C</span>';
+    document.getElementById('v-outdoor').innerHTML = fmt(sv(sensors, 'ambientT1')) + '<span class="card-unit">°C</span>';
+    document.getElementById('v-dhw').innerHTML     = fmt(sv(sensors, 'dhwTankTemp')) + '<span class="card-unit">°C</span>';
+    document.getElementById('v-comp').innerHTML    = fmt(sv(sensors, 'compRunningFreq'), 0) + '<span class="card-unit">Hz</span>';
+
+    // Setpoints komen uit d.control
+    document.getElementById('v-heat-sp').innerHTML = fmt(control.heatingSetpointC) + '<span class="card-unit">°C</span>';
+    document.getElementById('v-dhw-sp').innerHTML  = fmt(control.dhwSetpointC)     + '<span class="card-unit">°C</span>';
+    document.getElementById('v-switch').textContent = control.on ? 'Aan' : 'Uit';
+
+    // Prefill invoervelden met huidige waarden (alleen als veld nog leeg is)
+    prefillIfEmpty('i-heat', control.heatingSetpointC);
+    prefillIfEmpty('i-dhw',  control.dhwSetpointC);
+    prefillIfEmpty('i-cool', control.coolingSetpointC);
+    setSelectIfUnchanged('i-switch', control.on ? '1' : '0');
+    setSelectIfUnchanged('i-mode',   control.userMode != null ? String(control.userMode) : null);
+  } catch (e) {
+    dot.className = 'dot';
+    statusText.textContent = 'Geen verbinding: ' + e.message;
+  }
+}
+
+function prefillIfEmpty(id, val) {
+  const el = document.getElementById(id);
+  if (el && el.value === '' && val != null) el.value = Number(val).toFixed(1);
+}
+
+function setSelectIfUnchanged(id, val) {
+  if (val == null) return;
+  const el = document.getElementById(id);
+  if (el && !el.dataset.userChanged) el.value = val;
+}
+
+async function doWrite(key, inputId, fbId) {
+  const input = document.getElementById(inputId);
+  const fb = document.getElementById(fbId);
+  const value = parseFloat(input.value);
+  if (isNaN(value)) { setFb(fb, false, 'Voer een geldige waarde in'); return; }
+  fb.textContent = 'Bezig…'; fb.className = 'feedback';
+  try {
+    const r = await fetch('/api/write', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value }),
+    });
+    const j = await r.json();
+    if (j.ok) { setFb(fb, true, 'Opgeslagen'); setTimeout(() => refresh(), 2000); }
+    else setFb(fb, false, j.error ?? 'Fout');
+  } catch (e) { setFb(fb, false, e.message); }
+}
+
+async function doWriteSelect(key, selectId, fbId) {
+  const sel = document.getElementById(selectId);
+  const value = parseFloat(sel.value);
+  await doWriteValue(key, value, fbId);
+}
+
+async function doWriteValue(key, value, fbId) {
+  const fb = document.getElementById(fbId);
+  fb.textContent = 'Bezig…'; fb.className = 'feedback';
+  try {
+    const r = await fetch('/api/write', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value }),
+    });
+    const j = await r.json();
+    if (j.ok) { setFb(fb, true, 'Opgeslagen'); setTimeout(() => refresh(), 2000); }
+    else setFb(fb, false, j.error ?? 'Fout');
+  } catch (e) { setFb(fb, false, e.message); }
+}
+
+function setFb(el, ok, msg) {
+  el.textContent = msg;
+  el.className = 'feedback ' + (ok ? 'ok' : 'err');
+  setTimeout(() => { el.textContent = ''; el.className = 'feedback'; }, 4000);
+}
+
+refresh();
+refreshTimer = setInterval(refresh, 15000);
+</script>
+</body>
+</html>
