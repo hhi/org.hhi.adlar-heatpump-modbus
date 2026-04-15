@@ -44,6 +44,8 @@ export interface FlowCardManagerOptions {
   onExternalPowerData?: (powerValue: number) => Promise<void>;
   onExternalPricesData?: (pricesObject: Record<string, number>) => Promise<void>;
   buildingInsightsService?: BuildingInsightsService; // v2.5.0: Building insights flow cards
+  onModbusRead?: (address: number) => Promise<number>; // ADR-045: direct register lezen
+  onModbusWrite?: (address: number, rawValue: number) => Promise<void>; // ADR-045: direct register schrijven
 }
 
 export class FlowCardManagerService {
@@ -52,6 +54,8 @@ export class FlowCardManagerService {
   private onExternalPowerData: (powerValue: number) => Promise<void>;
   private onExternalPricesData: (pricesObject: Record<string, number>) => Promise<void>;
   private buildingInsightsService?: BuildingInsightsService; // v2.5.0
+  private onModbusRead: (address: number) => Promise<number>;
+  private onModbusWrite: (address: number, rawValue: number) => Promise<void>;
   private flowCardListeners = new Map<string, unknown>();
   private isInitialized = false;
   private initializationRetryTimer: NodeJS.Timeout | null = null;
@@ -78,6 +82,8 @@ export class FlowCardManagerService {
     this.onExternalPowerData = options.onExternalPowerData || (async () => { });
     this.onExternalPricesData = options.onExternalPricesData || (async () => { });
     this.buildingInsightsService = options.buildingInsightsService; // v2.5.0
+    this.onModbusRead = options.onModbusRead ?? (() => Promise.reject(new Error('Modbus lezen niet beschikbaar')));
+    this.onModbusWrite = options.onModbusWrite ?? (() => Promise.reject(new Error('Modbus schrijven niet beschikbaar')));
   }
 
   private formatDiagnosticTimestamp(date: Date = new Date()): string {
@@ -162,6 +168,9 @@ export class FlowCardManagerService {
 
       // Register utility action cards (ADR-036 §4.1 — stateless calculators)
       await this.registerUtilityActionCards();
+
+      // Register Modbus direct-access action cards (ADR-045)
+      await this.registerModbusDirectAccessCards();
 
       this.logger('FlowCardManagerService: Flow cards updated successfully');
     } catch (error) {
@@ -1231,6 +1240,57 @@ export class FlowCardManagerService {
       this.logger('FlowCardManagerService: Utility action cards registered (4 cards)');
     } catch (error) {
       this.logger('FlowCardManagerService: Error registering utility action cards:', error);
+    }
+  }
+
+  /**
+   * Parse a Modbus register address from a string (hex 0x… or decimal).
+   * Throws when the input cannot be converted to a valid integer.
+   */
+  private parseModbusAddress(input: string): number {
+    const trimmed = input.trim();
+    const parsed = trimmed.toLowerCase().startsWith('0x')
+      ? parseInt(trimmed, 16)
+      : parseInt(trimmed, 10);
+    if (Number.isNaN(parsed) || parsed < 0 || parsed > 0xFFFF) {
+      throw new Error(`Ongeldig registeradres: '${input}'. Gebruik hex (0x0301) of decimaal (769).`);
+    }
+    return parsed;
+  }
+
+  /**
+   * Register Modbus direct-access action flow cards (ADR-045).
+   * - modbus_read_register  — leest één holding register en geeft de waarde terug als token
+   * - modbus_write_register — schrijft een ruwe waarde naar één holding register
+   */
+  private async registerModbusDirectAccessCards(): Promise<void> {
+    try {
+      // Action: Read Modbus register
+      const readCard = this.device.homey.flow.getActionCard('modbus_read_register');
+      const readListener = readCard.registerRunListener(async (args: { address: string }) => {
+        const addr = this.parseModbusAddress(args.address);
+        this.logger(`FlowCardManagerService: modbus_read_register addr=0x${addr.toString(16).toUpperCase()}`);
+        const rawValue = await this.onModbusRead(addr);
+        this.logger(`FlowCardManagerService: modbus_read_register result=${rawValue}`);
+        return { raw_value: rawValue }; // eslint-disable-line camelcase
+      });
+      this.flowCardListeners.set('modbus_read_register', readListener);
+
+      // Action: Write Modbus register
+      const writeCard = this.device.homey.flow.getActionCard('modbus_write_register');
+      const writeListener = writeCard.registerRunListener(async (args: { address: string; value: number }) => {
+        const addr = this.parseModbusAddress(args.address);
+        const raw = Math.round(args.value);
+        this.logger(`FlowCardManagerService: modbus_write_register addr=0x${addr.toString(16).toUpperCase()} value=${raw}`);
+        await this.onModbusWrite(addr, raw);
+        this.logger('FlowCardManagerService: modbus_write_register done');
+        return true;
+      });
+      this.flowCardListeners.set('modbus_write_register', writeListener);
+
+      this.logger('FlowCardManagerService: Modbus direct-access cards registered (2 cards)');
+    } catch (error) {
+      this.logger('FlowCardManagerService: Error registering Modbus direct-access cards:', error);
     }
   }
 
