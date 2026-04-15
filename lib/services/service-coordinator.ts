@@ -115,6 +115,8 @@ export class ServiceCoordinator {
         });
       },
       buildingInsightsService: this.buildingInsights,
+      onModbusRead: (addr) => this.readRegister(addr),
+      onModbusWrite: (addr, raw) => this.writeRaw(addr, raw, false),
     });
 
     this.snapshotTrigger = new SnapshotTriggerService();
