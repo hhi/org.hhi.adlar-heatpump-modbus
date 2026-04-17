@@ -40,7 +40,7 @@ The Modbus columns show the current equivalent capability and register mapping.
 | DPS capability | DPS | Modbus capability | Register | Read wired | Write wired | Register only | Notes |
 |---|---:|---|---|---|---|---|---|
 | `measure_temperature.temp_top` | 21 | `measure_temperature.inlet` | `0x004F` | yes | no | no | T6 |
-| `measure_temperature.temp_bottom` | 22 | `measure_temperature` | `0x0050` | yes | no | no | T7 |
+| `measure_temperature.temp_bottom` | 22 | `measure_temperature.outlet` | `0x0050` | yes | no | no | T7 |
 | `measure_temperature.coiler_temp` | 23 | `measure_temperature.outer_coil` | `0x004B` | yes | no | no | T2 |
 | `measure_temperature.venting_temp` | 24 | `measure_temperature.exhaust` | `0x004E` | yes | no | no | T5 |
 | `measure_temperature.around_temp` | 26 | `measure_temperature.ambient` | `0x004A` | yes | no | no | T1 |

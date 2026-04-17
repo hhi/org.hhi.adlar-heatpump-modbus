@@ -288,7 +288,7 @@ export const FLOW_PATTERNS = {
   // Simple condition cards
   simpleConditions: [
     { cardId: 'fault_active', pattern: 'simple_condition' as const, capabilityName: 'adlar_fault' },
-    { cardId: 'temperature_above', pattern: 'simple_condition' as const, capabilityName: 'measure_temperature.around_temp' },
+    { cardId: 'temperature_above', pattern: 'simple_condition' as const, capabilityName: 'measure_temperature.ambient' },
     { cardId: 'compressor_running', pattern: 'simple_condition' as const, capabilityName: 'adlar_state_compressor_state' },
     {
       cardId: 'power_above_threshold', pattern: 'simple_condition' as const, capabilityName: 'measure_power', requiresCapability: 'measure_power',

@@ -595,7 +595,7 @@ export class AdaptiveControlService {
    * Returns null when coast is inactive or outlet temperature is unavailable.
    */
   private _buildCoastAction(currentSetpoint: number): CoastAction | null {
-    const outletTemp = this.device.getCapabilityValue('measure_temperature.temp_bottom') as number | null;
+    const outletTemp = this.device.getCapabilityValue('measure_temperature.outlet') as number | null;
 
     if (outletTemp === null) {
       this.logger('AdaptiveControlService: Geen uitlaattemperatuur beschikbaar voor coast-berekening');
@@ -770,7 +770,7 @@ export class AdaptiveControlService {
           copAction = this.copOptimizer.calculateAction(currentCOP, dailyCOP, outdoorTemp, currentSetpoint);
 
           // Collect COP measurement for learning
-          const compressorFreq = (this.device.getCapabilityValue('measure_frequency.compressor_strength') as number) || 0;
+          const compressorFreq = (this.device.getCapabilityValue('adlar_compressor_freq') as number) || 0;
           if (currentCOP > 0 && compressorFreq > 0) {
             this.copOptimizer.addMeasurement({
               timestamp: Date.now(),

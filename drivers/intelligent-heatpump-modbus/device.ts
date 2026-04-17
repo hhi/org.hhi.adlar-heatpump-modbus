@@ -194,6 +194,7 @@ class AdlarModbusDevice extends Homey.Device {
     const requiredCapabilities = [
       'adlar_firmware_mcu',
       'adlar_protocol_version',
+      'measure_temperature.outlet',
     ];
 
     for (const capability of requiredCapabilities) {
@@ -204,6 +205,17 @@ class AdlarModbusDevice extends Homey.Device {
         } catch (error) {
           this.logger.warn(`Failed to add missing capability ${capability}:`, error);
         }
+      }
+    }
+
+    // T7 is now modeled explicitly as measure_temperature.outlet.
+    // Migrate older devices that still carry the generic measure_temperature capability.
+    if (this.hasCapability('measure_temperature.outlet') && this.hasCapability('measure_temperature')) {
+      try {
+        await this.removeCapability('measure_temperature');
+        this.logger.info('Removed legacy capability: measure_temperature');
+      } catch (error) {
+        this.logger.warn('Failed to remove legacy capability measure_temperature:', error);
       }
     }
   }

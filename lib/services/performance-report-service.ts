@@ -553,15 +553,15 @@ export class PerformanceReportService {
   }
 
   private scoreTelemetry(t: Translations): DomainScore & Partial<TelemetrySubCategories> {
-    const inlet = this.getCapNum('measure_temperature.temp_top');
-    const outlet = this.getCapNum('measure_temperature.temp_bottom');
-    const discharge = this.getCapNum('measure_temperature.venting_temp');
-    const ambient = this.getCapNum('measure_temperature.around_temp');
-    const highPressureSat = this.getCapNum('measure_temperature.temp_current_f');
-    const lowPressureSat = this.getCapNum('measure_temperature.top_temp_f');
-    const condenser = this.getCapNum('measure_temperature.bottom_temp_f');
-    const compressorFreq = this.getCapNum('measure_frequency.compressor_strength');
-    const flow = this.getCapNum('measure_water');
+    const inlet = this.getCapNum('measure_temperature.inlet');
+    const outlet = this.getCapNum('measure_temperature.outlet');
+    const discharge = this.getCapNum('measure_temperature.exhaust');
+    const ambient = this.getCapNum('measure_temperature.ambient');
+    const highPressureSat = this.getCapNum('measure_temperature.hp_sat');
+    const lowPressureSat = this.getCapNum('measure_temperature.lp_sat');
+    const condenser = this.getCapNum('measure_temperature.inner_coil');
+    const compressorFreq = this.getCapNum('adlar_compressor_freq');
+    const flow = this.getCapNum('adlar_water_flow');
     const compressorState = this.device.getCapabilityValue('adlar_state_compressor_state') as boolean | null;
 
     const isCompressorActive = compressorState === true || (compressorFreq !== null && compressorFreq > 0);

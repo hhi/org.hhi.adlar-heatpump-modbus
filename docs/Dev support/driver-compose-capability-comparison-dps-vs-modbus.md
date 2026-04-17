@@ -42,7 +42,7 @@ Missing metadata is shown as `-`.
 | `adlar_enum_mode` | `adlar_mode` | `enum/picker` | `enum/picker` | `-` | `-` | Same function, different id |
 | `measure_temperature.around_temp` | `measure_temperature.ambient` | `-/-` | `-/-` | `-50/150/-` | `-` | Same sensor, different naming |
 | `measure_temperature.temp_top` | `measure_temperature.inlet` | `-/-` | `-/-` | `-50/150/-` | `-` | Same sensor, different naming |
-| `measure_temperature.temp_bottom` | `measure_temperature` | `-/-` | `-/-` | `-50/150/-` | `-` | Same sensor, Modbus uses Homey standard outlet id |
+| `measure_temperature.temp_bottom` | `measure_temperature.outlet` | `-/-` | `-/-` | `-50/150/-` | `-` | Same sensor, Modbus uses explicit outlet id |
 | `measure_temperature.coiler_temp` | `measure_temperature.outer_coil` | `-/-` | `-/-` | `-50/150/-` | `-` | Same sensor, different naming |
 | `measure_temperature.venting_temp` | `measure_temperature.exhaust` | `-/-` | `-/-` | `-50/150/-` | `-` | Same sensor, different naming |
 | `measure_temperature.temp_current_f` | `measure_temperature.hp_sat` | `-/-` | `-/-` | `-50/150/-` | `-` | Same sensor, Modbus names HP saturation explicitly |
@@ -132,7 +132,7 @@ These capability ids exist in both drivers, but their metadata is not identical.
 
 ### Extra temperature channels
 
-- `measure_temperature`
+- `measure_temperature.outlet`
 - `measure_temperature.inlet`
 - `measure_temperature.ambient`
 - `measure_temperature.outer_coil`
