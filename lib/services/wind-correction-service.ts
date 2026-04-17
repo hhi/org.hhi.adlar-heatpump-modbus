@@ -335,7 +335,7 @@ export class WindCorrectionService {
     try {
       const windSpeed = this.getWindSpeed();
       const indoorTemp = this.device.getCapabilityValue('measure_temperature.indoor') as number | null;
-      const outdoorTemp = this.device.getCapabilityValue('measure_temperature.around_temp') as number | null;
+      const outdoorTemp = this.device.getCapabilityValue('measure_temperature.ambient') as number | null;
 
       // Skip if conditions aren't suitable for learning
       if (windSpeed === null || windSpeed < WindCorrectionService.MIN_WIND_FOR_LEARNING) {

@@ -10,7 +10,7 @@
     "target_temperature.cooling",
     "target_temperature.dhw",
     "target_temperature.floor",
-    "measure_temperature",
+    "measure_temperature.outlet",
     "measure_temperature.inlet",
     "measure_temperature.ambient",
     "measure_temperature.outer_coil",
@@ -170,7 +170,7 @@
       "max": 45,
       "step": 1
     },
-    "measure_temperature": {
+    "measure_temperature.outlet": {
       "title": {
         "en": "Outlet temperature (T7)",
         "nl": "Uitlaattemperatuur (T7)"

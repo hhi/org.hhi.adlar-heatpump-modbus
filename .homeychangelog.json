@@ -1,4 +1,8 @@
 {
+  "1.7.1": {
+    "en": "Outlet temperature (T7) is now a dedicated capability ('measure_temperature.outlet') instead of the generic 'measure_temperature'. Existing paired devices are migrated automatically on the next restart. Internal sensor references corrected in adaptive control, performance reporting, and wind correction (e.g. ambient temperature, compressor frequency, water flow).",
+    "nl": "Uitlaattemperatuur (T7) is nu een eigen capability ('measure_temperature.outlet') in plaats van de generieke 'measure_temperature'. Bestaande gekoppelde apparaten worden bij de volgende herstart automatisch gemigreerd. Interne sensorreferenties gecorrigeerd in adaptieve regeling, prestatierapportage en windcorrectie (bijv. buitentemperatuur, compressorfrequentie, waterdebiet)."
+  },
   "1.7.0": {
     "en": "Added two flow action cards for direct Modbus register access. 'Read Modbus register' (FC03) reads one holding register and returns the raw value as a flow token. 'Write Modbus register' (FC06) writes a raw value to one holding register. Address can be entered in hex (0x0301) or decimal (769). Temperature registers store values ×10 — use 450 for 45 °C.",
     "nl": "Twee flow-actiekaartjes toegevoegd voor directe toegang tot Modbus-registers. 'Lees Modbus register' (FC03) leest één holding register en geeft de registerwaarde terug als flow token. 'Schrijf Modbus register' (FC06) schrijft een waarde naar één holding register. Adres opgeven in hex (0x0301) of decimaal (769). Temperatuurregisters zijn ×10 opgeslagen — gebruik 450 voor 45 °C."

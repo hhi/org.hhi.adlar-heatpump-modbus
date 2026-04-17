@@ -22,7 +22,7 @@ Title source:
 |---|---|---|---|---|
 | `measure_temperature.around_temp` | `Buitentemperatuur` | `measure_temperature.ambient` | `Buitentemperatuur (T1)` | T1 outside / ambient |
 | `measure_temperature.temp_top` | `Water intrede temperatuur` | `measure_temperature.inlet` | `Inlaattemperatuur (T6)` | T6 water inlet |
-| `measure_temperature.temp_bottom` | `Water uittrede temperatuur` | `measure_temperature` | `Uitlaattemperatuur (T7)` | T7 water outlet |
+| `measure_temperature.temp_bottom` | `Water uittrede temperatuur` | `measure_temperature.outlet` | `Uitlaattemperatuur (T7)` | T7 water outlet |
 | `measure_temperature.coiler_temp` | `Verdampingscondensator temperatuur` | `measure_temperature.outer_coil` | `Buitenste spoel temperatuur (T2)` | T2 outer coil |
 | `measure_temperature.venting_temp` | `Persgas temperatuur` | `measure_temperature.exhaust` | `Uitlaattemperatuur compressor (T5)` | T5 exhaust / discharge |
 | `measure_temperature.temp_current_f` | `Hogedruk verzadigingstemperatuur` | `measure_temperature.hp_sat` | `HP saturatietemperatuur` | HP saturation |

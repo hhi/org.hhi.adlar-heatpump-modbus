@@ -29,7 +29,7 @@ We kiezen bewust voor **categorie-toggles** in plaats van per-register adresveld
 
 | Categorie | Settings-id | Capabilities | Standaard |
 |---|---|---|---|
-| **Kerntemperaturen** | `reg_core_temps` | `measure_temperature.ambient` (T1), `measure_temperature.inlet` (T6), `measure_temperature` (T7) | Altijd aan (niet uitschakelbaar) |
+| **Kerntemperaturen** | `reg_core_temps` | `measure_temperature.ambient` (T1), `measure_temperature.inlet` (T6), `measure_temperature.outlet` (T7) | Altijd aan (niet uitschakelbaar) |
 | **Koelcircuit** | `reg_refrigerant` | `measure_temperature.outer_coil` (T2), `.inner_coil` (T3), `.suction` (T4), `.exhaust` (T5), `.hp_sat`, `.lp_sat` | Aan |
 | **Economizer & DHW** | `reg_econ_dhw` | `measure_temperature.econ_in` (T8), `.econ_out` (T9), `.dhw`, `.dhw_return`, `.plate_hx` | Aan |
 | **Zones & Buffer** | `reg_zones` | `measure_temperature.buffer_tank`, `.total_outlet`, `.zone1_mix`, `.zone2` | Uit |
@@ -134,7 +134,7 @@ const ADLAR_AURORA2_PROFILE: RegisterCategoryConfig[] = [
         defaultAddress: 0x004A, address: 0x004A, signed: true, multiply: 0.1, unit: '°C' },
       { capabilityId: 'measure_temperature.inlet', snapshotKey: 'inletT6',
         defaultAddress: 0x004F, address: 0x004F, signed: true, multiply: 0.1, unit: '°C' },
-      { capabilityId: 'measure_temperature', snapshotKey: 'outletT7',
+      { capabilityId: 'measure_temperature.outlet', snapshotKey: 'outletT7',
         defaultAddress: 0x0050, address: 0x0050, signed: true, multiply: 0.1, unit: '°C' },
     ],
   },
