@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactieve Stooklijn Grafiek</title>
+    <title>Adlar — Stooklijn</title>
     <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            background-color: #f5f5f5;
+            font-family: system-ui, sans-serif;
+            background: #0f1117;
+            color: #e2e8f0;
+            min-height: 100vh;
         }
         nav {
             background: #1e293b;
@@ -17,7 +19,6 @@
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
-            margin-bottom: 20px;
         }
         nav a {
             font-size: 12px;
@@ -32,24 +33,41 @@
         nav a:hover { background: #334155; color: #f8fafc; }
         nav a.active { background: #0f172a; color: #38bdf8; border-color: #38bdf8; }
         .container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             max-width: 800px;
-            margin: 0 auto;
+            margin: 24px auto;
+            padding: 0 20px 40px;
+        }
+        h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #f8fafc;
+            margin-bottom: 4px;
+        }
+        .subtitle {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 20px;
         }
         canvas {
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background: white;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            display: block;
+            width: 100%;
         }
         .controls {
             margin: 20px 0;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 4px;
-            border-left: 4px solid #28a745;
+            padding: 16px;
+            background: #1e293b;
+            border-radius: 6px;
+            border-left: 4px solid #22c55e;
+        }
+        .controls h3 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #64748b;
+            margin-bottom: 12px;
         }
         .slider-container {
             display: flex;
@@ -57,79 +75,99 @@
             gap: 15px;
             margin: 10px 0;
         }
+        .slider-container label { font-size: 0.88rem; color: #cbd5e1; white-space: nowrap; }
         .slider {
             flex: 1;
-            height: 8px;
+            height: 6px;
             border-radius: 4px;
-            background: #ddd;
+            background: #334155;
             outline: none;
             -webkit-appearance: none;
+            cursor: pointer;
         }
         .slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            background: #28a745;
+            background: #22c55e;
             cursor: pointer;
         }
         .slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            background: #28a745;
+            background: #22c55e;
             cursor: pointer;
             border: none;
         }
         .value-display {
-            font-weight: bold;
-            color: #28a745;
-            min-width: 40px;
-            text-align: center;
-        }
-        .info {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e8f4f8;
-            border-radius: 4px;
-            border-left: 4px solid #2196F3;
-        }
-        .formula {
-            font-family: 'Courier New', monospace;
-            background: #f0f0f0;
-            padding: 10px;
-            border-radius: 4px;
-            margin: 10px 0;
+            font-weight: 700;
+            color: #22c55e;
+            min-width: 48px;
+            text-align: right;
+            font-size: 0.95rem;
         }
         .apply-section {
             margin-top: 20px;
-            padding: 15px;
-            background: #fff8e1;
-            border-radius: 4px;
-            border-left: 4px solid #ff9800;
+            padding: 16px;
+            background: #1e293b;
+            border-radius: 6px;
+            border-left: 4px solid #f97316;
         }
+        .apply-section strong { color: #f8fafc; }
+        .apply-desc { margin: 6px 0; font-size: 0.85rem; color: #94a3b8; }
         .apply-btn {
-            background: #ff9800;
-            color: white;
+            background: #f97316;
+            color: #fff;
             border: none;
-            padding: 12px 24px;
-            font-size: 16px;
-            border-radius: 4px;
+            padding: 10px 22px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 6px;
             cursor: pointer;
             margin-top: 10px;
+            transition: background 0.15s;
         }
-        .apply-btn:hover { background: #e65100; }
-        .apply-btn:disabled { background: #ccc; cursor: default; }
-        .apply-desc { margin: 6px 0; font-size: 14px; }
+        .apply-btn:hover { background: #ea580c; }
+        .apply-btn:disabled { background: #334155; color: #64748b; cursor: default; }
         .feedback {
             margin-top: 10px;
             padding: 8px 12px;
             border-radius: 4px;
+            font-size: 0.85rem;
             display: none;
         }
-        .feedback.ok { background: #e8f5e9; color: #2e7d32; display: block; }
-        .feedback.error { background: #ffebee; color: #c62828; display: block; }
+        .feedback.ok    { background: #14532d; color: #86efac; display: block; }
+        .feedback.error { background: #450a0a; color: #fca5a5; display: block; }
+        .info {
+            margin-top: 20px;
+            padding: 16px;
+            background: #1e293b;
+            border-radius: 6px;
+            border-left: 4px solid #38bdf8;
+        }
+        .info h3 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+        .info p { font-size: 0.88rem; color: #cbd5e1; margin: 6px 0; }
+        .info em { color: #64748b; }
+        .formula {
+            font-family: ui-monospace, 'Cascadia Code', monospace;
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 10px 14px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+        .formula small { color: #64748b; }
     </style>
 </head>
 <body>
@@ -140,24 +178,25 @@
   <a href="/heating-curve" class="active">Stooklijn</a>
 </nav>
     <div class="container">
-        <h2>DAG custom-stooklijn HL8 - Interactief</h2>
-        
+        <h2>Custom stooklijn (L28/L29)</h2>
+        <p class="subtitle">Adlar Castra / Aurora II &mdash; interactieve stooklijn instelling</p>
+
         <div class="controls">
-            <h3>Stooklijn instellingen:</h3>
+            <h3>Stooklijn instellingen</h3>
             <div class="slider-container">
-                <label for="l28-slider"><strong>L28 - Hellingsgraad:</strong></label>
+                <label for="l28-slider"><strong>L28</strong> Hellingsgraad:</label>
                 <input type="range" id="l28-slider" class="slider" min="-10" max="10" step="0.5" value="-5">
                 <span class="value-display" id="l28-value">-5</span>
             </div>
             <div class="slider-container">
-                <label for="l29-slider"><strong>L29 - Set temp bij buiten -15 graden:</strong></label>
+                <label for="l29-slider"><strong>L29</strong> Set temp bij -15°C buiten:</label>
                 <input type="range" id="l29-slider" class="slider" min="25" max="75" step="1" value="55">
                 <span class="value-display" id="l29-value">55°C</span>
             </div>
         </div>
-        
+
         <canvas id="graph" width="700" height="400"></canvas>
-        
+
         <div class="apply-section">
             <strong>Toepassen op warmtepomp</strong>
             <p class="apply-desc">Schrijft de huidige slider-waarden als L28/L29 naar de warmtepomp via Modbus.</p>
@@ -166,16 +205,16 @@
         </div>
 
         <div class="info">
-            <h3>DAG Stooklijn eigenschappen:</h3>
+            <h3>Stooklijn eigenschappen</h3>
             <p><strong>Referentie-punt:</strong> (-15°C, <span id="ref-temp">55</span>°C)</p>
-            <p><strong>Richtingscoëfficiënt:</strong> <span id="slope-display">-5</span> per 10 graden = <span id="slope-decimal">-0.5</span></p>
+            <p><strong>Richtingscoëfficiënt:</strong> <span id="slope-display">-5</span> per 10°C = <span id="slope-decimal">-0.5</span></p>
             <p><strong>Formule:</strong></p>
             <div class="formula" id="formula-display">
                 y = -0.5x + 47.5<br>
                 <small>waarbij x = buitentemperatuur (°C) en y = aanvoertemperatuur (°C)</small>
             </div>
             <p><strong>Betekenis:</strong> Voor elke 10°C stijging van de buitentemperatuur <span id="meaning-display">daalt</span> de aanvoertemperatuur met <span id="change-amount">5</span>°C</p>
-            <p><em>Deze curve wordt gebruikt tijdens de dag voor normale verwarmingsbehoefte</em></p>
+            <p><em>Capabilities worden binnen 30 seconden bijgewerkt na een schrijfactie.</em></p>
         </div>
     </div>
 
@@ -192,202 +231,136 @@
         const formulaDisplay = document.getElementById('formula-display');
         const meaningDisplay = document.getElementById('meaning-display');
         const changeAmount = document.getElementById('change-amount');
-        
-        // Canvas dimensies
+
         const width = canvas.width;
         const height = canvas.height;
         const margin = 60;
-        
-        // Bereik van de grafiek
-        const xMin = -20;
-        const xMax = 20;
-        const yMin = 20;
-        const yMax = 80;
-        
-        // Schaalfactoren
+        const xMin = -20, xMax = 20, yMin = 20, yMax = 80;
         const xScale = (width - 2 * margin) / (xMax - xMin);
         const yScale = (height - 2 * margin) / (yMax - yMin);
-        
-        // Functie om coördinaten om te zetten naar canvas pixels
+
         function toCanvas(x, y) {
-            const canvasX = margin + (x - xMin) * xScale;
-            const canvasY = height - margin - (y - yMin) * yScale;
-            return [canvasX, canvasY];
+            return [
+                margin + (x - xMin) * xScale,
+                height - margin - (y - yMin) * yScale,
+            ];
         }
-        
+
         function drawGraph(l28, l29) {
-            // Canvas wissen
             ctx.clearRect(0, 0, width, height);
-            
+
             // Achtergrond
-            ctx.fillStyle = '#fafafa';
+            ctx.fillStyle = '#1a2535';
             ctx.fillRect(0, 0, width, height);
-            
-            // Grid tekenen
-            ctx.strokeStyle = '#e0e0e0';
+
+            // Grid
+            ctx.strokeStyle = '#334155';
             ctx.lineWidth = 1;
-            
-            // Verticale gridlijnen (elke 5°C)
             for (let x = xMin; x <= xMax; x += 5) {
-                const [canvasX, canvasYGrid] = toCanvas(x, 0);
-                ctx.beginPath();
-                ctx.moveTo(canvasX, margin);
-                ctx.lineTo(canvasX, height - margin);
-                ctx.stroke();
+                const [cx] = toCanvas(x, 0);
+                ctx.beginPath(); ctx.moveTo(cx, margin); ctx.lineTo(cx, height - margin); ctx.stroke();
             }
-            
-            // Horizontale gridlijnen (elke 5°C)
             for (let y = yMin; y <= yMax; y += 5) {
-                const [canvasXGrid, canvasY] = toCanvas(0, y);
-                ctx.beginPath();
-                ctx.moveTo(margin, canvasY);
-                ctx.lineTo(width - margin, canvasY);
-                ctx.stroke();
+                const [, cy] = toCanvas(0, y);
+                ctx.beginPath(); ctx.moveTo(margin, cy); ctx.lineTo(width - margin, cy); ctx.stroke();
             }
-            
-            // Assen tekenen
-            ctx.strokeStyle = '#333';
+
+            // Assen
+            ctx.strokeStyle = '#64748b';
             ctx.lineWidth = 2;
-            
-            // X-as (altijd onderaan weergeven)
-            ctx.beginPath();
-            ctx.moveTo(margin, height - margin);
-            ctx.lineTo(width - margin, height - margin);
-            ctx.stroke();
-            
-            // Y-as (bij x=0)
-            const [zeroX, axisY] = toCanvas(0, 0);
-            ctx.beginPath();
-            ctx.moveTo(zeroX, margin);
-            ctx.lineTo(zeroX, height - margin);
-            ctx.stroke();
-            
-            // Stooklijn tekenen
-            ctx.strokeStyle = '#2196F3';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            
-            // Lijn formule: y = (l28/10)x + (l29 - l28/10 * (-15))
+            ctx.beginPath(); ctx.moveTo(margin, height - margin); ctx.lineTo(width - margin, height - margin); ctx.stroke();
+            const [zeroX] = toCanvas(0, 0);
+            ctx.beginPath(); ctx.moveTo(zeroX, margin); ctx.lineTo(zeroX, height - margin); ctx.stroke();
+
+            // Stooklijn
             const slope = l28 / 10;
             const intercept = l29 - slope * (-15);
-            
-            const startX = xMin;
-            const endX = xMax;
-            
-            let firstPoint = true;
-            for (let x = startX; x <= endX; x += 0.1) {
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            let first = true;
+            for (let x = xMin; x <= xMax; x += 0.1) {
                 const y = slope * x + intercept;
                 if (y >= yMin && y <= yMax) {
-                    const [canvasX, canvasY] = toCanvas(x, y);
-                    if (firstPoint) {
-                        ctx.moveTo(canvasX, canvasY);
-                        firstPoint = false;
-                    } else {
-                        ctx.lineTo(canvasX, canvasY);
-                    }
+                    const [cx, cy] = toCanvas(x, y);
+                    if (first) { ctx.moveTo(cx, cy); first = false; } else { ctx.lineTo(cx, cy); }
                 }
             }
             ctx.stroke();
-            
-            // Referentiepunt markeren
-            const [startCanvasX, startCanvasY] = toCanvas(-15, l29);
-            ctx.fillStyle = '#FF5722';
-            ctx.beginPath();
-            ctx.arc(startCanvasX, startCanvasY, 6, 0, 2 * Math.PI);
-            ctx.fill();
-            
-            // Referentiepunt label
-            ctx.fillStyle = '#333';
-            ctx.font = '12px Arial';
-            ctx.fillText(`(-15°C, ${l29}°C)`, startCanvasX + 10, startCanvasY - 10);
-            
-            // Enkele andere punten markeren
-            const points = [
-                {x: -10, y: slope * (-10) + intercept, label: `(-10°C, ${(slope * (-10) + intercept).toFixed(1)}°C)`},
-                {x: -5, y: slope * (-5) + intercept, label: `(-5°C, ${(slope * (-5) + intercept).toFixed(1)}°C)`},
-                {x: 0, y: intercept, label: `(0°C, ${intercept.toFixed(1)}°C)`},
-                {x: 5, y: slope * 5 + intercept, label: `(5°C, ${(slope * 5 + intercept).toFixed(1)}°C)`},
-                {x: 10, y: slope * 10 + intercept, label: `(10°C, ${(slope * 10 + intercept).toFixed(1)}°C)`},
-                {x: 15, y: slope * 15 + intercept, label: `(15°C, ${(slope * 15 + intercept).toFixed(1)}°C)`}
-            ];
-            
-            ctx.fillStyle = '#4CAF50';
-            points.forEach(point => {
-                if (point.y >= yMin && point.y <= yMax) {
-                    const [px, py] = toCanvas(point.x, point.y);
-                    ctx.beginPath();
-                    ctx.arc(px, py, 4, 0, 2 * Math.PI);
-                    ctx.fill();
-                    
-                    ctx.fillStyle = '#333';
-                    ctx.font = '10px Arial';
-                    ctx.fillText(point.label, px + 8, py - 8);
-                    ctx.fillStyle = '#4CAF50';
+
+            // Referentiepunt
+            const [rx, ry] = toCanvas(-15, l29);
+            ctx.fillStyle = '#f97316';
+            ctx.beginPath(); ctx.arc(rx, ry, 6, 0, 2 * Math.PI); ctx.fill();
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '12px system-ui, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(`(-15°C, ${l29}°C)`, rx + 10, ry - 10);
+
+            // Datapunten
+            const pts = [-10, -5, 0, 5, 10, 15];
+            ctx.fillStyle = '#22c55e';
+            pts.forEach(px => {
+                const py = slope * px + intercept;
+                if (py >= yMin && py <= yMax) {
+                    const [cx, cy] = toCanvas(px, py);
+                    ctx.beginPath(); ctx.arc(cx, cy, 4, 0, 2 * Math.PI); ctx.fill();
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.font = '10px system-ui, sans-serif';
+                    ctx.fillText(`(${px}°C, ${py.toFixed(1)}°C)`, cx + 8, cy - 8);
+                    ctx.fillStyle = '#22c55e';
                 }
             });
-            
-            // Labels voor assen
-            ctx.fillStyle = '#333';
-            ctx.font = '14px Arial';
-            ctx.fillText('Buitentemperatuur (°C)', width/2 - 80, height - 20);
-            
+
+            // Aslabels
+            ctx.fillStyle = '#64748b';
+            ctx.font = '13px system-ui, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Buitentemperatuur (°C)', width / 2, height - 10);
             ctx.save();
-            ctx.translate(20, height/2 + 80);
-            ctx.rotate(-Math.PI/2);
+            ctx.translate(16, height / 2 + 80);
+            ctx.rotate(-Math.PI / 2);
             ctx.fillText('Aanvoertemperatuur (°C)', 0, 0);
             ctx.restore();
-            
-            // X-as labels
-            ctx.font = '12px Arial';
+
+            // X-aslabels
+            ctx.font = '11px system-ui, sans-serif';
             ctx.textAlign = 'center';
             for (let x = xMin; x <= xMax; x += 5) {
-                const [canvasXLabel, canvasYLabel] = toCanvas(x, 0);
-                ctx.fillText(x.toString(), canvasXLabel, height - margin + 20);
+                const [cx] = toCanvas(x, 0);
+                ctx.fillText(x.toString(), cx, height - margin + 18);
             }
-            
-            // Y-as labels
+
+            // Y-aslabels
             ctx.textAlign = 'right';
             for (let y = yMin; y <= yMax; y += 5) {
-                const [canvasXAxis, canvasYAxis] = toCanvas(0, y);
-                ctx.fillText(y.toString(), zeroX - 10, canvasYAxis + 4);
+                const [, cy] = toCanvas(0, y);
+                ctx.fillText(y.toString(), zeroX - 8, cy + 4);
             }
         }
-        
+
         function updateDisplay(l28, l29) {
             const slope = l28 / 10;
             const intercept = l29 - slope * (-15);
-            
             l28Value.textContent = l28;
             l29Value.textContent = l29 + '°C';
             refTemp.textContent = l29;
             slopeDisplay.textContent = l28;
             slopeDecimal.textContent = slope.toFixed(1);
-            
             formulaDisplay.innerHTML = `y = ${slope.toFixed(1)}x + ${intercept.toFixed(1)}<br><small>waarbij x = buitentemperatuur (°C) en y = aanvoertemperatuur (°C)</small>`;
-            
-            const absChange = Math.abs(l28);
-            if (l28 < 0) {
-                meaningDisplay.textContent = 'daalt';
-            } else if (l28 > 0) {
-                meaningDisplay.textContent = 'stijgt';
-            } else {
-                meaningDisplay.textContent = 'blijft gelijk (';
-            }
-            changeAmount.textContent = absChange;
+            meaningDisplay.textContent = l28 < 0 ? 'daalt' : l28 > 0 ? 'stijgt' : 'blijft gelijk';
+            changeAmount.textContent = Math.abs(l28);
         }
-        
-        // Event listeners voor beide sliders
+
         function updateGraph() {
             const l28 = parseFloat(l28Slider.value);
-            const l29 = parseInt(l29Slider.value);
+            const l29 = parseInt(l29Slider.value, 10);
             updateDisplay(l28, l29);
             drawGraph(l28, l29);
         }
-        
+
         l28Slider.addEventListener('input', updateGraph);
         l29Slider.addEventListener('input', updateGraph);
-        
-        // Initiële tekening
         updateDisplay(-5, 55);
         drawGraph(-5, 55);
 
@@ -399,7 +372,6 @@
             const k = parseFloat(l28Slider.value) / 10;
             const b = parseInt(l29Slider.value, 10);
             applyBtn.disabled = true;
-            applyFeedback.className = 'feedback';
             applyFeedback.textContent = 'Bezig…';
             applyFeedback.className = 'feedback ok';
             try {
