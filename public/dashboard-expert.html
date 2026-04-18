@@ -9,8 +9,10 @@
   body { font-family: system-ui, sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; padding: 1.5rem; }
   h1 { font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 0.25rem; }
   .subtitle { font-size: 0.85rem; color: #94a3b8; margin-bottom: 1.5rem; }
-  a.nav { display: inline-block; margin-bottom: 1.5rem; font-size: 0.82rem; color: #3b82f6; text-decoration: none; }
-  a.nav:hover { text-decoration: underline; }
+  nav { margin: -1.5rem -1.5rem 1.5rem; padding: 8px 20px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; gap: 8px; flex-wrap: wrap; }
+  nav a { font-size: 12px; font-weight: 600; color: #94a3b8; text-decoration: none; padding: 4px 12px; border-radius: 9999px; border: 1px solid #334155; transition: background 0.15s, color 0.15s; }
+  nav a:hover { background: #334155; color: #f8fafc; }
+  nav a.active { background: #0f172a; color: #38bdf8; border-color: #38bdf8; }
   .status-bar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #94a3b8; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0; }
   .dot.ok { background: #22c55e; }
@@ -107,8 +109,12 @@
 </head>
 <body>
 
-<a href="/" class="nav">← Read-only dashboard</a>
-&nbsp;&nbsp;<a href="/interactive" class="nav">Interactief dashboard</a>
+<nav>
+  <a href="/">Dashboard</a>
+  <a href="/interactive">Interactief</a>
+  <a href="/expert" class="active">Expert</a>
+  <a href="/heating-curve">Stooklijn</a>
+</nav>
 <h1>Expert Dashboard</h1>
 <p class="subtitle">Adlar Castra / Aurora II &mdash; volledig registeroverzicht</p>
 

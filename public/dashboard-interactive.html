@@ -33,13 +33,20 @@
   .feedback.ok { color: #22c55e; }
   .feedback.err { color: #ef4444; }
   .range-hint { font-size: 0.72rem; color: #475569; margin-top: 0.25rem; }
-  a.nav { display: inline-block; margin-bottom: 1.5rem; font-size: 0.82rem; color: #3b82f6; text-decoration: none; }
-  a.nav:hover { text-decoration: underline; }
+  nav { margin: -1.5rem -1.5rem 1.5rem; padding: 8px 20px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; gap: 8px; flex-wrap: wrap; }
+  nav a { font-size: 12px; font-weight: 600; color: #94a3b8; text-decoration: none; padding: 4px 12px; border-radius: 9999px; border: 1px solid #334155; transition: background 0.15s, color 0.15s; }
+  nav a:hover { background: #334155; color: #f8fafc; }
+  nav a.active { background: #0f172a; color: #38bdf8; border-color: #38bdf8; }
 </style>
 </head>
 <body>
 
-<a href="/" class="nav">← Terug naar read-only dashboard</a>
+<nav>
+  <a href="/">Dashboard</a>
+  <a href="/interactive" class="active">Interactief</a>
+  <a href="/expert">Expert</a>
+  <a href="/heating-curve">Stooklijn</a>
+</nav>
 <h1>Interactief Dashboard</h1>
 <p class="subtitle">Adlar Castra / Aurora II &mdash; lees &amp; schrijf gebruikerssetpoints</p>
 

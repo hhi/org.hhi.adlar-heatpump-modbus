@@ -46,6 +46,7 @@ export interface FlowCardManagerOptions {
   buildingInsightsService?: BuildingInsightsService; // v2.5.0: Building insights flow cards
   onModbusRead?: (address: number) => Promise<number>; // ADR-045: direct register lezen
   onModbusWrite?: (address: number, rawValue: number) => Promise<void>; // ADR-045: direct register schrijven
+  onSetDiyHeatingCurve?: (k: number, b: number) => Promise<void>; // ADR-049: DIY stooklijn schrijven
 }
 
 export class FlowCardManagerService {
@@ -56,6 +57,7 @@ export class FlowCardManagerService {
   private buildingInsightsService?: BuildingInsightsService; // v2.5.0
   private onModbusRead: (address: number) => Promise<number>;
   private onModbusWrite: (address: number, rawValue: number) => Promise<void>;
+  private onSetDiyHeatingCurve: (k: number, b: number) => Promise<void>;
   private flowCardListeners = new Map<string, unknown>();
   private isInitialized = false;
   private initializationRetryTimer: NodeJS.Timeout | null = null;
@@ -84,6 +86,7 @@ export class FlowCardManagerService {
     this.buildingInsightsService = options.buildingInsightsService; // v2.5.0
     this.onModbusRead = options.onModbusRead ?? (() => Promise.reject(new Error('Modbus lezen niet beschikbaar')));
     this.onModbusWrite = options.onModbusWrite ?? (() => Promise.reject(new Error('Modbus schrijven niet beschikbaar')));
+    this.onSetDiyHeatingCurve = options.onSetDiyHeatingCurve ?? (() => Promise.reject(new Error('DIY stooklijn schrijven niet beschikbaar')));
   }
 
   private formatDiagnosticTimestamp(date: Date = new Date()): string {
@@ -1224,7 +1227,24 @@ export class FlowCardManagerService {
       });
       this.flowCardListeners.set('calculate_linear_heating_curve', calculateHeatingCurveListener);
 
-      // Action 4: Calculate time-based value (ADR-036)
+      // Action 4a: Set DIY heating curve (ADR-049)
+      const setDiyHeatingCurveCard = this.device.homey.flow.getActionCard('set_diy_heating_curve');
+      const setDiyHeatingCurveListener = setDiyHeatingCurveCard.registerRunListener(async (args) => {
+        this.logger('FlowCardManagerService: Set DIY heating curve action triggered', { args });
+
+        const k = args.slope as number;
+        const b = args.intercept as number;
+
+        if (!Number.isFinite(k) || !Number.isFinite(b)) {
+          throw new Error(`Ongeldige waarden: slope=${k}, intercept=${b}. Beide moeten een getal zijn.`);
+        }
+
+        await this.onSetDiyHeatingCurve(k, b);
+        this.logger(`FlowCardManagerService: DIY stooklijn geschreven: k=${k}, b=${b}`);
+      });
+      this.flowCardListeners.set('set_diy_heating_curve', setDiyHeatingCurveListener);
+
+      // Action 5: Calculate time-based value (ADR-036)
       const calculateTimeBasedCard = this.device.homey.flow.getActionCard('calculate_time_based_value');
       const calculateTimeBasedListener = calculateTimeBasedCard.registerRunListener(async (args) => {
         this.logger('FlowCardManagerService: Calculate time-based value action triggered', { args });
@@ -1237,7 +1257,7 @@ export class FlowCardManagerService {
       });
       this.flowCardListeners.set('calculate_time_based_value', calculateTimeBasedListener);
 
-      this.logger('FlowCardManagerService: Utility action cards registered (4 cards)');
+      this.logger('FlowCardManagerService: Utility action cards registered (5 cards)');
     } catch (error) {
       this.logger('FlowCardManagerService: Error registering utility action cards:', error);
     }

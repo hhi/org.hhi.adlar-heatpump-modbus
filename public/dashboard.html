@@ -163,6 +163,29 @@
     #quality-badge.q-online   { background: #14532d; color: #86efac; }
     #quality-badge.q-degraded { background: #431407; color: #fdba74; }
     #quality-badge.q-offline  { background: #450a0a; color: #fca5a5; }
+
+    nav {
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      padding: 8px 20px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-decoration: none;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      border: 1px solid #334155;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    nav a:hover { background: #334155; color: #f8fafc; }
+    nav a.active { background: #0f172a; color: #38bdf8; border-color: #38bdf8; }
   </style>
 </head>
 <body>
@@ -176,8 +199,15 @@
   </div>
 </header>
 
+<nav>
+  <a href="/" class="active">Dashboard</a>
+  <a href="/interactive">Interactief</a>
+  <a href="/expert">Expert</a>
+  <a href="/heating-curve">Stooklijn</a>
+</nav>
+
 <main>
-  <div id="no-data" style="display:none">Wachten op eerste Modbus-poll...</div>
+  <div id="no-data" hidden>Wachten op eerste Modbus-poll...</div>
   <div id="dashboard"></div>
 </main>
 
@@ -387,7 +417,7 @@ function updateIndicator(ts) {
 
 // ── Render ───────────────────────────────────────────────────────────────────
 function render(snap) {
-  document.getElementById('no-data').style.display = 'none';
+  document.getElementById('no-data').hidden = true;
   const sections = buildRows(snap);
   const html = sections.map(s =>
     sectionHeader(s.label) + tableHtml(s.rows)
@@ -398,7 +428,7 @@ function render(snap) {
 }
 
 function showNoData() {
-  document.getElementById('no-data').style.display = 'block';
+  document.getElementById('no-data').hidden = false;
   document.getElementById('dashboard').innerHTML = '';
   const dot  = document.getElementById('indicator-dot');
   const text = document.getElementById('indicator-text');

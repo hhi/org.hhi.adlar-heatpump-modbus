@@ -1717,13 +1717,14 @@ export const POLL_GROUP_MEDIUM = {
     { start: 0x0300, count: 8, label: 'Control 0x3000x307' },
     { start: 0x0313, count: 4, label: 'Curves 0x03130x0316' }, // verplaatst van SLOW: max 40s feedback na write
     { start: 0x01FF, count: 2, label: 'P255/P256 Smart Grid' }, // verplaatst van SLOW: max 40s feedback na write
+    { start: 0x0810, count: 3, label: 'L27L29 DIY stooklijn' }, // verplaatst van SLOW: max 30s feedback na write (ADR-049)
   ],
 } as const;
 
 /**
  * Poll elke 300s Configuratie & COP-relevante parameters
  * Bevat alleen vaste configuratie die niet via flow cards geschreven wordt.
- * Schrijfbare registers (curves, Smart Grid) zitten in POLL_GROUP_MEDIUM.
+ * Schrijfbare registers (curves, Smart Grid, DIY stooklijn) zitten in POLL_GROUP_MEDIUM.
  */
 export const POLL_GROUP_SLOW = {
   name: 'slow',
@@ -1736,7 +1737,6 @@ export const POLL_GROUP_SLOW = {
     { start: 0x0158, count: 2, label: 'P88/P89 silent mode freq' },
     { start: 0x0165, count: 1, label: 'P101 pump control mode' },
     { start: 0x01A4, count: 1, label: 'P164 energy level control' },
-    { start: 0x0810, count: 3, label: 'L27L29 DIY stooklijn' }, // v2.2
     { start: 0x0813, count: 7, label: 'L30L36 energieboekhouding', optional: true as const }, // v2.2
   ],
 } as const;

@@ -1,7 +1,7 @@
 {
-  "2.0.1": {
-    "en": "App icon updated to Adlar III Modbus. Preparing interactive heating curve visualisation page , accessible via the local dashboard (http://<homey-ip>:8090/heating-curve). Internal ADR documentation added for releases 1.6.0–2.0.1.",
-    "nl": "App-icoon bijgewerkt naar Adlar III Modbus. Interactieve stooklijn-visualisatiepagina toegevoegd ter voorbereiding, bereikbaar via het lokale dashboard (http://<homey-ip>:8090/heating-curve). Interne ADR-documentatie toegevoegd voor releases 1.6.0–2.0.1."
+  "2.0.2": {
+    "en": "App icon updated to Adlar III Modbus. New flow action 'Set Custom heating curve (L28/L29)': writes slope and intercept directly to Modbus registers L27, L28, and L29. New dashboard page: interactive heating curve visualisation with a 'Apply to heat pump' button, accessible at http://<homey-ip>:8090/heating-curve. Navigation bar added to all dashboard pages. DIY heating curve registers (L27–L29) moved to the 30-second poll group so capabilities update within 30 seconds after a write.",
+    "nl": "App-icoon bijgewerkt naar Adlar III Modbus. Nieuwe flow-actie 'Stel Custom stooklijn in (L28/L29)': schrijft helling en intercept direct naar Modbus-registers L27, L28 en L29. Nieuwe dashboardpagina: interactieve stooklijn-visualisatie met knop 'Toepassen op warmtepomp', bereikbaar via http://<homey-ip>:8090/heating-curve. Navigatiebalk toegevoegd aan alle dashboardpagina's. DIY stooklijn-registers (L27–L29) verplaatst naar de 30-seconden pollgroep, zodat capabilities binnen 30 seconden na een schrijfactie worden bijgewerkt."
   },
   "1.8.0": {
     "en": "Adaptive control coast mode now exits automatically when the room temperature is falling and the coast signal is negligible (soft exit). A watchdog resets coast after a configurable maximum duration (default: 24 cycles / 2 hours) if neither the temperature threshold nor the soft exit triggers. Coast correction is now capped at −1.5°C per cycle, preventing aggressive first-step adjustments on systems with slow thermal response (e.g. underfloor heating). Maximum coast duration is configurable via a new setting ('Coast max. duration').",
