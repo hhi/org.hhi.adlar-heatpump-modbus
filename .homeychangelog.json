@@ -1,4 +1,8 @@
 {
+  "2.0.1": {
+    "en": "App icon updated to Adlar III Modbus. Preparing interactive heating curve visualisation page , accessible via the local dashboard (http://<homey-ip>:8090/heating-curve). Internal ADR documentation added for releases 1.6.0–2.0.1.",
+    "nl": "App-icoon bijgewerkt naar Adlar III Modbus. Interactieve stooklijn-visualisatiepagina toegevoegd ter voorbereiding, bereikbaar via het lokale dashboard (http://<homey-ip>:8090/heating-curve). Interne ADR-documentatie toegevoegd voor releases 1.6.0–2.0.1."
+  },
   "1.8.0": {
     "en": "Adaptive control coast mode now exits automatically when the room temperature is falling and the coast signal is negligible (soft exit). A watchdog resets coast after a configurable maximum duration (default: 24 cycles / 2 hours) if neither the temperature threshold nor the soft exit triggers. Coast correction is now capped at −1.5°C per cycle, preventing aggressive first-step adjustments on systems with slow thermal response (e.g. underfloor heating). Maximum coast duration is configurable via a new setting ('Coast max. duration').",
     "nl": "Adaptieve regeling verlaat coast-modus nu automatisch wanneer de kamertemperatuur daalt en het coast-signaal verwaarloosbaar is (zachte exit). Een watchdog reset coast na een instelbare maximale duur (standaard: 24 cycli / 2 uur) als noch de temperatuurdrempel noch de zachte exit triggert. Coast-correctie is nu begrensd op −1,5°C per cyclus, wat agressieve eerste aanpassingen voorkomt bij systemen met trage thermische respons (bijv. vloerverwarming). De maximale coast-duur is instelbaar via een nieuwe instelling ('Maximale coast-duur')."
