@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactieve Stooklijn Grafiek</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        canvas {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 4px solid #28a745;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 10px 0;
+        }
+        .slider {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #28a745;
+            cursor: pointer;
+        }
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #28a745;
+            cursor: pointer;
+            border: none;
+        }
+        .value-display {
+            font-weight: bold;
+            color: #28a745;
+            min-width: 40px;
+            text-align: center;
+        }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f4f8;
+            border-radius: 4px;
+            border-left: 4px solid #2196F3;
+        }
+        .formula {
+            font-family: 'Courier New', monospace;
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>DAG custom-stooklijn HL8 - Interactief</h2>
+        
+        <div class="controls">
+            <h3>Stooklijn instellingen:</h3>
+            <div class="slider-container">
+                <label for="l28-slider"><strong>L28 - Hellingsgraad:</strong></label>
+                <input type="range" id="l28-slider" class="slider" min="-10" max="10" step="0.5" value="-5">
+                <span class="value-display" id="l28-value">-5</span>
+            </div>
+            <div class="slider-container">
+                <label for="l29-slider"><strong>L29 - Set temp bij buiten -15 graden:</strong></label>
+                <input type="range" id="l29-slider" class="slider" min="25" max="75" step="1" value="55">
+                <span class="value-display" id="l29-value">55°C</span>
+            </div>
+        </div>
+        
+        <canvas id="graph" width="700" height="400"></canvas>
+        
+        <div class="info">
+            <h3>DAG Stooklijn eigenschappen:</h3>
+            <p><strong>Referentie-punt:</strong> (-15°C, <span id="ref-temp">55</span>°C)</p>
+            <p><strong>Richtingscoëfficiënt:</strong> <span id="slope-display">-5</span> per 10 graden = <span id="slope-decimal">-0.5</span></p>
+            <p><strong>Formule:</strong></p>
+            <div class="formula" id="formula-display">
+                y = -0.5x + 47.5<br>
+                <small>waarbij x = buitentemperatuur (°C) en y = aanvoertemperatuur (°C)</small>
+            </div>
+            <p><strong>Betekenis:</strong> Voor elke 10°C stijging van de buitentemperatuur <span id="meaning-display">daalt</span> de aanvoertemperatuur met <span id="change-amount">5</span>°C</p>
+            <p><em>Deze curve wordt gebruikt tijdens de dag voor normale verwarmingsbehoefte</em></p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('graph');
+        const ctx = canvas.getContext('2d');
+        const l28Slider = document.getElementById('l28-slider');
+        const l29Slider = document.getElementById('l29-slider');
+        const l28Value = document.getElementById('l28-value');
+        const l29Value = document.getElementById('l29-value');
+        const refTemp = document.getElementById('ref-temp');
+        const slopeDisplay = document.getElementById('slope-display');
+        const slopeDecimal = document.getElementById('slope-decimal');
+        const formulaDisplay = document.getElementById('formula-display');
+        const meaningDisplay = document.getElementById('meaning-display');
+        const changeAmount = document.getElementById('change-amount');
+        
+        // Canvas dimensies
+        const width = canvas.width;
+        const height = canvas.height;
+        const margin = 60;
+        
+        // Bereik van de grafiek
+        const xMin = -20;
+        const xMax = 20;
+        const yMin = 20;
+        const yMax = 80;
+        
+        // Schaalfactoren
+        const xScale = (width - 2 * margin) / (xMax - xMin);
+        const yScale = (height - 2 * margin) / (yMax - yMin);
+        
+        // Functie om coördinaten om te zetten naar canvas pixels
+        function toCanvas(x, y) {
+            const canvasX = margin + (x - xMin) * xScale;
+            const canvasY = height - margin - (y - yMin) * yScale;
+            return [canvasX, canvasY];
+        }
+        
+        function drawGraph(l28, l29) {
+            // Canvas wissen
+            ctx.clearRect(0, 0, width, height);
+            
+            // Achtergrond
+            ctx.fillStyle = '#fafafa';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Grid tekenen
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            
+            // Verticale gridlijnen (elke 5°C)
+            for (let x = xMin; x <= xMax; x += 5) {
+                const [canvasX, canvasYGrid] = toCanvas(x, 0);
+                ctx.beginPath();
+                ctx.moveTo(canvasX, margin);
+                ctx.lineTo(canvasX, height - margin);
+                ctx.stroke();
+            }
+            
+            // Horizontale gridlijnen (elke 5°C)
+            for (let y = yMin; y <= yMax; y += 5) {
+                const [canvasXGrid, canvasY] = toCanvas(0, y);
+                ctx.beginPath();
+                ctx.moveTo(margin, canvasY);
+                ctx.lineTo(width - margin, canvasY);
+                ctx.stroke();
+            }
+            
+            // Assen tekenen
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            
+            // X-as (altijd onderaan weergeven)
+            ctx.beginPath();
+            ctx.moveTo(margin, height - margin);
+            ctx.lineTo(width - margin, height - margin);
+            ctx.stroke();
+            
+            // Y-as (bij x=0)
+            const [zeroX, axisY] = toCanvas(0, 0);
+            ctx.beginPath();
+            ctx.moveTo(zeroX, margin);
+            ctx.lineTo(zeroX, height - margin);
+            ctx.stroke();
+            
+            // Stooklijn tekenen
+            ctx.strokeStyle = '#2196F3';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            // Lijn formule: y = (l28/10)x + (l29 - l28/10 * (-15))
+            const slope = l28 / 10;
+            const intercept = l29 - slope * (-15);
+            
+            const startX = xMin;
+            const endX = xMax;
+            
+            let firstPoint = true;
+            for (let x = startX; x <= endX; x += 0.1) {
+                const y = slope * x + intercept;
+                if (y >= yMin && y <= yMax) {
+                    const [canvasX, canvasY] = toCanvas(x, y);
+                    if (firstPoint) {
+                        ctx.moveTo(canvasX, canvasY);
+                        firstPoint = false;
+                    } else {
+                        ctx.lineTo(canvasX, canvasY);
+                    }
+                }
+            }
+            ctx.stroke();
+            
+            // Referentiepunt markeren
+            const [startCanvasX, startCanvasY] = toCanvas(-15, l29);
+            ctx.fillStyle = '#FF5722';
+            ctx.beginPath();
+            ctx.arc(startCanvasX, startCanvasY, 6, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            // Referentiepunt label
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.fillText(`(-15°C, ${l29}°C)`, startCanvasX + 10, startCanvasY - 10);
+            
+            // Enkele andere punten markeren
+            const points = [
+                {x: -10, y: slope * (-10) + intercept, label: `(-10°C, ${(slope * (-10) + intercept).toFixed(1)}°C)`},
+                {x: -5, y: slope * (-5) + intercept, label: `(-5°C, ${(slope * (-5) + intercept).toFixed(1)}°C)`},
+                {x: 0, y: intercept, label: `(0°C, ${intercept.toFixed(1)}°C)`},
+                {x: 5, y: slope * 5 + intercept, label: `(5°C, ${(slope * 5 + intercept).toFixed(1)}°C)`},
+                {x: 10, y: slope * 10 + intercept, label: `(10°C, ${(slope * 10 + intercept).toFixed(1)}°C)`},
+                {x: 15, y: slope * 15 + intercept, label: `(15°C, ${(slope * 15 + intercept).toFixed(1)}°C)`}
+            ];
+            
+            ctx.fillStyle = '#4CAF50';
+            points.forEach(point => {
+                if (point.y >= yMin && point.y <= yMax) {
+                    const [px, py] = toCanvas(point.x, point.y);
+                    ctx.beginPath();
+                    ctx.arc(px, py, 4, 0, 2 * Math.PI);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#333';
+                    ctx.font = '10px Arial';
+                    ctx.fillText(point.label, px + 8, py - 8);
+                    ctx.fillStyle = '#4CAF50';
+                }
+            });
+            
+            // Labels voor assen
+            ctx.fillStyle = '#333';
+            ctx.font = '14px Arial';
+            ctx.fillText('Buitentemperatuur (°C)', width/2 - 80, height - 20);
+            
+            ctx.save();
+            ctx.translate(20, height/2 + 80);
+            ctx.rotate(-Math.PI/2);
+            ctx.fillText('Aanvoertemperatuur (°C)', 0, 0);
+            ctx.restore();
+            
+            // X-as labels
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            for (let x = xMin; x <= xMax; x += 5) {
+                const [canvasXLabel, canvasYLabel] = toCanvas(x, 0);
+                ctx.fillText(x.toString(), canvasXLabel, height - margin + 20);
+            }
+            
+            // Y-as labels
+            ctx.textAlign = 'right';
+            for (let y = yMin; y <= yMax; y += 5) {
+                const [canvasXAxis, canvasYAxis] = toCanvas(0, y);
+                ctx.fillText(y.toString(), zeroX - 10, canvasYAxis + 4);
+            }
+        }
+        
+        function updateDisplay(l28, l29) {
+            const slope = l28 / 10;
+            const intercept = l29 - slope * (-15);
+            
+            l28Value.textContent = l28;
+            l29Value.textContent = l29 + '°C';
+            refTemp.textContent = l29;
+            slopeDisplay.textContent = l28;
+            slopeDecimal.textContent = slope.toFixed(1);
+            
+            formulaDisplay.innerHTML = `y = ${slope.toFixed(1)}x + ${intercept.toFixed(1)}<br><small>waarbij x = buitentemperatuur (°C) en y = aanvoertemperatuur (°C)</small>`;
+            
+            const absChange = Math.abs(l28);
+            if (l28 < 0) {
+                meaningDisplay.textContent = 'daalt';
+            } else if (l28 > 0) {
+                meaningDisplay.textContent = 'stijgt';
+            } else {
+                meaningDisplay.textContent = 'blijft gelijk (';
+            }
+            changeAmount.textContent = absChange;
+        }
+        
+        // Event listeners voor beide sliders
+        function updateGraph() {
+            const l28 = parseFloat(l28Slider.value);
+            const l29 = parseInt(l29Slider.value);
+            updateDisplay(l28, l29);
+            drawGraph(l28, l29);
+        }
+        
+        l28Slider.addEventListener('input', updateGraph);
+        l29Slider.addEventListener('input', updateGraph);
+        
+        // Initiële tekening
+        updateDisplay(-5, 55);
+        drawGraph(-5, 55);
+    </script>
+</body>
+</html>
