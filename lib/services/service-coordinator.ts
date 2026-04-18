@@ -117,6 +117,7 @@ export class ServiceCoordinator {
       buildingInsightsService: this.buildingInsights,
       onModbusRead: (addr) => this.readRegister(addr),
       onModbusWrite: (addr, raw) => this.writeRaw(addr, raw, false),
+      onSetDiyHeatingCurve: (k, b) => this.setDiyHeatingCurve(k, b),
     });
 
     this.snapshotTrigger = new SnapshotTriggerService();
@@ -692,6 +693,10 @@ export class ServiceCoordinator {
 
   async setHotWaterCurve(curve: number): Promise<void> {
     return this.modbusConnection.setHotWaterCurve(curve);
+  }
+
+  async setDiyHeatingCurve(k: number, b: number): Promise<void> {
+    return this.modbusConnection.setDiyHeatingCurve(k, b);
   }
 
   async setUserMode(mode: 0 | 1 | 2): Promise<void> {

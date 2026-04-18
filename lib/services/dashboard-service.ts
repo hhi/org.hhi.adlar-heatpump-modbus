@@ -102,6 +102,9 @@ export interface DashboardServiceOptions {
  *   GET /api/registers         → alle registerblokken als JSON  (ADR-046)
  *   POST /api/expert/read      → lees één register live        (ADR-046)
  *   POST /api/expert/write     → schrijf één register/coil     (ADR-046)
+ *   GET /heating-curve         → public/heating_curve_line.html (ADR-049)
+ *   GET /heating-curve.html    → zelfde
+ *   POST /api/set-diy-curve    → schrijf L27/L28/L29           (ADR-049)
  *   *                          → 404
  */
 export class DashboardService {
@@ -116,6 +119,7 @@ export class DashboardService {
   private onWriteRegister: ((address: number, rawValue: number) => Promise<void>) | null = null;
   private onReadRegister: ((address: number, isCoil: boolean) => Promise<number>) | null = null;
   private onWriteExpert: ((address: number, rawValue: number, isCoil: boolean) => Promise<void>) | null = null;
+  private onSetDiyHeatingCurve: ((k: number, b: number) => Promise<void>) | null = null;
 
   constructor(options: DashboardServiceOptions) {
     this.port = options.port ?? 8090;
@@ -136,6 +140,10 @@ export class DashboardService {
 
   setWriteExpertCallback(fn: (address: number, rawValue: number, isCoil: boolean) => Promise<void>): void {
     this.onWriteExpert = fn;
+  }
+
+  setDiyHeatingCurveCallback(fn: (k: number, b: number) => Promise<void>): void {
+    this.onSetDiyHeatingCurve = fn;
   }
 
   /** Sla de meest recente snapshot op (overschrijft de vorige). */
@@ -234,6 +242,16 @@ export class DashboardService {
     }
     if (method === 'POST' && url === '/api/expert/write') {
       await this._handleExpertWrite(req, res);
+      return;
+    }
+
+    // ADR-049: DIY stooklijn
+    if (method === 'GET' && (url === '/heating-curve' || url === '/heating-curve.html')) {
+      await this._serveFile(res, 'heating_curve_line.html');
+      return;
+    }
+    if (method === 'POST' && url === '/api/set-diy-curve') {
+      await this._handleSetDiyCurve(req, res);
       return;
     }
 
@@ -406,6 +424,46 @@ export class DashboardService {
 
     try {
       await this.onWriteExpert(address, clampedRaw, coil);
+      this._jsonOk(res);
+    } catch (err) {
+      this._jsonError(res, 500, (err as Error).message);
+    }
+  }
+
+  // ── ADR-049: POST /api/set-diy-curve ─────────────────────────────────────────
+
+  private async _handleSetDiyCurve(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+    if (!this.onSetDiyHeatingCurve) {
+      this._jsonError(res, 503, 'DIY stooklijn callback niet beschikbaar');
+      return;
+    }
+
+    let body: unknown;
+    try { body = await this._readBody(req); } catch {
+      this._jsonError(res, 400, 'Ongeldige JSON body');
+      return;
+    }
+
+    const { slope, intercept } = body as Record<string, unknown>;
+    if (typeof slope !== 'number' || !Number.isFinite(slope)) {
+      this._jsonError(res, 400, 'Verplicht veld: slope (number, bijv. -0.5)');
+      return;
+    }
+    if (typeof intercept !== 'number' || !Number.isFinite(intercept)) {
+      this._jsonError(res, 400, 'Verplicht veld: intercept (number, bijv. 55)');
+      return;
+    }
+    if (slope < -5.0 || slope > 0.0) {
+      this._jsonError(res, 400, `slope buiten bereik: min=-5.0, max=0.0`);
+      return;
+    }
+    if (intercept < 30 || intercept > 80) {
+      this._jsonError(res, 400, `intercept buiten bereik: min=30, max=80`);
+      return;
+    }
+
+    try {
+      await this.onSetDiyHeatingCurve(slope, intercept);
       this._jsonOk(res);
     } catch (err) {
       this._jsonError(res, 500, (err as Error).message);

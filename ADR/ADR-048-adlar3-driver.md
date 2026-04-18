@@ -147,7 +147,18 @@ De nieuwe driver krijgt een volledig eigen device-specifieke laag. De protocol-a
 
 De nieuwe service definieert een eigen snapshot-interface (`Adlar3DataSnapshot`) met de velden die beschikbaar zijn voor dit apparaat. `device.ts` van de Adlar III driver implementeert `applyModbusSnapshot(snap: Adlar3DataSnapshot)` en mapt naar Homey capabilities.
 
-### 4.5 Gedeelde services — geen aanpassingen nodig
+### 4.5 Register-naar-capability transformaties
+
+De exacte schaalfactoren en coderingen van Adlar III-registers zijn nog niet volledig gedocumenteerd. Bij de implementatie moet voor elk register worden vastgesteld:
+
+- **Schaalfactor** — bijv. raw `520` → `52.0 °C` (×0.1), of raw `52` → `52 °C` (×1). Dit verschilt mogelijk per registertype en moet worden afgeleid uit de Adlar III-specificaties of via meting.
+- **Signed vs. unsigned** — buitentemperatuur en andere waarden die negatief kunnen zijn vereisen `s16()`-interpretatie; de meeste statusregisters zijn `u16()`.
+- **Bitfields** — meerdere waarden in één register (zie register 38 en 2103). De maskers en bit-posities horen thuis in `adlar3-modbus-registers.ts` als constanten.
+- **Omgekeerde transformatie bij schrijven** — setpoints die als `×0.1` worden opgeslagen vereisen `Math.round(value * 10)` vóór schrijven naar het register.
+
+`adlar3-modbus-registers.ts` legt per register minimaal vast: adres, schaalfactor (`multiply`), signed/unsigned, en eventuele bit-definities. `adlar3-modbus-service.ts` past de transformatie toe bij het bouwen van de snapshot en keert hem om bij schrijfoperaties.
+
+### 4.6 Gedeelde services — geen aanpassingen nodig
 
 De volgende services werken zonder wijziging voor de nieuwe driver omdat ze uitsluitend via `device.getCapabilityValue()` en `device.getSetting()` communiceren:
 

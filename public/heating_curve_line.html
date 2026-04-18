@@ -7,9 +7,30 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
             background-color: #f5f5f5;
         }
+        nav {
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            padding: 8px 20px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        nav a {
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            border: 1px solid #334155;
+            transition: background 0.15s, color 0.15s;
+        }
+        nav a:hover { background: #334155; color: #f8fafc; }
+        nav a.active { background: #0f172a; color: #38bdf8; border-color: #38bdf8; }
         .container {
             background: white;
             padding: 20px;
@@ -81,9 +102,43 @@
             border-radius: 4px;
             margin: 10px 0;
         }
+        .apply-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff8e1;
+            border-radius: 4px;
+            border-left: 4px solid #ff9800;
+        }
+        .apply-btn {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .apply-btn:hover { background: #e65100; }
+        .apply-btn:disabled { background: #ccc; cursor: default; }
+        .apply-desc { margin: 6px 0; font-size: 14px; }
+        .feedback {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: none;
+        }
+        .feedback.ok { background: #e8f5e9; color: #2e7d32; display: block; }
+        .feedback.error { background: #ffebee; color: #c62828; display: block; }
     </style>
 </head>
 <body>
+<nav>
+  <a href="/">Dashboard</a>
+  <a href="/interactive">Interactief</a>
+  <a href="/expert">Expert</a>
+  <a href="/heating-curve" class="active">Stooklijn</a>
+</nav>
     <div class="container">
         <h2>DAG custom-stooklijn HL8 - Interactief</h2>
         
@@ -103,6 +158,13 @@
         
         <canvas id="graph" width="700" height="400"></canvas>
         
+        <div class="apply-section">
+            <strong>Toepassen op warmtepomp</strong>
+            <p class="apply-desc">Schrijft de huidige slider-waarden als L28/L29 naar de warmtepomp via Modbus.</p>
+            <button type="button" class="apply-btn" id="apply-btn">Toepassen op warmtepomp</button>
+            <div class="feedback" id="apply-feedback"></div>
+        </div>
+
         <div class="info">
             <h3>DAG Stooklijn eigenschappen:</h3>
             <p><strong>Referentie-punt:</strong> (-15°C, <span id="ref-temp">55</span>°C)</p>
@@ -328,6 +390,39 @@
         // Initiële tekening
         updateDisplay(-5, 55);
         drawGraph(-5, 55);
+
+        // Toepassen op warmtepomp
+        const applyBtn = document.getElementById('apply-btn');
+        const applyFeedback = document.getElementById('apply-feedback');
+
+        applyBtn.addEventListener('click', async () => {
+            const k = parseFloat(l28Slider.value) / 10;
+            const b = parseInt(l29Slider.value, 10);
+            applyBtn.disabled = true;
+            applyFeedback.className = 'feedback';
+            applyFeedback.textContent = 'Bezig…';
+            applyFeedback.className = 'feedback ok';
+            try {
+                const r = await fetch('/api/set-diy-curve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ slope: k, intercept: b }),
+                });
+                const data = await r.json();
+                if (data.ok) {
+                    applyFeedback.textContent = `Geschreven: helling ${k}, intercept ${b}°C. Capabilities worden binnen 30s bijgewerkt.`;
+                    applyFeedback.className = 'feedback ok';
+                } else {
+                    applyFeedback.textContent = `Fout: ${data.error}`;
+                    applyFeedback.className = 'feedback error';
+                }
+            } catch (err) {
+                applyFeedback.textContent = `Verbindingsfout: ${err.message}`;
+                applyFeedback.className = 'feedback error';
+            } finally {
+                applyBtn.disabled = false;
+            }
+        });
     </script>
 </body>
 </html>
