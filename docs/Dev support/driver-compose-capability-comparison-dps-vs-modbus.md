@@ -2,8 +2,8 @@
 
 This note compares the capability lists from:
 
-- DPS driver: `/Users/hermanhilberink/Documents/GitHub/org.hhi.adlar-heatpump/drivers/intelligent-heat-pump/driver.compose.json`
-- Modbus driver: `/Users/hermanhilberink/Documents/GitHub/org.hhi.adlar-heatpump-modbus/drivers/intelligent-heatpump-modbus/driver.compose.json`
+- DPS driver: `drivers/intelligent-heat-pump/driver.compose.json` (org.hhi.adlar-heatpump)
+- Modbus driver: `drivers/intelligent-heatpump-modbus/driver.compose.json` (org.hhi.adlar-heatpump-modbus)
 
 It complements:
 
