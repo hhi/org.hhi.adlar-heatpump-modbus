@@ -7,6 +7,8 @@ import { SelfHealingRegistry } from './lib/self-healing-registry';
 import { Logger, LogLevel } from './lib/logger';
 import { DashboardService } from './lib/services/dashboard-service';
 
+const DEFAULT_DASHBOARD_PORT = 8090;
+
 class MyApp extends App {
 
   // Self-healing registry for automatic error recovery
@@ -17,8 +19,32 @@ class MyApp extends App {
 
   // Local HTTP dashboard server (ADR-041a)
   private _dashboard: DashboardService | null = null;
+  private _dashboardPort = DEFAULT_DASHBOARD_PORT;
 
   get dashboard(): DashboardService | null { return this._dashboard; }
+
+  async setDashboardPort(port: number): Promise<void> {
+    const nextPort = Number.isInteger(port) && port >= 1 && port <= 65535
+      ? port
+      : DEFAULT_DASHBOARD_PORT;
+
+    if (this._dashboard && this._dashboardPort === nextPort) {
+      return;
+    }
+
+    if (this._dashboard) {
+      await this._dashboard.destroy();
+      this._dashboard = null;
+    }
+
+    this._dashboardPort = nextPort;
+    this._dashboard = new DashboardService({
+      appDir: __dirname,
+      logger: (msg, ...args) => this.logger.info(String(msg), ...args),
+      port: this._dashboardPort,
+    });
+    this._dashboard.start();
+  }
 
   /**
    * Override Homey's log() method to route through Logger
@@ -79,11 +105,7 @@ class MyApp extends App {
       }).catch(() => {});
     });
 
-    this._dashboard = new DashboardService({
-      appDir: __dirname,
-      logger: (msg, ...args) => this.logger.info(String(msg), ...args),
-    });
-    this._dashboard.start();
+    await this.setDashboardPort(DEFAULT_DASHBOARD_PORT);
 
     this.logger.info('App initialized');
   }

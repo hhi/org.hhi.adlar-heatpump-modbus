@@ -56,6 +56,7 @@ const WRITABLE_REGISTERS: Record<string, WritableRegisterMeta> = {
 
 interface RegisterMeta {
   key: string;
+  registerId?: string;
   address: number;
   name: string;
   unit?: string;
@@ -522,6 +523,7 @@ function buildRegisterBlocks(): RegisterBlock[] {
       readOnly: false,
       registers: Object.entries(P_PARAMETERS).map(([key, def]) => ({
         key,
+        registerId: _parameterIdFromKey(key),
         address: (def as { address: number }).address,
         name: (def as { name: string }).name,
         unit: (def as { unit?: string }).unit,
@@ -539,6 +541,7 @@ function buildRegisterBlocks(): RegisterBlock[] {
       readOnly: false,
       registers: Object.entries(L_PARAMETERS).map(([key, def]) => ({
         key,
+        registerId: _parameterIdFromKey(key),
         address: (def as { address: number }).address,
         name: (def as { name: string }).name,
         unit: (def as { unit?: string }).unit,
@@ -591,6 +594,11 @@ function buildRegisterBlocks(): RegisterBlock[] {
       })),
     },
   ];
+}
+
+function _parameterIdFromKey(key: string): string | undefined {
+  const match = key.match(/^([PL]\d+)_/);
+  return match?.[1];
 }
 
 function _serializeBits(def: unknown): Record<string, number> | undefined {

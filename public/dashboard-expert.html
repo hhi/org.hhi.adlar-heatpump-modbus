@@ -37,6 +37,7 @@
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: #1a1f2e; }
   .addr { font-family: monospace; color: #818cf8; }
+  .reg-id { font-family: monospace; color: #38bdf8; font-weight: 600; white-space: nowrap; }
   .val-raw { font-family: monospace; color: #f1f5f9; }
   .val-scaled { color: #94a3b8; font-size: 0.78rem; }
   .unit { color: #475569; font-size: 0.75rem; }
@@ -180,7 +181,7 @@ function renderBlocks() {
       <div class="block-body">
         <table>
           <thead><tr>
-            <th>Adres</th><th>Naam</th><th>Registerwaarde</th><th>Geschaald</th><th>Eenheid</th><th>Bereik</th><th></th>
+            <th>Adres</th><th>ID</th><th>Naam</th><th>Registerwaarde</th><th>Geschaald</th><th>Eenheid</th><th>Bereik</th><th></th>
           </tr></thead>
           <tbody id="tbody-${block.id}">
             ${block.registers.map(reg => renderRow(block, reg)).join('')}
@@ -210,6 +211,7 @@ function renderRow(block, reg) {
   return `
     <tr id="row-${reg.address}" data-addr="${reg.address}" data-multiply="${reg.multiply||1}" data-iscoil="${!!reg.isCoil}">
       <td class="addr">${addrHex}${bitsBtn}</td>
+      <td class="reg-id">${esc(reg.registerId || '')}</td>
       <td class="name-cell">${nameHtml}</td>
       <td class="val-raw" id="raw-${reg.address}">—</td>
       <td class="val-scaled" id="scaled-${reg.address}">—</td>
@@ -220,7 +222,7 @@ function renderRow(block, reg) {
         ${writeBtn}
       </td>
     </tr>
-    ${hasBits ? `<tr class="bits-row" id="bits-${reg.address}"><td colspan="7">${renderBitsTable(reg)}</td></tr>` : ''}`;
+    ${hasBits ? `<tr class="bits-row" id="bits-${reg.address}"><td colspan="8">${renderBitsTable(reg)}</td></tr>` : ''}`;
 }
 
 function renderBitsTable(reg) {
@@ -332,7 +334,7 @@ function openWriteDialog(addr) {
 
   const addrHex = '0x' + addr.toString(16).toUpperCase().padStart(4, '0');
   document.getElementById('dlg-title').textContent = 'Schrijf naar ' + (reg.name || reg.key);
-  document.getElementById('dlg-addr').textContent = addrHex + (reg.isCoil ? '  ·  Type: Coil (FC05)' : '  ·  FC06');
+  document.getElementById('dlg-addr').textContent = `${reg.registerId ? reg.registerId + '  ·  ' : ''}${addrHex}${reg.isCoil ? '  ·  Type: Coil (FC05)' : '  ·  FC06'}`;
   document.getElementById('dlg-feedback').textContent = '';
   document.getElementById('dlg-feedback').className = 'dlg-feedback';
 

@@ -95,6 +95,36 @@ export const MIN_PROTOCOL_COIL_SUPPORT = 130; // v2.2
  */
 export const TEMP_MULTIPLY = 0.1; // v2.2
 
+// ADR-050: Configureerbare schaalfactor voor temperatuurregisters
+export type TemperatureRegisterScale = 'x1' | 'x10';
+
+export const ADLAR2_TEMPERATURE_REGISTER_ADDRESSES = new Set<number>([
+  0x0047, 0x0048, 0x0049,
+  0x004A, 0x004B, 0x004C, 0x004D, 0x004E, 0x004F, 0x0050, 0x0051, 0x0052,
+  0x0054, 0x0055, 0x0059,
+  0x0072, 0x0073, 0x0074, 0x0075,
+  0x007C,
+  0x00FA, 0x00FB, 0x00FC, 0x00FD, 0x00FE, 0x00FF,
+  0x0300, 0x0301, 0x0302, 0x0303,
+  0x0306,
+  0x0317, 0x0319,
+]);
+
+export function isAdlar2TemperatureRegister(
+  address: number,
+  def: { unit?: string },
+): boolean {
+  return def.unit === '°C' && ADLAR2_TEMPERATURE_REGISTER_ADDRESSES.has(address);
+}
+
+export function decodeTemperatureRaw(raw: number, scale: TemperatureRegisterScale): number {
+  return scale === 'x10' ? raw * 0.1 : raw;
+}
+
+export function encodeTemperatureRaw(tempC: number, scale: TemperatureRegisterScale): number {
+  return scale === 'x10' ? Math.round(tempC * 10) : Math.round(tempC);
+}
+
 // ============================================================================
 // BLOK 1: STATUS & FAULT REGISTERS (0x00000x0028) Read-Only
 // ============================================================================

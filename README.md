@@ -8,6 +8,7 @@ This app gives Homey Pro local Modbus TCP access to an Adlar Castra / Aurora II 
 - The old Tuya fields such as Device ID, Local Key and protocol version are not used in this Modbus app.
 - Polling intervals are configurable in the device settings (default `10 s / 30 s / 300 s`).
 - The current register mapping is aimed at Adlar Castra / Aurora II units that use the `R32` Modbus register map.
+- Temperature register scaling is configurable (`x1` or `x10`) for units that report temperatures differently.
 
 ## Requirements
 
@@ -23,6 +24,7 @@ This app gives Homey Pro local Modbus TCP access to an Adlar Castra / Aurora II 
 - Outlet, inlet, ambient, coil, suction, exhaust, DHW, economizer, saturation, buffer and zone temperatures
 - Power, energy, voltage, current, compressor frequency, fan speed, EEV step, pump PWM and water flow
 - Running state, defrost, antifreeze, sterilization and decoded fault information
+- Local dashboards at `http://<homey-ip>:8090/` by default, including an expert register dashboard that shows Modbus addresses plus P/L parameter IDs such as `P88` and `L28`
 
 ### Control From Homey
 
@@ -35,7 +37,7 @@ This app gives Homey Pro local Modbus TCP access to an Adlar Castra / Aurora II 
 ### Calculated Values
 
 - COP based on Modbus power, water temperature delta and water flow
-- If no physical flow meter is connected, a fallback flow value can be configured in the device settings
+- External flow data can be supplied via flow cards for COP calculations when needed
 
 ## Current Limitations
 
@@ -50,19 +52,34 @@ This app gives Homey Pro local Modbus TCP access to an Adlar Castra / Aurora II 
 2. Make sure the gateway is reachable from Homey on the local network.
 3. Add the `Adlar Castra Heat Pump` device in Homey.
 4. Enter the gateway IP address, TCP port and Modbus Unit ID.
-5. Optionally adjust the flow meter and polling settings after pairing.
+5. Optionally adjust polling, temperature scale and other device settings after pairing.
+
+For EW11A wiring and configuration screenshots, see [docs/setup](docs/setup/README.md).
+
+## Local Dashboards
+
+Open the dashboards from a browser on the same local network as Homey:
+
+- `http://<homey-ip>:8090/` — live read-only dashboard with current heat pump values
+- `http://<homey-ip>:8090/interactive` — interactive dashboard for common controls
+- `http://<homey-ip>:8090/expert` — expert register dashboard with Modbus addresses, P/L parameter IDs and live read/write tools
+- `http://<homey-ip>:8090/heating-curve` — DIY heating curve editor
+
+Replace `<homey-ip>` with the IP address of your Homey Pro. Use the expert dashboard with care: writable Modbus registers can change heat pump behaviour.
+The default dashboard port is `8090`; if you changed the Dashboard port setting, use that port in the URL instead.
 
 ## Device Settings
 
 - IP address of the Modbus gateway
 - TCP port
 - Modbus Unit ID
-- External flow meter connected: yes/no
-- Default flow rate in `L/min` for COP fallback
+- Temperature register scale (`x1` or `x10`)
+- Dashboard port (default `8090`)
 - Fast, medium and slow polling intervals
 - Log level
 
 ## Practical Notes
 
-- Recommended defaults: port `502`, Unit ID `1`, fallback flow `20 L/min`.
+- Recommended defaults: port `502`, Unit ID `1`.
+- Use temperature scale `x1` when register `35` means `35 °C`; use `x10` when register `350` means `35.0 °C`.
 - Give the gateway a fixed DHCP lease or static IP address to avoid reconnect issues.

@@ -49,6 +49,76 @@
           "min": 1,
           "max": 247
         }
+      },
+      {
+        "id": "temperature_register_scale",
+        "type": "dropdown",
+        "label": {
+          "en": "Temperature register scale",
+          "nl": "Temperatuur register schaal",
+          "de": "Temperaturregister-Skalierung",
+          "fr": "Échelle des registres de température"
+        },
+        "hint": {
+          "en": "Use x1 when register 35 means 35 °C. Use x10 when register 350 means 35.0 °C.",
+          "nl": "Gebruik x1 als register 35 betekent 35 °C. Gebruik x10 als register 350 betekent 35,0 °C.",
+          "de": "Verwenden Sie x1, wenn Register 35 für 35 °C steht. Verwenden Sie x10, wenn Register 350 für 35,0 °C steht.",
+          "fr": "Utilisez x1 si le registre 35 signifie 35 °C. Utilisez x10 si le registre 350 signifie 35,0 °C."
+        },
+        "value": "x1",
+        "values": [
+          {
+            "id": "x1",
+            "label": {
+              "en": "x1 — raw value is °C (e.g. 35 → 35 °C)",
+              "nl": "x1 — ruwe waarde is °C (bijv. 35 → 35 °C)",
+              "de": "x1 — Rohwert ist °C (z.B. 35 → 35 °C)",
+              "fr": "x1 — valeur brute en °C (ex. 35 → 35 °C)"
+            }
+          },
+          {
+            "id": "x10",
+            "label": {
+              "en": "x10 — raw value is deci-°C (e.g. 350 → 35.0 °C)",
+              "nl": "x10 — ruwe waarde is deci-°C (bijv. 350 → 35,0 °C)",
+              "de": "x10 — Rohwert ist dezi-°C (z.B. 350 → 35,0 °C)",
+              "fr": "x10 — valeur brute en deci-°C (ex. 350 → 35,0 °C)"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "local_dashboards",
+    "type": "group",
+    "label": {
+      "en": "Local Dashboards",
+      "nl": "Lokale dashboards",
+      "de": "Lokale Dashboards",
+      "fr": "Tableaux de bord locaux"
+    },
+    "children": [
+      {
+        "id": "dashboard_port",
+        "type": "number",
+        "label": {
+          "en": "Dashboard port",
+          "nl": "Dashboardpoort",
+          "de": "Dashboard-Port",
+          "fr": "Port des tableaux de bord"
+        },
+        "hint": {
+          "en": "Local HTTP port for the dashboards. Default is 8090. Change this only if the port is already in use, then open http://<homey-ip>:<port>/.",
+          "nl": "Lokale HTTP-poort voor de dashboards. Standaard is 8090. Wijzig dit alleen als de poort al in gebruik is en open daarna http://<homey-ip>:<poort>/.",
+          "de": "Lokaler HTTP-Port fuer die Dashboards. Standard ist 8090. Aendern Sie dies nur, wenn der Port bereits belegt ist, und oeffnen Sie dann http://<homey-ip>:<port>/.",
+          "fr": "Port HTTP local pour les tableaux de bord. La valeur par defaut est 8090. Modifiez uniquement si le port est deja utilise, puis ouvrez http://<homey-ip>:<port>/."
+        },
+        "value": 8090,
+        "attr": {
+          "min": 1024,
+          "max": 65535
+        }
       }
     ]
   },

@@ -29,10 +29,13 @@ import {
   STATUS_2_BITS,
   STATUS_REGISTER_MAP,
   VERSION_REGISTERS,
+  TemperatureRegisterScale,
   calculateDIYCurveTemp,
   decodeFaults,
-  encodeTemperature,
+  decodeTemperatureRaw,
+  encodeTemperatureRaw,
   interpolateCalibration,
+  isAdlar2TemperatureRegister,
   protocolSupportsCoils,
   validateRefrigerant,
 } from './adlar-modbus-registers';
@@ -236,6 +239,8 @@ export interface Adlar2ModbusConfig {
    * Laat leeg voor CLI/test gebruik.
    */
   timerProvider?: TimerProvider;
+  /** ADR-050: schaalfactor voor temperatuurregisters. Default: 'x1'. */
+  temperatureRegisterScale?: TemperatureRegisterScale;
 }
 
 function toRuntimePollGroup(
@@ -322,12 +327,14 @@ function formatPackedVersion(raw: number | null): string | null {
 export class Adlar2ModbusService extends EventEmitter {
 
   private readonly tcp: ModbusTcpService;
+  private readonly temperatureRegisterScale: TemperatureRegisterScale;
   private externalFlowLpm: number | null = null;
   private lastFaults: string[] = [];
 
   constructor(config: Adlar2ModbusConfig) {
     super();
 
+    this.temperatureRegisterScale = config.temperatureRegisterScale ?? 'x1';
     this.tcp = new ModbusTcpService({ ...config.transport, timerProvider: config.timerProvider });
 
     this.tcp.on('disconnected', (reason) => this.emit('disconnected', reason));
@@ -452,7 +459,7 @@ export class Adlar2ModbusService extends EventEmitter {
   async setTemperature(type: SetpointType, tempC: number): Promise<void> {
     const def = SETPOINT_DEFINITIONS[type];
     assertRange(def, tempC);
-    await this.tcp.writeSingleRegister(def.address, encodeTemperature(tempC));
+    await this.tcp.writeSingleRegister(def.address, encodeTemperatureRaw(tempC, this.temperatureRegisterScale));
   }
 
   async setHeatingCurve(curve: number): Promise<void> {
@@ -758,8 +765,13 @@ export class Adlar2ModbusService extends EventEmitter {
 
   private readScaledValue(def: NumericRegisterDefinition, signed = false): number {
     const raw = this.readRawValue(def, signed);
-    const scale = def.multiply ?? 1;
-    let value = raw * scale;
+    let value: number;
+
+    if (isAdlar2TemperatureRegister(def.address, def)) {
+      value = decodeTemperatureRaw(raw, this.temperatureRegisterScale);
+    } else {
+      value = raw * (def.multiply ?? 1);
+    }
 
     if (def.calibrationCurve) {
       value = interpolateCalibration(value, Array.from(def.calibrationCurve));
