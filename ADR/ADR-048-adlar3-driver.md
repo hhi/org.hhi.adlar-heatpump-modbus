@@ -132,22 +132,89 @@ De nieuwe driver krijgt een volledig eigen device-specifieke laag. De protocol-a
 |---|---|
 | `lib/modbus/adlar3-modbus-registers.ts` | Register-adressen, schaalfactoren, pollgroepen, bitfield-helpers |
 | `lib/modbus/adlar3-modbus-service.ts` | FC04 poll, bitfield-decode, m³/h→L/min conversie, `DataSnapshot`-equivalent |
+| `drivers/adlar3-heatpump-modbus/driver.ts` | Pairing, exclusiviteitsguard, device-aanmaak |
 | `drivers/adlar3-heatpump-modbus/device.ts` | Capability-mapping, `onInit`, `onSettings` |
 | `drivers/adlar3-heatpump-modbus/driver.compose.json` | Capabilities, pairing |
 | `drivers/adlar3-heatpump-modbus/driver.settings.compose.json` | Device-instellingen |
 
-### 4.3 Transport-laag uitbreiding: FC04
+### 4.3 Bewuste parallellen tussen beide drivers
+
+Optie A betekent niet dat de twee drivers willekeurig uit elkaar mogen groeien. De parallel moet bewust worden gezocht op **contracten, lifecycle en naming**, niet op een geforceerd gedeeld datamodel.
+
+#### Parallel te houden
+
+| Onderdeel | Richtlijn |
+|---|---|
+| `driver.ts` | Zelfde pairingstructuur, zelfde validatiestijl, zelfde exclusiviteitsguard, zelfde basis-settings |
+| Device lifecycle | Zelfde opbouw van `onInit`, `onSettings`, restart bij gewijzigde verbindingssettings, cleanup in `onUninit` / `onDeleted` |
+| Runtime-contract | Beide drivers implementeren hetzelfde `ModbusRuntimeService<TSnapshot>` contract en gebruiken `ModbusConnectionService<TSnapshot>` |
+| Settings-contract | Zelfde settings keys voor host, port, unit-id, pollintervallen en logniveau |
+| Capability-taxonomie | Zelfde capability IDs waar de semantiek werkelijk gelijk is, bijvoorbeeld `onoff`, temperatuurmetingen, compressorstatus, defroststatus |
+| Diagnostiek | Zelfde semantiek voor connection quality, beschikbaar/unavailable gedrag, reconnect en logging |
+| Registermetadata-stijl | Zelfde vorm voor registerdefinities: adres, registertype, schaalfactor, signed/unsigned, unit, pollgroep, bitmasks |
+| Externe inputs | Zelfde paden voor externe flow, externe power en energieprijzen zolang de capability-sematiek gelijk blijft |
+
+#### Bewust driver-specifiek te houden
+
+| Onderdeel | Waarom niet forceren |
+|---|---|
+| Snapshot-structuur | Aurora II en III hebben inhoudelijk verschillende registersets; een kunstmatig gedeeld `DataSnapshot` verhoogt koppeling |
+| Registermapping | Adressen, function codes, bitfields en schaalfactoren verschillen wezenlijk |
+| Dashboard-data | Het huidige dashboard is Aurora II-specifiek in server én HTML; gelijktrekken zou een aparte refactor zijn |
+| Write-surface | Alleen parallel houden waar de functie ook echt op beide apparaten bestaat; geen schijnpariteit voor DHW-, curve- of mode-features |
+| Triggerlogica op snapshots | Huidige triggerdetectie leunt op Aurora II-sensorkeys; parallelisering kan pas na expliciete normalisatie |
+
+#### Vuistregel
+
+Parallel trekken we dus vooral in:
+
+- lifecycle
+- interfaces
+- settings
+- capability IDs
+- fout- en diagnostiekgedrag
+
+Niet in:
+
+- snapshotvorm
+- dashboardmodel
+- registerlayout
+- apparaat-specifieke write-operaties
+
+### 4.4 Transport-laag uitbreiding: FC04
 
 `modbus-tcp-service.ts` ondersteunt momenteel FC03, FC05 en FC06. Voor de Adlar III moeten sensoren via **FC04** (Read Input Registers) worden uitgelezen. Dit vereist:
 
 - Toevoeging van een `readInputRegisters(address, count)` methode naast de bestaande `readHoldingRegisters()`
 - De pollgroep-definitie in `adlar3-modbus-registers.ts` onderscheidt `holding` en `input` registerblokken
 
-### 4.4 `DataSnapshot`-equivalent voor Adlar III
+**Risico:** `modbus-tcp-service.ts` is gedeelde code. Na de FC04-uitbreiding moet de bestaande Adlar II-integratie handmatig worden geverifieerd (FC03-paden ongewijzigd, reconnect-logica intact).
+
+### 4.5 `DataSnapshot`-equivalent voor Adlar III
 
 De nieuwe service definieert een eigen snapshot-interface (`Adlar3DataSnapshot`) met de velden die beschikbaar zijn voor dit apparaat. `device.ts` van de Adlar III driver implementeert `applyModbusSnapshot(snap: Adlar3DataSnapshot)` en mapt naar Homey capabilities.
 
-### 4.5 Register-naar-capability transformaties
+Minimale veldset op basis van §2.1 en §2.2:
+
+| Veld | Bron | Type |
+|---|---|---|
+| `returnTemp` | reg 42 | `number` (°C) |
+| `supplyTemp` | reg 43 | `number` (°C) |
+| `outsideTemp` | reg 50 | `number` (°C) |
+| `waterPressure` | reg 61 | `number` (bar) |
+| `pwmOutput` | reg 62 | `number` (%) |
+| `waterFlow` | reg 64 | `number` (m³/h) |
+| `fanSpeed` | reg 72 | `number` (RPM) |
+| `compressorFrequency` | reg 79 | `number` (Hz) |
+| `hvacMode` | reg 2100 | `number` |
+| `silentMode` | reg 2103 bits 4–5 | `0 \| 1 \| 2` |
+| `heatingSetpoint` | reg 2107 | `number` (°C) |
+| `statusBits` | reg 38 | `number` (bitfield) |
+| `isDefrost` | reg 38 bit 1 | `boolean` |
+| `isAntiFrost` | reg 38 bit 2 | `boolean` |
+| `isTempTooLow` | reg 38 bit 11 | `boolean` |
+
+### 4.6 Register-naar-capability transformaties
 
 De exacte schaalfactoren en coderingen van Adlar III-registers zijn nog niet volledig gedocumenteerd. Bij de implementatie moet voor elk register worden vastgesteld:
 
@@ -158,7 +225,8 @@ De exacte schaalfactoren en coderingen van Adlar III-registers zijn nog niet vol
 
 `adlar3-modbus-registers.ts` legt per register minimaal vast: adres, schaalfactor (`multiply`), signed/unsigned, en eventuele bit-definities. `adlar3-modbus-service.ts` past de transformatie toe bij het bouwen van de snapshot en keert hem om bij schrijfoperaties.
 
-### 4.6 Gedeelde services — geen aanpassingen nodig
+### 4.7 Gedeelde services — geen aanpassingen nodig
+
 
 De volgende services werken zonder wijziging voor de nieuwe driver omdat ze uitsluitend via `device.getCapabilityValue()` en `device.getSetting()` communiceren:
 
@@ -169,7 +237,7 @@ De volgende services werken zonder wijziging voor de nieuwe driver omdat ze uits
 - `capability-health-service.ts`
 - `cop-calculator.ts`, `rolling-cop-calculator.ts`
 
-### 4.6 Dashboard
+### 4.8 Dashboard
 
 #### Huidige koppeling
 
@@ -186,7 +254,7 @@ De dashboards zijn nu op drie niveaus hard gekoppeld aan Adlar II:
 | Aanpak | Beschrijving | Voordeel | Nadeel |
 |---|---|---|---|
 | **D1 — Twee aparte dashboard-instanties** | Aparte `DashboardService` per driver op een eigen poort (bijv. 8090 voor Adlar II, 8091 voor Adlar III). Elke instantie importeert zijn eigen register-metadata. | Geen wijziging in bestaande `DashboardService` | Twee URL's; `app.ts` moet per actieve driver een instantie beheren |
-| **D2 — Generieke `DashboardService`, metadata geïnjecteerd** | `DashboardService` importeert geen register-metadata meer. Snapshot-type, register-metadata en schrijfbare registers worden bij instantiatie geïnjecteerd door de driver. | Éénmalige refactor; daarna volledig driver-onafhankelijk; één poort en één URL-structuur | Refactor van `DashboardService` vereist |
+| **D2 — Generieke `DashboardService`, metadata geïnjecteerd** | `DashboardService` importeert geen register-metadata meer. Snapshot-type, register-metadata en schrijfbare registers worden bij instantiatie geïnjecteerd door de driver. | Éénmalige refactor; daarna volledig driver-onafhankelijk; één poort en één URL-structuur | Substantiële refactor: `DashboardService` heeft nu 20+ hardcoded imports uit `adlar-modbus-registers.ts` en `adlar2-modbus-service.ts`; ontkoppeling raakt de volledige service inclusief HTML-templates |
 | **D3 — Adlar III zonder expert-dashboard** | Adlar III-driver serveert alleen een read-only snapshot via `/api/snapshot`. Geen expert- of interactief dashboard in eerste versie. | Minimale inspanning | Feature-ongelijkheid tussen drivers; interactief schrijven van setpoints ontbreekt |
 
 #### Beslissing
@@ -200,9 +268,62 @@ Concrete wijzigingen:
   - `writableRegisters` — de whitelist voor het interactieve dashboard
 - De `setSnapshot()`-methode accepteert `unknown` (of een minimale interface met alleen de velden die het basis-dashboard gebruikt); het type-specifieke renderen verhuist naar de HTML-template via de JSON-serialisatie
 - `app.ts` behoudt één `DashboardService`-instantie; de actieve driver registreert zijn metadata bij opstart via een nieuwe methode `app.dashboard?.configure(metadata, writableRegisters)`
-- Write/read-callbacks blijven per driver gebonden — de laatste geregistreerde driver wint; dit is acceptabel zolang beide drivers niet tegelijk op dezelfde Homey draaien
+- Write/read-callbacks blijven per driver gebonden — de laatste geregistreerde driver wint. Dit is alleen acceptabel in combinatie met de exclusiviteitsregel uit §4.9. Zonder die guard zou stille callback-overschrijving onaanvaardbaar zijn.
 
-### 4.7 Capability overlap
+### 4.9 Driver-exclusiviteit en pairingbeleid
+
+Omdat `app.ts` één globale `DashboardService`-instantie heeft en dashboard-callbacks app-breed worden geregistreerd, kiest dit ADR expliciet voor **wederzijdse exclusiviteit** tussen de Aurora II- en Aurora III-driver.
+
+**Beslissing:**
+
+- Op één Homey mag slechts één van beide driverfamilies actief zijn: óf `intelligent-heatpump-modbus` óf `adlar3-heatpump-modbus`
+- Deze regel wordt afgedwongen tijdens pairing in beide drivers (`driver.ts`)
+- Als er al een device van driver A bestaat, faalt pairing van driver B met een duidelijke foutmelding; hetzelfde geldt omgekeerd
+- Homey biedt geen runtime-mechanisme om een driver conditioneel uit de "voeg apparaat toe"-lijst te verwijderen; handhaving gebeurt daarom via een pairing-guard, niet via manifestconfiguratie
+
+**Concrete implementatie:**
+
+De check vindt plaats aan het begin van de `list_devices`-handler, vóórdat er een device-object wordt teruggegeven. De Homey SDK biedt `this.homey.drivers.getDriver(driverId)` waarmee een driver zijn tegenpartij kan opvragen; `.getDevices()` geeft de lijst van gekoppelde devices terug.
+
+Patroon in `drivers/intelligent-heatpump-modbus/driver.ts`:
+
+```typescript
+session.setHandler('list_devices', async () => {
+  const adlar3Driver = this.homey.drivers.getDriver('adlar3-heatpump-modbus');
+  if (adlar3Driver && adlar3Driver.getDevices().length > 0) {
+    throw new Error(this.homey.__('errors.exclusivity_adlar3_active'));
+  }
+  // ... rest van list_devices
+});
+```
+
+Patroon in `drivers/adlar3-heatpump-modbus/driver.ts` (spiegelbeeldig):
+
+```typescript
+session.setHandler('list_devices', async () => {
+  const adlar2Driver = this.homey.drivers.getDriver('intelligent-heatpump-modbus');
+  if (adlar2Driver && adlar2Driver.getDevices().length > 0) {
+    throw new Error(this.homey.__('errors.exclusivity_adlar2_active'));
+  }
+  // ... rest van list_devices
+});
+```
+
+De foutsleutels `errors.exclusivity_adlar3_active` en `errors.exclusivity_adlar2_active` worden toegevoegd aan `locales/en.json` en `locales/nl.json` met een gebruiksvriendelijke melding die aangeeft welke driver al actief is en dat de bestaande koppeling eerst verwijderd moet worden.
+
+**Motivatie:**
+
+- voorkomt stille overschrijving van dashboard snapshot-bron en read/write-callbacks
+- houdt fase 1 van de tweede driver beperkt zonder directe multi-driver refactor van `app.ts` en `dashboard-service.ts`
+- maakt het tijdelijke single-dashboardmodel verdedigbaar totdat een device-scoped dashboardarchitectuur bestaat
+
+**Afgrenzing:**
+
+- Deze exclusiviteitsregel gaat over **Aurora II versus Aurora III**
+- Dit ADR introduceert hiermee geen generiek multi-device model
+- Als later meerdere devices binnen dezelfde driver ondersteund moeten worden, moet de dashboard- en callbackregistratie alsnog device-scoped worden gemaakt
+
+### 4.10 Capability overlap
 
 De Adlar III deelt een groot deel van de Homey capability-namen met de Adlar II (temperaturen, setpoints, compressorstatus). Capability-definitiebestanden in `.homeycompose/capabilities/` worden gedeeld. Adlar III-specifieke capabilities (bijv. waterdruk, PWM-percentage) krijgen een eigen definitie.
 
@@ -215,14 +336,16 @@ Dit ADR dekt:
 1. Analyse van drie architectuuralternatieven met voor- en nadelen
 2. Architectuurbeslissing voor de tweede driver (optie A)
 3. Registermap zoals bekend uit de HA-configuratie
-4. Transportlaag-uitbreiding (FC04)
-5. Verdeling van nieuwe vs. gedeelde bestanden
+4. Verdeling van nieuwe vs. gedeelde bestanden
+5. Ontwerpregels voor wat parallel wordt gehouden tussen beide drivers
+6. Transportlaag-uitbreiding (FC04)
+7. Wederzijdse exclusiviteitsregel tussen Aurora II- en Aurora III-driver
 
 Dit ADR dekt **niet**:
 
 1. Volledigheid van de Adlar III registermap — er zijn vermoedelijk meer registers (tapwater, koeling, foutregisters, curven). Nader onderzoek vereist voor een volledige implementatie.
 2. Concrete capability-set van de nieuwe driver
-3. Pairing-flow en driver-instellingen
+3. Detailuitwerking van pairing-UX en driver-instellingen, behalve de exclusiviteitsregel uit §4.9
 
 ---
 
@@ -245,6 +368,8 @@ Dit ADR dekt **niet**:
 | Transport (gedeeld) | `lib/modbus/modbus-tcp-service.ts` |
 | Adlar II registers (referentie) | `lib/modbus/adlar-modbus-registers.ts` |
 | Adlar II service (referentie) | `lib/modbus/adlar2-modbus-service.ts` |
+| Huidige driver pairing | `drivers/intelligent-heatpump-modbus/driver.ts` |
 | Adlar III specs | `docs/Heatpump specs/modbus/Adlar III/ha-modbus-regs.txt` |
+| Nieuwe driver pairing (te maken) | `drivers/adlar3-heatpump-modbus/driver.ts` |
 | Nieuwe registers (te maken) | `lib/modbus/adlar3-modbus-registers.ts` |
 | Nieuwe service (te maken) | `lib/modbus/adlar3-modbus-service.ts` |

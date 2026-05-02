@@ -44,6 +44,7 @@ interface DeviceSettings {
   poll_fast_s: number;
   poll_medium_s: number;
   poll_slow_s: number;
+  dashboard_port: number;
   log_level: string;
   enable_power_measurements: boolean;
 }
@@ -82,6 +83,7 @@ class AdlarModbusDevice extends Homey.Device {
 
     this.logger.info('Device initializing:', this.getName());
 
+    await this._applyDashboardPort(settings.dashboard_port ?? 8090);
     await this._ensureCapabilities();
     await this._applyPowerCapabilities(settings.enable_power_measurements ?? true);
 
@@ -157,8 +159,13 @@ class AdlarModbusDevice extends Homey.Device {
       await this._applyPowerCapabilities((newSettings.enable_power_measurements ?? true) as boolean);
     }
 
+    if (changedKeys.includes('dashboard_port')) {
+      await this._applyDashboardPort((newSettings.dashboard_port ?? 8090) as number);
+      this._registerDashboardCallbacks();
+    }
+
     // Restart connection if connection settings changed
-    const connectionKeys = ['modbus_host', 'modbus_port', 'modbus_unit_id', 'poll_fast_s', 'poll_medium_s', 'poll_slow_s'];
+    const connectionKeys = ['modbus_host', 'modbus_port', 'modbus_unit_id', 'poll_fast_s', 'poll_medium_s', 'poll_slow_s', 'temperature_register_scale'];
     if (changedKeys.some((k) => connectionKeys.includes(k))) {
       this.logger.info('Connection settings changed — restarting coordinator');
       await this._restartCoordinator(newSettings as DeviceSettings);
@@ -188,6 +195,14 @@ class AdlarModbusDevice extends Homey.Device {
         this.logger.info(`Removed capability: ${cap}`);
       }
     }
+  }
+
+  private async _applyDashboardPort(port: number): Promise<void> {
+    const app = this.homey.app as unknown as {
+      setDashboardPort?(dashboardPort: number): Promise<void>;
+    };
+    if (!app.setDashboardPort) return;
+    await app.setDashboardPort(port);
   }
 
   private async _ensureCapabilities(): Promise<void> {

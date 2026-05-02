@@ -8,6 +8,7 @@ Huidige status van de implementatie
 - Oude Tuya-velden zoals Device ID, Local Key en protocolversie worden in deze Modbus-app niet gebruikt.
 - Poll-intervallen zijn configureerbaar in de apparaatinstellingen (standaard 10 s / 30 s / 300 s).
 - De huidige registermapping is gericht op Adlar Castra / Aurora II-units die de R32 Modbus-registermap gebruiken.
+- De schaal voor temperatuurregisters is instelbaar (x1 of x10) voor units die temperaturen anders rapporteren.
 
 Vereisten
 
@@ -22,6 +23,7 @@ Uitlezen
 - Uitlaat-, inlaat-, omgevings-, spoel-, zuig-, uitlaat-, DHW-, economizer-, verzadigings-, buffer- en zonetemperaturen
 - Vermogen, energie, spanning, stroom, compressorfrequentie, ventilatorsnelheid, EEV-stap, pomp-PWM en waterdebiet
 - Bedrijfsstatus, ontdooien, antivries, sterilisatie en gedecodeerde storingsinformatie
+- Lokale dashboards standaard op http://<homey-ip>:8090/, inclusief een expertdashboard dat Modbus-adressen plus P/L-parameter-ID's zoals P88 en L28 toont
 
 Bediening vanuit Homey
 - Hoofd aan/uit
@@ -32,7 +34,7 @@ Bediening vanuit Homey
 
 Berekende waarden
 - COP op basis van Modbus-vermogen, watertemperatuurverschil en waterdebiet
-- Als er geen fysieke debietmeter is aangesloten, kan in de apparaatinstellingen een fallback-debietwaarde worden ingesteld
+- Externe debietdata kan indien nodig via flow kaarten worden aangeleverd voor COP-berekeningen
 
 Huidige beperkingen
 
@@ -47,19 +49,34 @@ Installatie
 2. Zorg dat de gateway vanaf Homey bereikbaar is op het lokale netwerk.
 3. Voeg in Homey het apparaat "Adlar Castra Warmtepomp" toe.
 4. Vul het IP-adres, de TCP-poort en de Modbus Unit ID van de gateway in.
-5. Pas na het koppelen desgewenst de instellingen voor debietmeter en polling aan.
+5. Pas na het koppelen desgewenst polling, temperatuurschaal en overige apparaatinstellingen aan.
+
+Zie [docs/setup](docs/setup/README.md) voor EW11A-aansluitbeelden en configuratiescreenshots.
+
+Lokale dashboards
+
+Open de dashboards met een browser op hetzelfde lokale netwerk als Homey:
+
+- http://<homey-ip>:8090/ - live read-only dashboard met actuele warmtepompwaarden
+- http://<homey-ip>:8090/interactive - interactief dashboard voor veelgebruikte bediening
+- http://<homey-ip>:8090/expert - expertdashboard met Modbus-adressen, P/L-parameter-ID's en live lees-/schrijftools
+- http://<homey-ip>:8090/heating-curve - editor voor de DIY-stooklijn
+
+Vervang <homey-ip> door het IP-adres van je Homey Pro. Gebruik het expertdashboard zorgvuldig: schrijfbare Modbus-registers kunnen het gedrag van de warmtepomp wijzigen.
+De standaard dashboardpoort is 8090; als je de instelling Dashboardpoort hebt aangepast, gebruik dan die poort in de URL.
 
 Apparaatinstellingen
 
 - IP-adres van de Modbus-gateway
 - TCP-poort
 - Modbus Unit ID
-- Externe debietmeter aangesloten: ja/nee
-- Standaard debiet in L/min voor COP-fallback
+- Temperatuur register schaal (x1 of x10)
+- Dashboardpoort (standaard 8090)
 - Snelle, middelmatige en langzame poll-intervallen
 - Logniveau
 
 Praktische opmerkingen
 
-- Aanbevolen standaardwaarden: poort 502, Unit ID 1, fallback-debiet 20 L/min.
+- Aanbevolen standaardwaarden: poort 502, Unit ID 1.
+- Gebruik temperatuurschaal x1 als register 35 betekent 35 graden C; gebruik x10 als register 350 betekent 35,0 graden C.
 - Geef de gateway een vaste DHCP-reservering of statisch IP-adres om reconnect-problemen te voorkomen.

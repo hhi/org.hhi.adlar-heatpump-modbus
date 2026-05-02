@@ -1,4 +1,16 @@
 {
+  "2.1.2": {
+    "en": "Local dashboards: the HTTP port is now configurable in device settings (default 8090). Use this when port 8090 is already in use; dashboard URLs use the configured port.",
+    "nl": "Lokale dashboards: de HTTP-poort is nu instelbaar in de apparaatinstellingen (standaard 8090). Gebruik dit als poort 8090 al in gebruik is; dashboard-URL's gebruiken de ingestelde poort."
+  },
+  "2.1.1": {
+    "en": "Expert dashboard: P and L parameter IDs (e.g. P88, L28) are now shown next to the Modbus address and in the write dialog.",
+    "nl": "Expertdashboard: P- en L-parameter-ID's (bijv. P88, L28) worden nu naast het Modbus-adres en in het schrijfvenster getoond."
+  },
+  "2.1.0": {
+    "en": "New setting 'Temperature register scale' (x1 / x10) in the Modbus Connection group. Use x1 when the heat pump reports temperatures directly in °C (e.g. register 35 = 35 °C). Use x10 when temperatures are stored as deci-°C (e.g. register 350 = 35.0 °C). Default is x1. Applies to all temperature sensors, limits, and setpoints. Changing this setting restarts the Modbus connection.",
+    "nl": "Nieuwe instelling 'Temperatuur register schaal' (x1 / x10) in de groep Modbus Verbinding. Gebruik x1 als de warmtepomp temperaturen direct in °C rapporteert (bijv. register 35 = 35 °C). Gebruik x10 als temperaturen als deci-°C zijn opgeslagen (bijv. register 350 = 35,0 °C). Standaard is x1. Geldt voor alle temperatuursensoren, limieten en setpoints. Het wijzigen van deze instelling herstart de Modbus-verbinding."
+  },
   "2.0.2": {
     "en": "App icon updated to Adlar III Modbus. New flow action 'Set Custom heating curve (L28/L29)': writes slope and intercept directly to Modbus registers L27, L28, and L29. New dashboard page: interactive heating curve visualisation with a 'Apply to heat pump' button, accessible at http://<homey-ip>:8090/heating-curve. Navigation bar added to all dashboard pages. DIY heating curve registers (L27–L29) moved to the 30-second poll group so capabilities update within 30 seconds after a write.",
     "nl": "App-icoon bijgewerkt naar Adlar III Modbus. Nieuwe flow-actie 'Stel Custom stooklijn in (L28/L29)': schrijft helling en intercept direct naar Modbus-registers L27, L28 en L29. Nieuwe dashboardpagina: interactieve stooklijn-visualisatie met knop 'Toepassen op warmtepomp', bereikbaar via http://<homey-ip>:8090/heating-curve. Navigatiebalk toegevoegd aan alle dashboardpagina's. DIY stooklijn-registers (L27–L29) verplaatst naar de 30-seconden pollgroep, zodat capabilities binnen 30 seconden na een schrijfactie worden bijgewerkt."

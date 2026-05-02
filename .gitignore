@@ -13,3 +13,4 @@ plans
 plans/
 .claude/settings.local.json
 .claude/worktrees/
+ADR/
