@@ -5,7 +5,7 @@
     "en": "Sterilization mode active",
     "nl": "Sterilisatiemodus actief"
   },
-  "icon": "/assets/adlar-icon-white.svg",
+  "icon": "/assets/sterilization.svg",
   "uiComponent": "sensor",
   "getable": true,
   "setable": false,

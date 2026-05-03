@@ -194,6 +194,7 @@ export interface DiyHeatingCurve {
 export interface DiagnosticsSnapshot {
   connectionQuality: 'online' | 'degraded' | 'offline';
   consecutiveFastPollFailures: number;
+  consecutiveSuperfastPollFailures: number;
   lastSuccessfulFastPollAt: number | null;
   lastErrorContext: string | null;
 }
