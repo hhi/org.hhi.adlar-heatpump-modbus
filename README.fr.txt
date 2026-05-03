@@ -8,7 +8,7 @@ Etat actuel de l'implementation
 - Les anciens champs Tuya comme Device ID, Local Key et version de protocole ne sont pas utilises dans cette application Modbus.
 - Les intervalles de polling sont configurables dans les parametres du peripherique (10 s / 30 s / 300 s par defaut).
 - La cartographie actuelle des registres vise les unites Adlar Castra / Aurora II qui utilisent la table de registres Modbus R32.
-- L'echelle des registres de temperature est configurable (x1 ou x10) pour les unites qui rapportent les temperatures differemment.
+- L'echelle des registres de temperature est detectee automatiquement a partir du type de refrigerant (P119) : R32 utilise x1 (°C), R290 utilise x10 (deci-°C).
 
 Prerequis
 
@@ -49,7 +49,7 @@ Installation
 2. Verifiez que la passerelle est joignable depuis Homey sur le reseau local.
 3. Ajoutez dans Homey le peripherique "Adlar Castra Heat Pump".
 4. Saisissez l'adresse IP, le port TCP et le Modbus Unit ID de la passerelle.
-5. Apres l'appairage, ajustez si besoin le polling, l'echelle de temperature et les autres parametres du peripherique.
+5. Apres l'appairage, ajustez si besoin les intervalles de polling et les autres parametres du peripherique.
 
 Pour les schemas de cablage EW11A et les captures de configuration, voir docs/setup/README.md.
 
@@ -70,7 +70,6 @@ Parametres du peripherique
 - Adresse IP de la passerelle Modbus
 - Port TCP
 - Modbus Unit ID
-- Echelle des registres de temperature (x1 ou x10)
 - Port des tableaux de bord (8090 par defaut)
 - Intervalles de polling rapides, moyens et lents
 - Niveau de journalisation
@@ -78,5 +77,4 @@ Parametres du peripherique
 Remarques pratiques
 
 - Valeurs recommandees : port 502, Unit ID 1.
-- Utilisez l'echelle x1 si le registre 35 signifie 35 deg C ; utilisez x10 si le registre 350 signifie 35.0 deg C.
 - Attribuez de preference a la passerelle une reservation DHCP fixe ou une adresse IP statique pour eviter les problemes de reconnexion.

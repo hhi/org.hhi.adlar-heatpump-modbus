@@ -8,7 +8,7 @@ Huidige status van de implementatie
 - Oude Tuya-velden zoals Device ID, Local Key en protocolversie worden in deze Modbus-app niet gebruikt.
 - Poll-intervallen zijn configureerbaar in de apparaatinstellingen (standaard 10 s / 30 s / 300 s).
 - De huidige registermapping is gericht op Adlar Castra / Aurora II-units die de R32 Modbus-registermap gebruiken.
-- De schaal voor temperatuurregisters is instelbaar (x1 of x10) voor units die temperaturen anders rapporteren.
+- De schaal voor temperatuurregisters wordt automatisch bepaald op basis van het koudemiddeltype (P119): R32 gebruikt x1 (°C), R290 gebruikt x10 (deci-°C).
 
 Vereisten
 
@@ -49,7 +49,7 @@ Installatie
 2. Zorg dat de gateway vanaf Homey bereikbaar is op het lokale netwerk.
 3. Voeg in Homey het apparaat "Adlar Castra Warmtepomp" toe.
 4. Vul het IP-adres, de TCP-poort en de Modbus Unit ID van de gateway in.
-5. Pas na het koppelen desgewenst polling, temperatuurschaal en overige apparaatinstellingen aan.
+5. Pas na het koppelen desgewenst poll-intervallen en overige apparaatinstellingen aan.
 
 Zie [docs/setup](docs/setup/README.md) voor EW11A-aansluitbeelden en configuratiescreenshots.
 
@@ -70,7 +70,6 @@ Apparaatinstellingen
 - IP-adres van de Modbus-gateway
 - TCP-poort
 - Modbus Unit ID
-- Temperatuur register schaal (x1 of x10)
 - Dashboardpoort (standaard 8090)
 - Snelle, middelmatige en langzame poll-intervallen
 - Logniveau
@@ -78,5 +77,4 @@ Apparaatinstellingen
 Praktische opmerkingen
 
 - Aanbevolen standaardwaarden: poort 502, Unit ID 1.
-- Gebruik temperatuurschaal x1 als register 35 betekent 35 graden C; gebruik x10 als register 350 betekent 35,0 graden C.
 - Geef de gateway een vaste DHCP-reservering of statisch IP-adres om reconnect-problemen te voorkomen.

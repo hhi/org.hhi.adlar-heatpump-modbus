@@ -8,7 +8,7 @@ Aktueller Stand der Implementierung
 - Alte Tuya-Felder wie Device ID, Local Key und Protokollversion werden in dieser Modbus-App nicht verwendet.
 - Die Polling-Intervalle sind in den Geraeteeinstellungen konfigurierbar (Standard 10 s / 30 s / 300 s).
 - Das aktuelle Register-Mapping ist auf Adlar Castra / Aurora II Geraete mit der R32-Modbus-Registerkarte ausgerichtet.
-- Die Skalierung von Temperaturregistern ist konfigurierbar (x1 oder x10), falls ein Geraet Temperaturen anders meldet.
+- Die Skalierung von Temperaturregistern wird automatisch aus dem Kaeltemitteltyp (P119) ermittelt: R32 verwendet x1 (°C), R290 verwendet x10 (Dezi-°C).
 
 Voraussetzungen
 
@@ -49,7 +49,7 @@ Installation
 2. Stellen Sie sicher, dass das Gateway von Homey im lokalen Netzwerk erreichbar ist.
 3. Fuegen Sie in Homey das Geraet "Adlar Castra Waermepumpe" hinzu.
 4. Geben Sie IP-Adresse, TCP-Port und Modbus Unit ID des Gateways ein.
-5. Passen Sie nach dem Koppeln bei Bedarf Polling, Temperaturskalierung und weitere Geraeteeinstellungen an.
+5. Passen Sie nach dem Koppeln bei Bedarf Polling-Intervalle und weitere Geraeteeinstellungen an.
 
 EW11A-Anschlussbilder und Konfigurations-Screenshots finden Sie unter docs/setup/README.md.
 
@@ -70,7 +70,6 @@ Geraeteeinstellungen
 - IP-Adresse des Modbus-Gateways
 - TCP-Port
 - Modbus Unit ID
-- Temperaturregister-Skalierung (x1 oder x10)
 - Dashboard-Port (Standard 8090)
 - Schnelle, mittlere und langsame Polling-Intervalle
 - Log-Level
@@ -78,5 +77,4 @@ Geraeteeinstellungen
 Praktische Hinweise
 
 - Empfohlene Standardwerte: Port 502, Unit ID 1.
-- Verwenden Sie Temperaturskalierung x1, wenn Register 35 fuer 35 Grad C steht; verwenden Sie x10, wenn Register 350 fuer 35.0 Grad C steht.
 - Geben Sie dem Gateway nach Moeglichkeit eine feste DHCP-Reservierung oder statische IP-Adresse, um Reconnect-Probleme zu vermeiden.

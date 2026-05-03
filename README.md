@@ -8,7 +8,7 @@ This app gives Homey Pro local Modbus TCP access to an Adlar Castra / Aurora II 
 - The old Tuya fields such as Device ID, Local Key and protocol version are not used in this Modbus app.
 - Polling intervals are configurable in the device settings (default `10 s / 30 s / 300 s`).
 - The current register mapping is aimed at Adlar Castra / Aurora II units that use the `R32` Modbus register map.
-- Temperature register scaling is configurable (`x1` or `x10`) for units that report temperatures differently.
+- Temperature register scaling is detected automatically from the refrigerant type (P119): R32 uses x1 (°C), R290 uses x10 (deci-°C).
 
 ## Requirements
 
@@ -52,7 +52,7 @@ This app gives Homey Pro local Modbus TCP access to an Adlar Castra / Aurora II 
 2. Make sure the gateway is reachable from Homey on the local network.
 3. Add the `Adlar Castra Heat Pump` device in Homey.
 4. Enter the gateway IP address, TCP port and Modbus Unit ID.
-5. Optionally adjust polling, temperature scale and other device settings after pairing.
+5. Optionally adjust polling intervals and other device settings after pairing.
 
 For EW11A wiring and configuration screenshots, see [docs/setup](docs/setup/README.md).
 
@@ -73,7 +73,6 @@ The default dashboard port is `8090`; if you changed the Dashboard port setting,
 - IP address of the Modbus gateway
 - TCP port
 - Modbus Unit ID
-- Temperature register scale (`x1` or `x10`)
 - Dashboard port (default `8090`)
 - Fast, medium and slow polling intervals
 - Log level
@@ -81,5 +80,4 @@ The default dashboard port is `8090`; if you changed the Dashboard port setting,
 ## Practical Notes
 
 - Recommended defaults: port `502`, Unit ID `1`.
-- Use temperature scale `x1` when register `35` means `35 °C`; use `x10` when register `350` means `35.0 °C`.
 - Give the gateway a fixed DHCP lease or static IP address to avoid reconnect issues.
