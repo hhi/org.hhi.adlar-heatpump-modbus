@@ -41,6 +41,8 @@ interface DeviceSettings {
   modbus_host: string;
   modbus_port: number;
   modbus_unit_id: number;
+  poll_superfast_s: number;
+  poll_superfast_adaptive: boolean;
   poll_fast_s: number;
   poll_medium_s: number;
   poll_slow_s: number;
@@ -107,6 +109,9 @@ class AdlarModbusDevice extends Homey.Device {
       host: settings.modbus_host,
       port: settings.modbus_port ?? 502,
       unitId: settings.modbus_unit_id ?? 1,
+      pollSuperfastMs: (settings.poll_superfast_s ?? 5) * 1000,
+      pollSuperfastAdaptive: settings.poll_superfast_adaptive ?? true,
+      pollSuperfastAdaptiveMs: 2_000,
       pollFastMs: (settings.poll_fast_s ?? 10) * 1000,
       pollMediumMs: (settings.poll_medium_s ?? 30) * 1000,
       pollSlowMs: (settings.poll_slow_s ?? 300) * 1000,
@@ -165,7 +170,16 @@ class AdlarModbusDevice extends Homey.Device {
     }
 
     // Restart connection if connection settings changed
-    const connectionKeys = ['modbus_host', 'modbus_port', 'modbus_unit_id', 'poll_fast_s', 'poll_medium_s', 'poll_slow_s'];
+    const connectionKeys = [
+      'modbus_host',
+      'modbus_port',
+      'modbus_unit_id',
+      'poll_superfast_s',
+      'poll_superfast_adaptive',
+      'poll_fast_s',
+      'poll_medium_s',
+      'poll_slow_s',
+    ];
     if (changedKeys.some((k) => connectionKeys.includes(k))) {
       this.logger.info('Connection settings changed — restarting coordinator');
       await this._restartCoordinator(newSettings as DeviceSettings);
@@ -262,6 +276,9 @@ class AdlarModbusDevice extends Homey.Device {
       host: settings.modbus_host,
       port: settings.modbus_port ?? 502,
       unitId: settings.modbus_unit_id ?? 1,
+      pollSuperfastMs: (settings.poll_superfast_s ?? 5) * 1000,
+      pollSuperfastAdaptive: settings.poll_superfast_adaptive ?? true,
+      pollSuperfastAdaptiveMs: 2_000,
       pollFastMs: (settings.poll_fast_s ?? 10) * 1000,
       pollMediumMs: (settings.poll_medium_s ?? 30) * 1000,
       pollSlowMs: (settings.poll_slow_s ?? 300) * 1000,

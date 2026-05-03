@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "org.hhi.adlar-heatpump-modbus",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "compatibility": ">=12.2.0",
   "sdk": 3,
   "platforms": [
@@ -7974,6 +7974,38 @@
             "fr": "Intervalles d'interrogation"
           },
           "children": [
+            {
+              "id": "poll_superfast_s",
+              "type": "number",
+              "label": {
+                "en": "Superfast poll interval (seconds)",
+                "nl": "Supersnel poll-interval (seconden)",
+                "de": "Superschnelles Abfrageintervall (Sekunden)",
+                "fr": "Intervalle d'interrogation super rapide (secondes)"
+              },
+              "value": 5,
+              "attr": {
+                "min": 2,
+                "max": 30
+              }
+            },
+            {
+              "id": "poll_superfast_adaptive",
+              "type": "checkbox",
+              "label": {
+                "en": "Adaptive superfast polling",
+                "nl": "Adaptief supersnel pollen",
+                "de": "Adaptive superschnelle Abfrage",
+                "fr": "Interrogation super rapide adaptative"
+              },
+              "hint": {
+                "en": "When a superfast register changes, the next read is scheduled after 2 seconds. When values stay stable, it returns to the superfast interval.",
+                "nl": "Als een supersnel register wijzigt, wordt de volgende leesactie na 2 seconden gepland. Bij stabiele waarden gaat de interval terug naar supersnel.",
+                "de": "Wenn sich ein superschnelles Register aendert, wird der naechste Lesevorgang nach 2 Sekunden geplant. Bei stabilen Werten gilt wieder das superschnelle Intervall.",
+                "fr": "Lorsqu'un registre super rapide change, la prochaine lecture est planifiee apres 2 secondes. Si les valeurs restent stables, l'intervalle super rapide est reutilise."
+              },
+              "value": true
+            },
             {
               "id": "poll_fast_s",
               "type": "number",

@@ -14,7 +14,14 @@ export interface ModbusRuntimeService<TSnapshot> {
   // ── Verbinding ──────────────────────────────────────────────────────────────
   connect(): Promise<void>;
   destroy(): Promise<void>;
-  startPolling(ms?: { fast?: number; medium?: number; slow?: number }): void;
+  startPolling(ms?: {
+    superfast?: number;
+    superfastAdaptive?: boolean;
+    superfastAdaptiveMs?: number;
+    fast?: number;
+    medium?: number;
+    slow?: number;
+  }): void;
 
   // ── Schrijfoperaties ────────────────────────────────────────────────────────
   setTemperature(type: string, value: number): Promise<void>;

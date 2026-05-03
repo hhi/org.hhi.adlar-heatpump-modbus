@@ -24,6 +24,7 @@ import {
   POLL_GROUP_MEDIUM,
   POLL_GROUP_ONCE,
   POLL_GROUP_SLOW,
+  POLL_GROUP_SUPERFAST,
   SENSOR_REGISTERS,
   STATUS_1_BITS,
   STATUS_2_BITS,
@@ -71,14 +72,6 @@ const WATER_THERMAL_FACTOR = 4.186 / 60;
 const MIN_COP_POWER_KW = 0.10;
 const MIN_COP_DELTA_T_C = 0.5;
 const MAX_VALID_COP = 15.0;
-
-const EXTRA_FAST_BLOCKS: PollBlock[] = [
-  {
-    start: STATUS_REGISTER_MAP.compressorTargetFreq1.address,
-    count: 1,
-    label: 'Compressor target frequency',
-  },
-];
 
 const COMP_TARGET_FREQ_DEF: NumericRegisterDefinition = {
   address: STATUS_REGISTER_MAP.compressorTargetFreq1.address,
@@ -257,7 +250,8 @@ function toRuntimePollGroup(
   };
 }
 
-const ADLAR2_POLL_FAST = toRuntimePollGroup(POLL_GROUP_FAST, EXTRA_FAST_BLOCKS);
+const ADLAR2_POLL_SUPERFAST = toRuntimePollGroup(POLL_GROUP_SUPERFAST);
+const ADLAR2_POLL_FAST = toRuntimePollGroup(POLL_GROUP_FAST);
 const ADLAR2_POLL_MEDIUM = toRuntimePollGroup(POLL_GROUP_MEDIUM);
 const ADLAR2_POLL_SLOW = toRuntimePollGroup(POLL_GROUP_SLOW);
 const ADLAR2_POLL_ONCE = toRuntimePollGroup(POLL_GROUP_ONCE);
@@ -330,6 +324,7 @@ export class Adlar2ModbusService extends EventEmitter {
   private temperatureRegisterScale: TemperatureRegisterScale;
   private externalFlowLpm: number | null = null;
   private lastFaults: string[] = [];
+  private hasBaseSnapshot = false;
 
   constructor(config: Adlar2ModbusConfig) {
     super();
@@ -353,9 +348,16 @@ export class Adlar2ModbusService extends EventEmitter {
 
     this.tcp.on('poll-complete', (groupName) => {
       if (groupName === ADLAR2_POLL_FAST.name) {
+        this.hasBaseSnapshot = true;
         const snapshot = this.buildSnapshot();
         this.emit('data', snapshot);
         this.checkFaults(snapshot.status.activeFaults);
+      } else if (groupName === ADLAR2_POLL_SUPERFAST.name) {
+        if (this.hasBaseSnapshot) {
+          const snapshot = this.buildSnapshot();
+          this.emit('data', snapshot);
+          this.checkFaults(snapshot.status.activeFaults);
+        }
       } else {
         this.emit('poll-group-succeeded', groupName);
       }
@@ -382,9 +384,26 @@ export class Adlar2ModbusService extends EventEmitter {
     await this.tcp.connect();
   }
 
-  startPolling(ms?: { fast?: number; medium?: number; slow?: number }): void {
+  startPolling(ms?: {
+    superfast?: number;
+    superfastAdaptive?: boolean;
+    superfastAdaptiveMs?: number;
+    fast?: number;
+    medium?: number;
+    slow?: number;
+  }): void {
+    this.hasBaseSnapshot = false;
+    const superfastInterval = ms?.superfast ?? ADLAR2_POLL_SUPERFAST.intervalMs;
     const groups: PollGroup[] = [
       clonePollGroup(ADLAR2_POLL_ONCE, ADLAR2_POLL_ONCE.intervalMs),
+      {
+        ...clonePollGroup(ADLAR2_POLL_SUPERFAST, superfastInterval),
+        adaptive: {
+          enabled: ms?.superfastAdaptive ?? true,
+          activeIntervalMs: ms?.superfastAdaptiveMs ?? 2_000,
+          idleIntervalMs: superfastInterval,
+        },
+      },
       clonePollGroup(ADLAR2_POLL_FAST, ms?.fast ?? ADLAR2_POLL_FAST.intervalMs),
       clonePollGroup(ADLAR2_POLL_MEDIUM, ms?.medium ?? ADLAR2_POLL_MEDIUM.intervalMs),
       clonePollGroup(ADLAR2_POLL_SLOW, ms?.slow ?? ADLAR2_POLL_SLOW.intervalMs),

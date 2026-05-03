@@ -1748,6 +1748,20 @@ export const PRODUCT_TYPE_OPTIONS = { // v2.2
 // BATCHED READ GROUPS Optimale poll strategie
 // ============================================================================
 
+/** Poll elke 5s compacte kernregisters; optioneel adaptief naar 2s bij wijziging. */
+export const POLL_GROUP_SUPERFAST = {
+  name: 'superfast',
+  interval: 5_000,
+  reads: [
+    { start: 0x0000, count: 2, label: 'Status 1+2' },
+    { start: 0x0027, count: 1, label: 'Compressor target frequency' },
+    { start: 0x0040, count: 1, label: 'Compressor running frequency' },
+    { start: 0x004F, count: 2, label: 'Water inlet T6 + outlet T7' },
+    { start: 0x0057, count: 2, label: 'Water pump PWM + water flow' },
+    { start: 0x005C, count: 1, label: 'Device input power' },
+  ],
+} as const;
+
 /** Poll elke 10s Operationele data */
 export const POLL_GROUP_FAST = {
   name: 'fast',

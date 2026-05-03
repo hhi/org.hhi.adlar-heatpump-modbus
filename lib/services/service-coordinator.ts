@@ -367,7 +367,7 @@ export class ServiceCoordinator {
   // ── Data handlers ──────────────────────────────────────────────────────────
 
   private _handleModbusData(snapshot: DataSnapshot): void {
-    // ADR-042/043: fast-poll succes registreren
+    // ADR-042/043: fast/superfast poll succes registreren
     this._lastSuccessfulFastPollAt = Date.now();
     this._consecutiveFastPollFailures = 0;
 
@@ -532,9 +532,9 @@ export class ServiceCoordinator {
 
     // Niet-blok-fouten (socket, FC06, FC05) — legacy pad
     if (!(err instanceof ModbusBlockError)) {
-      if (context.startsWith('poll:fast') || context.startsWith('fc03')) {
+      if (context.startsWith('poll:fast') || context.startsWith('poll:superfast') || context.startsWith('fc03')) {
         this._consecutiveFastPollFailures++;
-        this.logger(`ServiceCoordinator: Fast poll failures: ${this._consecutiveFastPollFailures}`);
+        this.logger(`ServiceCoordinator: Fast/superfast poll failures: ${this._consecutiveFastPollFailures}`);
         this._evaluateConnectionQuality();
       }
       return;
@@ -545,21 +545,21 @@ export class ServiceCoordinator {
     // Optional failures raken quality niet
     if (optional) return;
 
-    if (code === 'unsupported' && groupName === 'fast') {
+    if (code === 'unsupported' && (groupName === 'fast' || groupName === 'superfast')) {
       // Structureel stil: FAST required blok bestaat niet op deze variant
       if (!this._structurallyUnsupportedFast) {
         this._structurallyUnsupportedFast = true;
-        this.logger('ServiceCoordinator: FAST required block unsupported — device structurally silent');
-        this.device.setWarning('FAST required block unsupported — no data').catch(() => {});
+        this.logger(`ServiceCoordinator: ${groupName.toUpperCase()} required block unsupported — device structurally silent`);
+        this.device.setWarning(`${groupName.toUpperCase()} required block unsupported — no data`).catch(() => {});
       }
       return; // Geen quality-teller — geen verbindingsprobleem
     }
 
     if (code === 'unsupported') return; // Non-fast unsupported: geen quality-effect
 
-    if (groupName === 'fast') {
+    if (groupName === 'fast' || groupName === 'superfast') {
       this._consecutiveFastPollFailures++;
-      this.logger(`ServiceCoordinator: Fast poll failures: ${this._consecutiveFastPollFailures}`);
+      this.logger(`ServiceCoordinator: Fast/superfast poll failures: ${this._consecutiveFastPollFailures}`);
       this._evaluateConnectionQuality();
     } else {
       this._consecutiveNonFastRequiredFailures++;

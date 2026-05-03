@@ -42,6 +42,14 @@
   .val-scaled { color: #94a3b8; font-size: 0.78rem; }
   .unit { color: #475569; font-size: 0.75rem; }
   .svc-badge { display: inline-block; font-size: 0.65rem; background: #7c2d12; color: #fca5a5; border-radius: 3px; padding: 0.1rem 0.3rem; margin-left: 0.3rem; }
+  .poll-cell { white-space: nowrap; }
+  .poll-badge { display: inline-block; font-size: 0.65rem; border-radius: 3px; padding: 0.1rem 0.3rem; margin: 0 0.2rem 0.2rem 0; font-weight: 700; text-transform: uppercase; }
+  .poll-superfast { background: #7f1d1d; color: #fecaca; }
+  .poll-fast { background: #713f12; color: #fde68a; }
+  .poll-medium { background: #164e63; color: #a5f3fc; }
+  .poll-slow { background: #312e81; color: #c7d2fe; }
+  .poll-once { background: #334155; color: #cbd5e1; }
+  .poll-none { background: #1f2937; color: #64748b; }
   .name-cell { max-width: 220px; }
   .desc-text { font-size: 0.72rem; color: #475569; margin-top: 0.2rem; }
   .bits-toggle { font-size: 0.7rem; color: #3b82f6; cursor: pointer; text-decoration: underline; margin-left: 0.4rem; }
@@ -181,7 +189,7 @@ function renderBlocks() {
       <div class="block-body">
         <table>
           <thead><tr>
-            <th>Adres</th><th>ID</th><th>Naam</th><th>Registerwaarde</th><th>Geschaald</th><th>Eenheid</th><th>Bereik</th><th></th>
+            <th>Adres</th><th>ID</th><th>Naam</th><th>Poll</th><th>Registerwaarde</th><th>Geschaald</th><th>Eenheid</th><th>Bereik</th><th></th>
           </tr></thead>
           <tbody id="tbody-${block.id}">
             ${block.registers.map(reg => renderRow(block, reg)).join('')}
@@ -213,6 +221,7 @@ function renderRow(block, reg) {
       <td class="addr">${addrHex}${bitsBtn}</td>
       <td class="reg-id">${esc(reg.registerId || '')}</td>
       <td class="name-cell">${nameHtml}</td>
+      <td class="poll-cell">${renderPollGroups(reg.pollGroups)}</td>
       <td class="val-raw" id="raw-${reg.address}">—</td>
       <td class="val-scaled" id="scaled-${reg.address}">—</td>
       <td class="unit">${esc(reg.unit||'')}</td>
@@ -222,7 +231,21 @@ function renderRow(block, reg) {
         ${writeBtn}
       </td>
     </tr>
-    ${hasBits ? `<tr class="bits-row" id="bits-${reg.address}"><td colspan="8">${renderBitsTable(reg)}</td></tr>` : ''}`;
+    ${hasBits ? `<tr class="bits-row" id="bits-${reg.address}"><td colspan="9">${renderBitsTable(reg)}</td></tr>` : ''}`;
+}
+
+function renderPollGroups(pollGroups) {
+  if (!pollGroups || pollGroups.length === 0) {
+    return '<span class="poll-badge poll-none" data-tip="Niet automatisch gepolld; alleen live lezen via knop">manual</span>';
+  }
+
+  return pollGroups.map(group => {
+    const css = 'poll-' + group;
+    const tip = group === 'superfast'
+      ? 'Supersnel/adaptief gepolld'
+      : `Gepolld via ${group}`;
+    return `<span class="poll-badge ${css}" data-tip="${esc(tip)}">${esc(group)}</span>`;
+  }).join('');
 }
 
 function renderBitsTable(reg) {
