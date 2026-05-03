@@ -1,4 +1,8 @@
 {
+  "2.1.7": {
+    "en": "Energy prices received via the flow card are now stored immediately with a timestamp and update the energy price capabilities right away, instead of waiting for the next control cycle. Prices now survive app restarts.",
+    "nl": "Energieprijzen die via de flow-kaart binnenkomen worden nu direct opgeslagen met een tijdstempel en werken de energieprijs-capabilities meteen bij, in plaats van te wachten op de volgende regelcyclus. Prijzen blijven nu bewaard na een herstart van de app."
+  },
   "2.1.5": {
     "en": "Added a new superfast Modbus poll group for key live registers: status, compressor target/running frequency, water inlet/outlet temperatures, pump PWM, water flow, and input power. The superfast interval defaults to 5 seconds and can adaptively speed up to 2 seconds after a value change, then return to 5 seconds when values are stable. Expert dashboard: each register now shows its automatic poll group(s), or 'manual' when it is only read on demand.",
     "nl": "Nieuwe supersnelle Modbus-pollgroep toegevoegd voor belangrijke live registers: status, compressor doel-/loopfrequentie, water inlaat-/uitlaattemperaturen, pomp-PWM, waterdebiet en ingangsvermogen. Het supersnelle interval is standaard 5 seconden en kan adaptief versnellen naar 2 seconden na een waardewijziging, en daarna terug naar 5 seconden wanneer waarden stabiel zijn. Expertdashboard: elk register toont nu de automatische pollgroep(en), of 'manual' wanneer het alleen op aanvraag wordt gelezen."
