@@ -135,7 +135,6 @@ export class ServiceCoordinator {
           maxReconnects: 0,
         },
         timerProvider,
-        temperatureRegisterScale: (this.device.getSetting('temperature_register_scale') as TemperatureRegisterScale | null) ?? 'x1',
       }),
       onData: this._handleModbusData.bind(this),
       onConnected: this._handleConnected.bind(this),
@@ -707,6 +706,10 @@ export class ServiceCoordinator {
 
   isConnected(): boolean {
     return this.modbusConnection.isDeviceConnected();
+  }
+
+  getTemperatureScale(): TemperatureRegisterScale {
+    return this.modbusConnection.getTemperatureScale();
   }
 
   /** FC03 — lees één holding register; retourneert de ruwe unsigned waarde. */
