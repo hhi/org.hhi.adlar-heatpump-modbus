@@ -32,11 +32,11 @@ import {
   TemperatureRegisterScale,
   calculateDIYCurveTemp,
   decodeFaults,
-  decodeTemperatureRaw,
   encodeTemperatureRaw,
   interpolateCalibration,
-  isAdlar2TemperatureRegister,
   protocolSupportsCoils,
+  refrigerantToTemperatureScale,
+  scaleRegisterValue,
   validateRefrigerant,
 } from './adlar-modbus-registers';
 
@@ -327,7 +327,7 @@ function formatPackedVersion(raw: number | null): string | null {
 export class Adlar2ModbusService extends EventEmitter {
 
   private readonly tcp: ModbusTcpService;
-  private readonly temperatureRegisterScale: TemperatureRegisterScale;
+  private temperatureRegisterScale: TemperatureRegisterScale;
   private externalFlowLpm: number | null = null;
   private lastFaults: string[] = [];
 
@@ -552,6 +552,7 @@ export class Adlar2ModbusService extends EventEmitter {
     }
 
     const refrigerant = await this.validateRefrigerant();
+    this.temperatureRegisterScale = refrigerantToTemperatureScale(refrigerant.type);
     if (!refrigerant.valid) {
       this.emit(
         'error',
@@ -763,15 +764,13 @@ export class Adlar2ModbusService extends EventEmitter {
     return signed ? this.tcp.s16(def.address) : this.tcp.u16(def.address);
   }
 
+  get activeTemperatureScale(): TemperatureRegisterScale {
+    return this.temperatureRegisterScale;
+  }
+
   private readScaledValue(def: NumericRegisterDefinition, signed = false): number {
     const raw = this.readRawValue(def, signed);
-    let value: number;
-
-    if (isAdlar2TemperatureRegister(def.address, def)) {
-      value = decodeTemperatureRaw(raw, this.temperatureRegisterScale);
-    } else {
-      value = raw * (def.multiply ?? 1);
-    }
+    let value = scaleRegisterValue(def.address, raw, this.temperatureRegisterScale, def.multiply);
 
     if (def.calibrationCurve) {
       value = interpolateCalibration(value, Array.from(def.calibrationCurve));

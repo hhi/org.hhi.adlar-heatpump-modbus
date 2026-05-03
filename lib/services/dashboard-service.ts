@@ -32,6 +32,8 @@ import {
   SWITCH_1_BITS,
   SWITCH_2_BITS,
   SWITCH_3_BITS,
+  TemperatureRegisterScale,
+  scaleRegisterValue,
 } from '../modbus/adlar-modbus-registers';
 
 // ── Whitelist voor ADR-044 interactief dashboard ───────────────────────────────
@@ -121,6 +123,7 @@ export class DashboardService {
   private onReadRegister: ((address: number, isCoil: boolean) => Promise<number>) | null = null;
   private onWriteExpert: ((address: number, rawValue: number, isCoil: boolean) => Promise<void>) | null = null;
   private onSetDiyHeatingCurve: ((k: number, b: number) => Promise<void>) | null = null;
+  private getTemperatureScale: (() => TemperatureRegisterScale) | null = null;
 
   constructor(options: DashboardServiceOptions) {
     this.port = options.port ?? 8090;
@@ -145,6 +148,10 @@ export class DashboardService {
 
   setDiyHeatingCurveCallback(fn: (k: number, b: number) => Promise<void>): void {
     this.onSetDiyHeatingCurve = fn;
+  }
+
+  setGetTemperatureScaleCallback(fn: () => TemperatureRegisterScale): void {
+    this.getTemperatureScale = fn;
   }
 
   /** Sla de meest recente snapshot op (overschrijft de vorige). */
@@ -381,11 +388,12 @@ export class DashboardService {
     }
 
     const coil = isCoil === true;
-    const scale = typeof multiply === 'number' ? multiply : 1;
+    const multiplyFactor = typeof multiply === 'number' ? multiply : 1;
+    const tempScale = this.getTemperatureScale?.() ?? 'x1';
 
     try {
       const rawValue = await this.onReadRegister(address, coil);
-      const scaledValue = Math.round(rawValue * scale * 10) / 10;
+      const scaledValue = Math.round(scaleRegisterValue(address, rawValue, tempScale, multiplyFactor) * 10) / 10;
       this._jsonOk(res, { ok: true, rawValue, scaledValue });
     } catch (err) {
       this._jsonError(res, 500, (err as Error).message);

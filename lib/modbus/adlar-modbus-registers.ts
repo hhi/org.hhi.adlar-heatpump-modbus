@@ -125,6 +125,28 @@ export function encodeTemperatureRaw(tempC: number, scale: TemperatureRegisterSc
   return scale === 'x10' ? Math.round(tempC * 10) : Math.round(tempC);
 }
 
+/** Leid de temperatuurschaal af uit het P119 koelmiddel type. R290 = x10, overige = x1. */
+export function refrigerantToTemperatureScale(p119: number): TemperatureRegisterScale {
+  return p119 === 3 ? 'x10' : 'x1';
+}
+
+/**
+ * Canonieke scaling functie voor een register-waarde.
+ * Temperatuurregisters (adres in ADLAR2_TEMPERATURE_REGISTER_ADDRESSES) worden geschaald
+ * via de runtime tempScale; overige registers via de multiply-factor uit de metadata.
+ */
+export function scaleRegisterValue(
+  address: number,
+  raw: number,
+  tempScale: TemperatureRegisterScale,
+  multiply = 1,
+): number {
+  if (ADLAR2_TEMPERATURE_REGISTER_ADDRESSES.has(address)) {
+    return decodeTemperatureRaw(raw, tempScale);
+  }
+  return raw * multiply;
+}
+
 // ============================================================================
 // BLOK 1: STATUS & FAULT REGISTERS (0x00000x0028) Read-Only
 // ============================================================================

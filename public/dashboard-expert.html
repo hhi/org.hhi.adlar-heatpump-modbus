@@ -265,25 +265,30 @@ async function readRow(addr, isCoil, multiply) {
   const rawEl = document.getElementById('raw-' + addr);
   const scEl  = document.getElementById('scaled-' + addr);
   rawEl.innerHTML = '<span class="reading">…</span>';
-  try {
-    const r = await fetch('/api/expert/read', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address: addr, isCoil, multiply }),
-    });
-    const j = await r.json();
-    if (j.ok) {
-      rawEl.textContent = isCoil ? (j.rawValue ? '1 (aan)' : '0 (uit)') : String(j.rawValue);
-      scEl.textContent  = isCoil ? '' : String(j.scaledValue);
-      updateBits(addr, j.rawValue);
-      flashRow(addr);
-    } else {
+
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const r = await fetch('/api/expert/read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: addr, isCoil, multiply }),
+      });
+      const j = await r.json();
+      if (j.ok) {
+        rawEl.textContent = isCoil ? (j.rawValue ? '1 (aan)' : '0 (uit)') : String(j.rawValue);
+        scEl.textContent  = isCoil ? '' : String(j.scaledValue);
+        updateBits(addr, j.rawValue);
+        flashRow(addr);
+        return;
+      }
+      if (attempt < 2) { await sleep(600); continue; }
       rawEl.textContent = '⚠ ' + (j.error || 'fout');
       scEl.textContent = '';
+    } catch (e) {
+      if (attempt < 2) { await sleep(600); continue; }
+      rawEl.textContent = '⚠ ' + e.message;
+      scEl.textContent = '';
     }
-  } catch (e) {
-    rawEl.textContent = '⚠ ' + e.message;
-    scEl.textContent = '';
   }
 }
 

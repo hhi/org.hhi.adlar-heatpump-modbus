@@ -165,7 +165,7 @@ class AdlarModbusDevice extends Homey.Device {
     }
 
     // Restart connection if connection settings changed
-    const connectionKeys = ['modbus_host', 'modbus_port', 'modbus_unit_id', 'poll_fast_s', 'poll_medium_s', 'poll_slow_s', 'temperature_register_scale'];
+    const connectionKeys = ['modbus_host', 'modbus_port', 'modbus_unit_id', 'poll_fast_s', 'poll_medium_s', 'poll_slow_s'];
     if (changedKeys.some((k) => connectionKeys.includes(k))) {
       this.logger.info('Connection settings changed — restarting coordinator');
       await this._restartCoordinator(newSettings as DeviceSettings);
@@ -278,6 +278,7 @@ class AdlarModbusDevice extends Homey.Device {
         setReadRegisterCallback(fn: (addr: number, isCoil: boolean) => Promise<number>): void;
         setWriteExpertCallback(fn: (addr: number, rawValue: number, isCoil: boolean) => Promise<void>): void;
         setDiyHeatingCurveCallback(fn: (k: number, b: number) => Promise<void>): void;
+        setGetTemperatureScaleCallback(fn: () => import('../../lib/modbus/adlar-modbus-registers').TemperatureRegisterScale): void;
       } | null;
     };
     const app = this.homey.app as unknown as DashboardApp;
@@ -299,6 +300,8 @@ class AdlarModbusDevice extends Homey.Device {
     app.dashboard.setDiyHeatingCurveCallback(async (k, b) => {
       await this.coordinator!.setDiyHeatingCurve(k, b);
     });
+
+    app.dashboard.setGetTemperatureScaleCallback(() => this.coordinator!.getTemperatureScale());
   }
 
   // ── Snapshot → Capabilities (called by ServiceCoordinator) ────────────────
