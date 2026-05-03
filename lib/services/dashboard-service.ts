@@ -396,7 +396,9 @@ export class DashboardService {
       const scaledValue = Math.round(scaleRegisterValue(address, rawValue, tempScale, multiplyFactor) * 10) / 10;
       this._jsonOk(res, { ok: true, rawValue, scaledValue });
     } catch (err) {
-      this._jsonError(res, 500, (err as Error).message);
+      const msg = (err as Error).message;
+      const status = msg === 'Niet verbonden' ? 503 : 500;
+      this._jsonError(res, status, msg);
     }
   }
 

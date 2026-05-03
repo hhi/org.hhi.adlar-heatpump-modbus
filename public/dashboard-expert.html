@@ -281,7 +281,7 @@ async function readRow(addr, isCoil, multiply) {
         flashRow(addr);
         return;
       }
-      if (attempt < 2) { await sleep(600); continue; }
+      if (attempt < 2) { await sleep(r.status === 503 ? 4000 : 600); continue; }
       rawEl.textContent = '⚠ ' + (j.error || 'fout');
       scEl.textContent = '';
     } catch (e) {

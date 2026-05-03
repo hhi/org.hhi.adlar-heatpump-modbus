@@ -1,4 +1,8 @@
 {
+  "2.1.4": {
+    "en": "Expert dashboard: a 'not connected' error mid-block (e.g. during a Modbus reconnect) now triggers an automatic retry after 4 seconds instead of immediately showing an error. Other read failures (e.g. Modbus timeout) still retry after 600 ms.",
+    "nl": "Expertdashboard: een 'niet verbonden' fout midden in een blok (bijv. tijdens een Modbus-herverbinding) triggert nu automatisch een nieuwe poging na 4 seconden in plaats van direct een fout te tonen. Andere leesfouten (bijv. Modbus-timeout) proberen het na 600 ms opnieuw."
+  },
   "2.1.3": {
     "en": "Temperature register scale is now detected automatically from P119 (refrigerant type): R32 uses x1 (°C), R290 uses x10 (deci-°C). The manual 'Temperature register scale' setting has been removed. Expert dashboard: temperature registers now use the same scale as the main polling path. Expert dashboard: a failed register read is automatically retried once before showing an error.",
     "nl": "De temperatuur-registerschaal wordt nu automatisch bepaald op basis van P119 (koudemiddel type): R32 gebruikt x1 (°C), R290 gebruikt x10 (deci-°C). De handmatige instelling 'Temperatuur register schaal' is verwijderd. Expertdashboard: temperatuurregisters gebruiken nu dezelfde schaal als het hoofdpollingpad. Expertdashboard: een mislukt registerverzoek wordt automatisch één keer opnieuw geprobeerd voor de foutmelding getoond wordt."
