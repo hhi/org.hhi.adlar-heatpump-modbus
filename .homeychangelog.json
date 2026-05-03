@@ -1,4 +1,8 @@
 {
+  "2.2.0": {
+    "en": "COP calculation now uses the shared COPCalculator with automatic fail-forward method selection, aligned with the DPS-based Adlar app. External power, flow rate, and ambient temperature supplied via flow cards take priority over internal Modbus readings. COP method reporting now includes readable diagnostics such as missing water flow data. Rolling COP and SCOP handling has been moved out of device.ts into a dedicated service, with rolling COP sampled every 30 minutes and SCOP hourly to prevent fast polling from distorting long-term averages.",
+    "nl": "COP-berekening gebruikt nu de gedeelde COPCalculator met automatische fail-forward methodekeuze, gelijkgetrokken met de DPS-gebaseerde Adlar-app. Extern vermogen, waterdebiet en buitentemperatuur via flow-kaarten krijgen voorrang op interne Modbus-metingen. De COP-methode toont nu leesbare diagnose-informatie, zoals ontbrekende waterflow-data. Rolling COP en SCOP zijn uit device.ts verplaatst naar een aparte service, met rolling COP-sampling elke 30 minuten en SCOP elk uur zodat snelle polling de langetermijngemiddelden niet vertekent."
+  },
   "2.1.7": {
     "en": "Energy prices received via the flow card are now stored immediately with a timestamp and update the energy price capabilities right away, instead of waiting for the next control cycle. Prices now survive app restarts.",
     "nl": "Energieprijzen die via de flow-kaart binnenkomen worden nu direct opgeslagen met een tijdstempel en werken de energieprijs-capabilities meteen bij, in plaats van te wachten op de volgende regelcyclus. Prijzen blijven nu bewaard na een herstart van de app."

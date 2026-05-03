@@ -14,6 +14,7 @@ import { SnapshotTriggerService } from './snapshot-trigger-service';
 import { Adlar2ModbusService, DataSnapshot } from '../modbus/adlar2-modbus-service';
 import { TemperatureRegisterScale } from '../modbus/adlar-modbus-registers';
 import { ModbusBlockError } from '../modbus/modbus-tcp-service';
+import { RollingCOPCalculator } from './rolling-cop-calculator';
 
 // ADR-042: Verbindingskwaliteit als expliciete runtime-state
 export type ConnectionQuality = 'online' | 'degraded' | 'offline';
@@ -83,6 +84,13 @@ export class ServiceCoordinator {
 
     this._initializeServices();
     this._setupEventHandlers();
+  }
+
+  public getRollingCOPCalculator(): RollingCOPCalculator | null {
+    const device = this.device as unknown as {
+      getRollingCOPCalculator?: () => RollingCOPCalculator | null;
+    };
+    return device.getRollingCOPCalculator?.() ?? null;
   }
 
   private _initializeServices(): void {
