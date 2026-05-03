@@ -1,4 +1,8 @@
 {
+  "2.2.1": {
+    "en": "Superfast and fast Modbus poll failures now use separate counters and higher thresholds (10 and 5 respectively) to avoid false 'degraded' warnings during brief RS485 bus contention. Dedicated icons added for fan speed and sterilization mode.",
+    "nl": "Superfast- en fast-pollfouten gebruiken nu aparte tellers met hogere drempelwaarden (respectievelijk 10 en 5) zodat korte RS485-bus-contentie geen onterechte 'degraded'-meldingen veroorzaakt. Specifieke iconen toegevoegd voor ventilatorsnelheid en sterilisatiemodus."
+  },
   "2.2.0": {
     "en": "COP calculation now uses the shared COPCalculator with automatic fail-forward method selection, aligned with the DPS-based Adlar app. External power, flow rate, and ambient temperature supplied via flow cards take priority over internal Modbus readings. COP method reporting now includes readable diagnostics such as missing water flow data. Rolling COP and SCOP handling has been moved out of device.ts into a dedicated service, with rolling COP sampled every 30 minutes and SCOP hourly to prevent fast polling from distorting long-term averages.",
     "nl": "COP-berekening gebruikt nu de gedeelde COPCalculator met automatische fail-forward methodekeuze, gelijkgetrokken met de DPS-gebaseerde Adlar-app. Extern vermogen, waterdebiet en buitentemperatuur via flow-kaarten krijgen voorrang op interne Modbus-metingen. De COP-methode toont nu leesbare diagnose-informatie, zoals ontbrekende waterflow-data. Rolling COP en SCOP zijn uit device.ts verplaatst naar een aparte service, met rolling COP-sampling elke 30 minuten en SCOP elk uur zodat snelle polling de langetermijngemiddelden niet vertekent."

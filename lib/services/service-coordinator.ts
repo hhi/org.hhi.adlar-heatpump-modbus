@@ -59,6 +59,7 @@ export class ServiceCoordinator {
   private _connectionQuality: ConnectionQuality = 'offline';
   private _lastSuccessfulFastPollAt: number | null = null;
   private _consecutiveFastPollFailures = 0;
+  private _consecutiveSuperfastPollFailures = 0;
   private _consecutiveNonFastRequiredFailures = 0;  // ADR-043
   private _structurallyUnsupportedFast = false;      // ADR-043
   private _degradedSinceTimer: ReturnType<typeof setTimeout> | null = null; // ADR-043
@@ -372,6 +373,7 @@ export class ServiceCoordinator {
     // ADR-042/043: fast/superfast poll succes registreren
     this._lastSuccessfulFastPollAt = Date.now();
     this._consecutiveFastPollFailures = 0;
+    this._consecutiveSuperfastPollFailures = 0;
 
     // ADR-043 Fase 3c: annuleer degraded-naar-offline timer bij succesvolle FAST poll
     if (this._degradedSinceTimer) {
@@ -439,6 +441,7 @@ export class ServiceCoordinator {
     snapshot.diagnostics = {
       connectionQuality: this._connectionQuality,
       consecutiveFastPollFailures: this._consecutiveFastPollFailures,
+      consecutiveSuperfastPollFailures: this._consecutiveSuperfastPollFailures,
       lastSuccessfulFastPollAt: this._lastSuccessfulFastPollAt,
       lastErrorContext: this._lastErrorContext,
     };
@@ -461,6 +464,7 @@ export class ServiceCoordinator {
     // ADR-042/043: reset failure counters en zet quality op online via _setConnectionQuality
     // (die roept ook setAvailable() aan)
     this._consecutiveFastPollFailures = 0;
+    this._consecutiveSuperfastPollFailures = 0;
     this._consecutiveNonFastRequiredFailures = 0;
     this._errorCountByContext.clear();
     this._setConnectionQuality('online');
@@ -534,9 +538,13 @@ export class ServiceCoordinator {
 
     // Niet-blok-fouten (socket, FC06, FC05) — legacy pad
     if (!(err instanceof ModbusBlockError)) {
-      if (context.startsWith('poll:fast') || context.startsWith('poll:superfast') || context.startsWith('fc03')) {
+      if (context.startsWith('poll:superfast')) {
+        this._consecutiveSuperfastPollFailures++;
+        this.logger(`ServiceCoordinator: Superfast poll failures: ${this._consecutiveSuperfastPollFailures}`);
+        this._evaluateConnectionQuality();
+      } else if (context.startsWith('poll:fast') || context.startsWith('fc03')) {
         this._consecutiveFastPollFailures++;
-        this.logger(`ServiceCoordinator: Fast/superfast poll failures: ${this._consecutiveFastPollFailures}`);
+        this.logger(`ServiceCoordinator: Fast poll failures: ${this._consecutiveFastPollFailures}`);
         this._evaluateConnectionQuality();
       }
       return;
@@ -559,9 +567,13 @@ export class ServiceCoordinator {
 
     if (code === 'unsupported') return; // Non-fast unsupported: geen quality-effect
 
-    if (groupName === 'fast' || groupName === 'superfast') {
+    if (groupName === 'superfast') {
+      this._consecutiveSuperfastPollFailures++;
+      this.logger(`ServiceCoordinator: Superfast poll failures: ${this._consecutiveSuperfastPollFailures}`);
+      this._evaluateConnectionQuality();
+    } else if (groupName === 'fast') {
       this._consecutiveFastPollFailures++;
-      this.logger(`ServiceCoordinator: Fast/superfast poll failures: ${this._consecutiveFastPollFailures}`);
+      this.logger(`ServiceCoordinator: Fast poll failures: ${this._consecutiveFastPollFailures}`);
       this._evaluateConnectionQuality();
     } else {
       this._consecutiveNonFastRequiredFailures++;
@@ -570,12 +582,14 @@ export class ServiceCoordinator {
     }
   }
 
-  // ADR-042: evalueer of verbindingskwaliteit naar degraded moet (FAST-fouten)
+  // ADR-042: evalueer of verbindingskwaliteit naar degraded moet
   private _evaluateConnectionQuality(): void {
-    const DEGRADED_THRESHOLD = 3;
+    const FAST_DEGRADED_THRESHOLD = 5;
+    const SUPERFAST_DEGRADED_THRESHOLD = 10;
     if (
       this._connectionQuality === 'online'
-      && this._consecutiveFastPollFailures >= DEGRADED_THRESHOLD
+      && (this._consecutiveFastPollFailures >= FAST_DEGRADED_THRESHOLD
+        || this._consecutiveSuperfastPollFailures >= SUPERFAST_DEGRADED_THRESHOLD)
     ) {
       this._setConnectionQuality('degraded');
     }
@@ -583,13 +597,14 @@ export class ServiceCoordinator {
 
   // ADR-043 Fase 1i: reset non-fast teller bij succesvolle non-fast poll
   private _onPollGroupSucceeded(groupName: string): void {
-    if (groupName === 'fast') return; // FAST gebruikt data-event, niet deze methode
+    if (groupName === 'fast' || groupName === 'superfast') return; // gebruiken data-event
 
     this._consecutiveNonFastRequiredFailures = 0;
     this.logger(`ServiceCoordinator: Poll group succeeded: ${groupName} — non-fast teller gereset`);
 
     if (this._connectionQuality === 'degraded'
-        && this._consecutiveFastPollFailures === 0) {
+        && this._consecutiveFastPollFailures === 0
+        && this._consecutiveSuperfastPollFailures === 0) {
       this._setConnectionQuality('online');
     }
   }
