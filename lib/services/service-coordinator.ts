@@ -108,13 +108,7 @@ export class ServiceCoordinator {
     this.flowCardManager = new FlowCardManagerService({
       ...opts,
       onExternalPowerData: this.energyTracking.receiveExternalPowerData.bind(this.energyTracking),
-      onExternalPricesData: async (prices: Record<string, number>) => {
-        this.adaptiveControl.setExternalEnergyPrices(prices);
-        await this.device.setStoreValue('external_energy_prices', prices);
-        this.logger('ServiceCoordinator: External prices forwarded to AdaptiveControlService', {
-          count: Object.keys(prices).length,
-        });
-      },
+      onExternalPricesData: this.adaptiveControl.receiveExternalPricesData.bind(this.adaptiveControl),
       buildingInsightsService: this.buildingInsights,
       onModbusRead: (addr) => this.readRegister(addr),
       onModbusWrite: (addr, raw) => this.writeRaw(addr, raw, false),
