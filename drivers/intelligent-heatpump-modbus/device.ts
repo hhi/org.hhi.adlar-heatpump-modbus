@@ -15,8 +15,8 @@ import {
   enumIdToHotWaterCurve,
 } from '../../lib/modbus/adlar-enum-mappers';
 import { FAULT_DESCRIPTIONS } from '../../lib/modbus/adlar-fault-descriptions';
-import { RollingCOPCalculator, type COPDataPoint } from '../../lib/services/rolling-cop-calculator';
-import { SCOPCalculator, type COPMeasurement } from '../../lib/services/scop-calculator';
+import { ModbusCOPService } from '../../lib/services/modbus-cop-service';
+import { RollingCOPCalculator } from '../../lib/services/rolling-cop-calculator';
 
 // ============================================================================
 // CONSTANTS
@@ -62,9 +62,7 @@ class AdlarModbusDevice extends Homey.Device {
   // Exposed as serviceCoordinator for shared services (e.g. FlowCardManagerService) that access it via duck-typing
   get serviceCoordinator(): ServiceCoordinator | null { return this.coordinator; }
   private logger!: Logger;
-  private rollingCOP: RollingCOPCalculator | null = null;
-  private scopCalc: SCOPCalculator | null = null;
-  private lastCOPUpdateMs: number = 0;
+  private copService: ModbusCOPService | null = null;
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
@@ -334,6 +332,15 @@ class AdlarModbusDevice extends Homey.Device {
       }
     };
 
+    // Schrijft modbusVal alleen als er geen actieve externe waarde beschikbaar is.
+    const setWithExternalPriority = (cap: string, externalCap: string, modbusVal: unknown) => {
+      if (this.hasCapability(externalCap)) {
+        const externalVal = this.getCapabilityValue(externalCap);
+        if (externalVal !== null && externalVal !== undefined) return;
+      }
+      set(cap, modbusVal);
+    };
+
     // Control
     set('onoff', snap.control.on);
     set('target_temperature', snap.control.heatingSetpointC);
@@ -369,7 +376,7 @@ class AdlarModbusDevice extends Homey.Device {
     const s = snap.sensors;
     set('measure_temperature.outlet', s.outletT7?.value);
     set('measure_temperature.inlet', s.inletT6?.value);
-    set('measure_temperature.ambient', s.ambientT1?.value);
+    setWithExternalPriority('measure_temperature.ambient', 'adlar_external_ambient', s.ambientT1?.value);
     set('measure_temperature.outer_coil', s.outerCoilT2?.value);
     set('measure_temperature.inner_coil', s.innerCoilT3?.value);
     set('measure_temperature.suction', s.suctionT4?.value);
@@ -388,21 +395,14 @@ class AdlarModbusDevice extends Homey.Device {
     set('measure_temperature.zone2', s.zone2Temp?.value);
 
     // Power
-    set('measure_power', snap.power.inputPowerKw * 1000);
+    setWithExternalPriority('measure_power', 'adlar_external_power', snap.power.inputPowerKw * 1000);
     // meter_power is written exclusively by EnergyTrackingService (ETS).
     // ETS abstracts internal/external power sources and handles hardware that lacks register 0x005D.
     set('measure_voltage', snap.power.inputVoltageV);
     set('measure_current', snap.power.inputCurrentA);
 
     // COP
-    if (snap.cop.valid) {
-      set('adlar_cop', snap.cop.cop);
-      set('adlar_cop_method', 'direct_thermal');
-      this._addCOPMeasurement(snap);
-      this._maybeUpdateRollingCOPCapabilities(set);
-    } else {
-      set('adlar_cop_method', 'insufficient_data');
-    }
+    this.copService?.processSnapshot(snap, set);
 
     // Mechanical sensors
     set('adlar_compressor_freq', s.compRunningFreq?.value);
@@ -411,7 +411,7 @@ class AdlarModbusDevice extends Homey.Device {
     set('adlar_eev_step', s.eevStep?.value);
     set('adlar_evi_step', s.eviStep?.value);
     set('adlar_pump_pwm', s.pumpPwm?.value);
-    set('adlar_water_flow', s.waterFlow?.value);
+    setWithExternalPriority('adlar_water_flow', 'adlar_external_flow', s.waterFlow?.value);
 
     // Additional currents
     set('measure_current.comp_phase', s.compPhaseI?.value);
@@ -480,119 +480,30 @@ class AdlarModbusDevice extends Homey.Device {
   }
 
   private _initCOPCalculators(): void {
-    this.rollingCOP = new RollingCOPCalculator({
+    this.copService = new ModbusCOPService({
       logger: (msg, ...args) => this.logger.debug(msg, ...args),
-      device: {
-        triggerFlowCard: (cardId, tokens, state) => this.triggerFlowCard(cardId, tokens, state),
-        getCapabilityValue: (capability) => this.getCapabilityValue(capability),
-      },
+      device: this,
     });
-    this.scopCalc = new SCOPCalculator(this);
-    this.logger.debug('COP calculators initialized');
+    this.logger.debug('COP service initialized');
   }
 
   private _destroyCOPCalculators(): void {
-    if (this.rollingCOP) {
-      this.rollingCOP.destroy();
-      this.rollingCOP = null;
-    }
-    if (this.scopCalc) {
-      this.scopCalc.destroy();
-      this.scopCalc = null;
+    if (this.copService) {
+      this.copService.destroy();
+      this.copService = null;
     }
   }
 
   private async _restoreCOPData(): Promise<void> {
-    try {
-      const rollingData = await this.getStoreValue('rolling_cop_data');
-      if (rollingData && this.rollingCOP) {
-        this.rollingCOP.importData(rollingData);
-        this.logger.debug('Restored rolling COP data');
-      }
-      const scopData = await this.getStoreValue('scop_data');
-      if (scopData && this.scopCalc) {
-        this.scopCalc.importData(scopData);
-        this.logger.debug('Restored SCOP data');
-      }
-    } catch (e) {
-      this.logger.warn('Failed to restore COP data:', (e as Error).message);
-    }
+    await this.copService?.restore();
   }
 
   private async _saveCOPData(): Promise<void> {
-    try {
-      if (this.rollingCOP) {
-        await this.setStoreValue('rolling_cop_data', this.rollingCOP.exportData());
-      }
-      if (this.scopCalc) {
-        await this.setStoreValue('scop_data', this.scopCalc.exportData());
-      }
-    } catch (e) {
-      this.logger.warn('Failed to save COP data:', (e as Error).message);
-    }
+    await this.copService?.save();
   }
 
-  private _addCOPMeasurement(snap: DataSnapshot): void {
-    const cop = snap.cop.cop;
-    const ambientTemp = snap.sensors.ambientT1?.value ?? 0;
-    const now = Date.now();
-
-    if (this.rollingCOP) {
-      const dp: COPDataPoint = {
-        timestamp: now,
-        cop,
-        method: 'direct_thermal',
-        confidence: 'high',
-        electricalPower: snap.power.inputPowerKw * 1000,
-        thermalOutput: snap.cop.thermalPowerKw * 1000,
-        ambientTemperature: ambientTemp,
-      };
-      this.rollingCOP.addDataPoint(dp);
-    }
-
-    if (this.scopCalc) {
-      const compFreq = snap.sensors.compRunningFreq?.value ?? 0;
-      const loadRatio = Math.min(1, compFreq / 60); // normalise 0–1
-      const measurement: COPMeasurement = {
-        cop,
-        method: 'direct_thermal',
-        timestamp: now,
-        ambientTemperature: ambientTemp,
-        loadRatio,
-        confidence: 'high',
-      };
-      this.scopCalc.addCOPMeasurement(measurement);
-    }
-  }
-
-  private _maybeUpdateRollingCOPCapabilities(set: (cap: string, val: unknown) => void): void {
-    const COP_UPDATE_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
-    const now = Date.now();
-    if (now - this.lastCOPUpdateMs < COP_UPDATE_INTERVAL_MS) return;
-    this.lastCOPUpdateMs = now;
-
-    if (this.rollingCOP) {
-      const daily = this.rollingCOP.getDailyCOP();
-      if (daily) {
-        set('adlar_cop_daily', +daily.averageCOP.toFixed(2));
-        const trend = this.rollingCOP.getTrendAnalysis(24);
-        if (trend) {
-          set('adlar_cop_trend', trend.trend);
-        }
-      }
-      const weekly = this.rollingCOP.getWeeklyCOP();
-      if (weekly) set('adlar_cop_weekly', +weekly.averageCOP.toFixed(2));
-      const monthly = this.rollingCOP.getMonthlyCOP();
-      if (monthly) set('adlar_cop_monthly', +monthly.averageCOP.toFixed(2));
-    }
-
-    if (this.scopCalc) {
-      const scopResult = this.scopCalc.calculateSCOP();
-      if (scopResult) {
-        set('adlar_scop', +scopResult.scop.toFixed(2));
-        set('adlar_scop_quality', scopResult.dataQuality);
-      }
-    }
+  public getRollingCOPCalculator(): RollingCOPCalculator | null {
+    return this.copService?.getRollingCOPCalculator() ?? null;
   }
 
   // ── Capability listeners ───────────────────────────────────────────────────

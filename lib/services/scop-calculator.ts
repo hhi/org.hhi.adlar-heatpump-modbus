@@ -36,7 +36,7 @@ interface QualityMetrics {
  */
 export interface COPMeasurement {
   cop: number;
-  method: 'direct_thermal' | 'power_module' | 'refrigerant_circuit' | 'carnot_estimation' | 'valve_correlation' | 'temperature_difference';
+  method: 'direct_thermal' | 'power_module' | 'power_estimation' | 'refrigerant_circuit' | 'carnot_estimation' | 'valve_correlation' | 'temperature_difference';
   timestamp: number;
   ambientTemperature: number;
   loadRatio: number;

@@ -114,7 +114,9 @@ const SENSOR_DESCRIPTORS: readonly SensorDescriptor[] = [
   { key: 'totalOutlet', def: SENSOR_REGISTERS.totalWaterOutletTemp, signed: true },
   { key: 'zone1MixTemp', def: SENSOR_REGISTERS.zone1MixingTemp, signed: true },
   { key: 'zone2Temp', def: SENSOR_REGISTERS.zone2Temp, signed: true },
+  { key: 'bPhaseVoltage', def: SENSOR_REGISTERS.bPhaseVoltage },
   { key: 'bPhaseCurrent', def: SENSOR_REGISTERS.bPhaseCurrent },
+  { key: 'cPhaseVoltage', def: SENSOR_REGISTERS.cPhaseVoltage },
   { key: 'cPhaseCurrent', def: SENSOR_REGISTERS.cPhaseCurrent },
 ];
 

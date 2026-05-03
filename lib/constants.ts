@@ -259,6 +259,7 @@ export class DeviceConstants {
   static readonly SCOP_METHOD_WEIGHTS = {
     direct_thermal: 1.0, // Full weight - most accurate
     power_module: 0.95, // Slight discount
+    power_estimation: 0.90, // Frequency-based estimate
     refrigerant_circuit: 0.90, // Moderate discount
     carnot_estimation: 0.85, // Higher discount
     valve_correlation: 0.75, // Significant discount
