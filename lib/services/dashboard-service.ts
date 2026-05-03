@@ -15,6 +15,11 @@ import {
   COIL_ADDRESSES,
   USER_COMMANDS_REGISTERS,
   VERSION_REGISTERS,
+  POLL_GROUP_SUPERFAST,
+  POLL_GROUP_FAST,
+  POLL_GROUP_MEDIUM,
+  POLL_GROUP_SLOW,
+  POLL_GROUP_ONCE,
   STATUS_1_BITS,
   STATUS_2_BITS,
   FAULT_1_BITS,
@@ -71,6 +76,7 @@ interface RegisterMeta {
   serviceOnly?: boolean;
   readOnly?: boolean;
   bits?: Record<string, number>;
+  pollGroups?: string[];
 }
 
 interface RegisterBlock {
@@ -496,6 +502,7 @@ function buildRegisterBlocks(): RegisterBlock[] {
         name: key,
         readOnly: true,
         bits: _serializeBits(def),
+        pollGroups: _pollGroupsForAddress((def as { address: number }).address),
       })),
     },
     {
@@ -509,6 +516,7 @@ function buildRegisterBlocks(): RegisterBlock[] {
         unit: (def as { unit?: string }).unit,
         multiply: (def as { multiply?: number }).multiply,
         readOnly: true,
+        pollGroups: _pollGroupsForAddress((def as { address: number }).address),
       })),
     },
     {
@@ -525,6 +533,7 @@ function buildRegisterBlocks(): RegisterBlock[] {
         max: (def as { max?: number }).max,
         default: (def as { default?: number }).default,
         desc: (def as { desc?: string }).desc,
+        pollGroups: _pollGroupsForAddress((def as { address: number }).address),
       })),
     },
     {
@@ -543,6 +552,7 @@ function buildRegisterBlocks(): RegisterBlock[] {
         default: (def as { default?: number }).default,
         desc: (def as { desc?: string }).desc,
         serviceOnly: (def as { serviceOnly?: boolean }).serviceOnly,
+        pollGroups: _pollGroupsForAddress((def as { address: number }).address),
       })),
     },
     {
@@ -561,6 +571,7 @@ function buildRegisterBlocks(): RegisterBlock[] {
         default: (def as { default?: number }).default,
         desc: (def as { desc?: string }).desc,
         serviceOnly: (def as { serviceOnly?: boolean }).serviceOnly,
+        pollGroups: _pollGroupsForAddress((def as { address: number }).address),
       })),
     },
     {
@@ -573,6 +584,7 @@ function buildRegisterBlocks(): RegisterBlock[] {
         name: (def as { name: string }).name,
         isCoil: true,
         serviceOnly: (def as { serviceOnly?: boolean }).serviceOnly,
+        pollGroups: [],
       })),
     },
     {
@@ -589,6 +601,7 @@ function buildRegisterBlocks(): RegisterBlock[] {
         desc: (def as { desc?: string }).desc,
         serviceOnly: (def as { serviceOnly?: boolean }).serviceOnly,
         bits: _serializeBits(def),
+        pollGroups: _pollGroupsForAddress((def as { address: number }).address),
       })),
     },
     {
@@ -601,9 +614,24 @@ function buildRegisterBlocks(): RegisterBlock[] {
         name: (def as { name: string }).name,
         desc: (def as { desc?: string }).desc,
         readOnly: true,
+        pollGroups: _pollGroupsForAddress((def as { address: number }).address),
       })),
     },
   ];
+}
+
+function _pollGroupsForAddress(address: number): string[] {
+  const groups = [
+    POLL_GROUP_SUPERFAST,
+    POLL_GROUP_FAST,
+    POLL_GROUP_MEDIUM,
+    POLL_GROUP_SLOW,
+    POLL_GROUP_ONCE,
+  ];
+
+  return groups
+    .filter((group) => group.reads.some((read) => address >= read.start && address < read.start + read.count))
+    .map((group) => group.name);
 }
 
 function _parameterIdFromKey(key: string): string | undefined {

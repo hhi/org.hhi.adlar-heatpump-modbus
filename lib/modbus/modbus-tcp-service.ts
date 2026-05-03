@@ -134,6 +134,11 @@ export interface PollGroup {
   name: string;
   intervalMs: number;
   blocks: readonly PollBlock[];
+  adaptive?: {
+    enabled: boolean;
+    activeIntervalMs: number;
+    idleIntervalMs: number;
+  };
 }
 
 // ============================================================================
@@ -172,8 +177,9 @@ export class ModbusTcpService extends EventEmitter {
   private _destroyed = false;
   private _reconnectN = 0;
   private _reconnectTm?: ReturnType<typeof setTimeout>;
-  private _pollTimers = new Map<string, ReturnType<typeof setInterval>>();
+  private _pollTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private _pollGroups: PollGroup[] = [];
+  private _pollGeneration = 0;
 
   readonly stats = {
     polls: 0, errors: 0, reconnects: 0, lastPollMs: 0,
@@ -409,6 +415,13 @@ export class ModbusTcpService extends EventEmitter {
     }
   }
 
+  private async _readHoldingRegistersAndDetectChange(startAddr: number, count: number): Promise<boolean> {
+    const before = Array.from({ length: count }, (_, i) => this.cache.get(startAddr + i));
+    await this.readHoldingRegisters(startAddr, count);
+
+    return before.some((value, i) => value !== this.cache.get(startAddr + i));
+  }
+
   /**
    * FC06 — Write Single Register.
    * Cache wordt synchroon bijgewerkt na succesvolle write.
@@ -521,6 +534,7 @@ export class ModbusTcpService extends EventEmitter {
   startPolling(groups: PollGroup[]): void {
     this._stopPolling();
     this._pollGroups = groups;
+    const pollGeneration = this._pollGeneration;
 
     for (const group of groups) {
       if (group.intervalMs <= 0) {
@@ -530,13 +544,7 @@ export class ModbusTcpService extends EventEmitter {
       }
 
       // Direct eerste poll
-      this._runPollGroup(group).catch(() => {});
-      this._pollTimers.set(
-        group.name,
-        this._timers.setInterval(() => {
-          this._runPollGroup(group).catch(() => {});
-        }, group.intervalMs),
-      );
+      this._schedulePollGroup(group, 0, pollGeneration);
     }
   }
 
@@ -545,18 +553,57 @@ export class ModbusTcpService extends EventEmitter {
   }
 
   private _stopPolling(): void {
-    for (const t of this._pollTimers.values()) this._timers.clearInterval(t);
+    this._pollGeneration++;
+    for (const t of this._pollTimers.values()) this._timers.clearTimeout(t);
     this._pollTimers.clear();
   }
 
-  private async _runPollGroup(group: PollGroup): Promise<void> {
-    if (!this._connected) return;
+  private _schedulePollGroup(group: PollGroup, delayMs: number, pollGeneration: number): void {
+    const timer = this._timers.setTimeout(() => {
+      if (pollGeneration !== this._pollGeneration) {
+        return;
+      }
+
+      this._pollTimers.delete(group.name);
+      this._runPollGroup(group)
+        .then((changed) => {
+          if (
+            this._destroyed
+            || pollGeneration !== this._pollGeneration
+            || !this._pollGroups.some((pollGroup) => pollGroup.name === group.name)
+          ) {
+            return;
+          }
+
+          const nextDelay = group.adaptive?.enabled
+            ? (changed ? group.adaptive.activeIntervalMs : group.adaptive.idleIntervalMs)
+            : group.intervalMs;
+          this._schedulePollGroup(group, nextDelay, pollGeneration);
+        })
+        .catch(() => {
+          if (
+            this._destroyed
+            || pollGeneration !== this._pollGeneration
+            || !this._pollGroups.some((pollGroup) => pollGroup.name === group.name)
+          ) {
+            return;
+          }
+          this._schedulePollGroup(group, group.intervalMs, pollGeneration);
+        });
+    }, delayMs);
+
+    this._pollTimers.set(group.name, timer);
+  }
+
+  private async _runPollGroup(group: PollGroup): Promise<boolean> {
+    if (!this._connected) return false;
     let requiredFailed = false;
     let optionalFailed = false;
+    let changed = false;
 
     for (const blk of group.blocks) {
       try {
-        await this.readHoldingRegisters(blk.start, blk.count);
+        changed = (await this._readHoldingRegistersAndDetectChange(blk.start, blk.count)) || changed;
         await this._batchDelay();
       } catch (e) {
         const blockError = new ModbusBlockError(
@@ -573,10 +620,11 @@ export class ModbusTcpService extends EventEmitter {
       }
     }
 
-    if (requiredFailed) return; // Geen poll-complete — ModbusBlockError is al geëmit
+    if (requiredFailed) return changed; // Geen poll-complete — ModbusBlockError is al geëmit
 
     this.stats.polls++;
     this.stats.lastPollMs = Date.now();
     this.emit(optionalFailed ? 'poll-partial' : 'poll-complete', group.name);
+    return changed;
   }
 }

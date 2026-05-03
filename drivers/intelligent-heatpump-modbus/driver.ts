@@ -58,6 +58,8 @@ class ModbusDriver extends Homey.Driver {
             modbus_host: credentials.host,
             modbus_port: credentials.port,
             modbus_unit_id: credentials.unitId,
+            poll_superfast_s: 5,
+            poll_superfast_adaptive: true,
             poll_fast_s: 10,
             poll_medium_s: 30,
             poll_slow_s: 300,

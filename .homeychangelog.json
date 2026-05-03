@@ -1,4 +1,8 @@
 {
+  "2.1.5": {
+    "en": "Added a new superfast Modbus poll group for key live registers: status, compressor target/running frequency, water inlet/outlet temperatures, pump PWM, water flow, and input power. The superfast interval defaults to 5 seconds and can adaptively speed up to 2 seconds after a value change, then return to 5 seconds when values are stable. Expert dashboard: each register now shows its automatic poll group(s), or 'manual' when it is only read on demand.",
+    "nl": "Nieuwe supersnelle Modbus-pollgroep toegevoegd voor belangrijke live registers: status, compressor doel-/loopfrequentie, water inlaat-/uitlaattemperaturen, pomp-PWM, waterdebiet en ingangsvermogen. Het supersnelle interval is standaard 5 seconden en kan adaptief versnellen naar 2 seconden na een waardewijziging, en daarna terug naar 5 seconden wanneer waarden stabiel zijn. Expertdashboard: elk register toont nu de automatische pollgroep(en), of 'manual' wanneer het alleen op aanvraag wordt gelezen."
+  },
   "2.1.4": {
     "en": "Expert dashboard: a 'not connected' error mid-block (e.g. during a Modbus reconnect) now triggers an automatic retry after 4 seconds instead of immediately showing an error. Other read failures (e.g. Modbus timeout) still retry after 600 ms.",
     "nl": "Expertdashboard: een 'niet verbonden' fout midden in een blok (bijv. tijdens een Modbus-herverbinding) triggert nu automatisch een nieuwe poging na 4 seconden in plaats van direct een fout te tonen. Andere leesfouten (bijv. Modbus-timeout) proberen het na 600 ms opnieuw."

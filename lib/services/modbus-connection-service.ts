@@ -13,6 +13,9 @@ export interface ModbusConnectionConfig {
   host: string;
   port?: number;
   unitId?: number;
+  pollSuperfastMs?: number;
+  pollSuperfastAdaptive?: boolean;
+  pollSuperfastAdaptiveMs?: number;
   pollFastMs?: number;
   pollMediumMs?: number;
   pollSlowMs?: number;
@@ -84,10 +87,20 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
     this.service.on('connected', () => {
       this.connected = true;
       this.logger('ModbusConnectionService: Connected');
+      const superfast = config.pollSuperfastMs ?? 5_000;
+      const superfastAdaptive = config.pollSuperfastAdaptive ?? true;
+      const superfastAdaptiveMs = config.pollSuperfastAdaptiveMs ?? 2_000;
       const fast = config.pollFastMs ?? 10_000;
       const medium = config.pollMediumMs ?? 30_000;
       const slow = config.pollSlowMs ?? 300_000;
-      this.service!.startPolling({ fast, medium, slow });
+      this.service!.startPolling({
+        superfast,
+        superfastAdaptive,
+        superfastAdaptiveMs,
+        fast,
+        medium,
+        slow,
+      });
       this.onConnected();
     });
 
