@@ -539,9 +539,9 @@ export class ServiceCoordinator {
     // Niet-blok-fouten (socket, FC06, FC05) — legacy pad
     if (!(err instanceof ModbusBlockError)) {
       if (context.startsWith('poll:superfast')) {
+        // Superfast is een bonusfunctie — fouten worden gelogd maar tellen niet mee voor verbindingskwaliteit
         this._consecutiveSuperfastPollFailures++;
-        this.logger(`ServiceCoordinator: Superfast poll failures: ${this._consecutiveSuperfastPollFailures}`);
-        this._evaluateConnectionQuality();
+        this.logger(`ServiceCoordinator: Superfast poll failure (no quality impact): ${this._consecutiveSuperfastPollFailures}`);
       } else if (context.startsWith('poll:fast') || context.startsWith('fc03')) {
         this._consecutiveFastPollFailures++;
         this.logger(`ServiceCoordinator: Fast poll failures: ${this._consecutiveFastPollFailures}`);
@@ -568,9 +568,9 @@ export class ServiceCoordinator {
     if (code === 'unsupported') return; // Non-fast unsupported: geen quality-effect
 
     if (groupName === 'superfast') {
+      // Superfast is een bonusfunctie — fouten worden gelogd maar tellen niet mee voor verbindingskwaliteit
       this._consecutiveSuperfastPollFailures++;
-      this.logger(`ServiceCoordinator: Superfast poll failures: ${this._consecutiveSuperfastPollFailures}`);
-      this._evaluateConnectionQuality();
+      this.logger(`ServiceCoordinator: Superfast poll failure (no quality impact): ${this._consecutiveSuperfastPollFailures}`);
     } else if (groupName === 'fast') {
       this._consecutiveFastPollFailures++;
       this.logger(`ServiceCoordinator: Fast poll failures: ${this._consecutiveFastPollFailures}`);

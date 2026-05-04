@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "org.hhi.adlar-heatpump-modbus",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "compatibility": ">=12.2.0",
   "sdk": 3,
   "platforms": [
@@ -2096,7 +2096,7 @@
             "filter": "driver_id=intelligent-heatpump-modbus"
           },
           {
-            "type": "range",
+            "type": "text",
             "name": "fault_code",
             "title": {
               "en": " code",
@@ -2104,21 +2104,17 @@
               "de": " code",
               "fr": " code"
             },
-            "min": 1,
-            "max": 100,
-            "step": 1,
-            "units": "",
             "placeholder": {
-              "en": "Fault code to monitor",
-              "nl": "Storing code om te monitoren",
-              "de": "Störungscode zur Überwachung",
-              "fr": "Code de défaut à surveiller"
+              "en": "Fault code to monitor, e.g. F1.1 or SYS1_1",
+              "nl": "Storingscode om te monitoren, bijv. F1.1 of SYS1_1",
+              "de": "Störungscode zur Überwachung, z. B. F1.1 oder SYS1_1",
+              "fr": "Code de défaut à surveiller, p. ex. F1.1 ou SYS1_1"
             }
           }
         ],
         "tokens": [
           {
-            "type": "number",
+            "type": "string",
             "name": "fault_code",
             "title": {
               "en": "Fault code",
@@ -2126,7 +2122,7 @@
               "de": "Störungscode",
               "fr": "Code de défaut"
             },
-            "example": 15
+            "example": "F1.1"
           },
           {
             "type": "string",
@@ -3787,59 +3783,6 @@
         ]
       },
       {
-        "id": "water_mode_changed",
-        "title": {
-          "en": "Water mode changed",
-          "nl": "Watermodus gewijzigd",
-          "de": "Wassermodus geändert",
-          "fr": "Mode d'eau changé"
-        },
-        "titleFormatted": {
-          "en": "Water mode changed to [[mode]]",
-          "nl": "Watermodus gewijzigd naar [[mode]]",
-          "de": "Wassermodus zu [[mode]] geändert",
-          "fr": "Mode d'eau changé à [[mode]]"
-        },
-        "hint": {
-          "en": "Triggers when the water control temperature mode changes",
-          "nl": "Wordt geactiveerd wanneer de watermodus wijzigt",
-          "de": "Wird ausgelöst, wenn sich der Wassermodus ändert",
-          "fr": "Se déclenche lorsque le mode d'eau change"
-        },
-        "highlight": true,
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=intelligent-heatpump-modbus"
-          }
-        ],
-        "tokens": [
-          {
-            "type": "string",
-            "name": "mode",
-            "title": {
-              "en": "Water mode",
-              "nl": "Watermodus",
-              "de": "Wassermodus",
-              "fr": "Mode d'eau"
-            },
-            "example": "flowing"
-          },
-          {
-            "type": "string",
-            "name": "previous_mode",
-            "title": {
-              "en": "Previous water mode",
-              "nl": "Vorige watermodus",
-              "de": "Vorheriger Wassermodus",
-              "fr": "Mode d'eau précédent"
-            },
-            "example": "blocked"
-          }
-        ]
-      },
-      {
         "id": "work_mode_changed",
         "title": {
           "en": "Work mode changed",
@@ -5350,93 +5293,6 @@
         ]
       },
       {
-        "id": "volume_setting_is",
-        "title": {
-          "en": "Electricity consumption checking is",
-          "nl": "Stroomverbruik controleren is",
-          "de": "Stromverbrauchsüberwachung ist",
-          "fr": "La vérification de la consommation électrique est"
-        },
-        "titleFormatted": {
-          "en": "Electricity consumption checking !{{is|is not}} [[comparison]] [[level]]",
-          "nl": "Stroomverbruik controleren !{{is|is niet}} [[comparison]] [[level]]",
-          "de": "Stromverbrauchsüberwachung !{{ist|ist nicht}} [[comparison]] [[level]]",
-          "fr": "La vérification de la consommation électrique !{{est|n'est pas}} [[comparison]] [[level]]"
-        },
-        "hint": {
-          "en": "Check if the electricity consumption checking level matches the specified condition",
-          "nl": "Controleer of het stroomverbruik controle niveau voldoet aan de opgegeven voorwaarde",
-          "de": "Prüfen Sie, ob die Stromverbrauchsüberwachungsstufe der angegebenen Bedingung entspricht",
-          "fr": "Vérifier si le niveau de vérification de la consommation électrique correspond à la condition spécifiée"
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=intelligent-heatpump-modbus"
-          },
-          {
-            "type": "dropdown",
-            "name": "comparison",
-            "title": {
-              "en": "Comparison",
-              "nl": "Vergelijking",
-              "de": "Vergleich",
-              "fr": "Comparaison"
-            },
-            "values": [
-              {
-                "id": "equal",
-                "title": {
-                  "en": "Equal to",
-                  "nl": "Gelijk aan",
-                  "de": "Gleich",
-                  "fr": "Égal à"
-                }
-              },
-              {
-                "id": "greater",
-                "title": {
-                  "en": "Greater than",
-                  "nl": "Groter dan",
-                  "de": "Größer als",
-                  "fr": "Supérieur à"
-                }
-              },
-              {
-                "id": "less",
-                "title": {
-                  "en": "Less than",
-                  "nl": "Kleiner dan",
-                  "de": "Kleiner als",
-                  "fr": "Inférieur à"
-                }
-              }
-            ]
-          },
-          {
-            "type": "range",
-            "name": "level",
-            "title": {
-              "en": " Electricity consumption checking",
-              "nl": " Stroomverbruik controleren",
-              "de": " Stromverbrauchsüberwachung",
-              "fr": " Vérification de la consommation électrique"
-            },
-            "min": 0,
-            "max": 2,
-            "step": 1,
-            "units": "",
-            "placeholder": {
-              "en": "Level (0-2)",
-              "nl": "Niveau (0-2)",
-              "de": "Stufe (0-2)",
-              "fr": "Niveau (0-2)"
-            }
-          }
-        ]
-      },
-      {
         "id": "water_flow_rate_check",
         "title": {
           "en": "Water flow rate check",
@@ -5480,93 +5336,6 @@
               "nl": "Water doorstroming drempel",
               "de": "Wasserdurchflussrate-Schwellenwert",
               "fr": "Seuil du débit d'eau"
-            }
-          }
-        ]
-      },
-      {
-        "id": "water_mode_is",
-        "title": {
-          "en": "Water control mode is",
-          "nl": "Water controle modus is",
-          "de": "Wassersteuerungsmodus ist",
-          "fr": "Le mode de contrôle de l'eau est"
-        },
-        "titleFormatted": {
-          "en": "Water control mode !{{is|is not}} [[comparison]] [[mode]]",
-          "nl": "Water controle modus !{{is|is niet}} [[comparison]] [[mode]]",
-          "de": "Wassersteuerungsmodus !{{ist|ist nicht}} [[comparison]] [[mode]]",
-          "fr": "Le mode de contrôle de l'eau !{{est|n'est pas}} [[comparison]] [[mode]]"
-        },
-        "hint": {
-          "en": "Check if the water control mode matches the specified condition",
-          "nl": "Controleer of de water controle modus voldoet aan de opgegeven voorwaarde",
-          "de": "Prüfen Sie, ob der Wassersteuerungsmodus der angegebenen Bedingung entspricht",
-          "fr": "Vérifier si le mode de contrôle de l'eau correspond à la condition spécifiée"
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=intelligent-heatpump-modbus"
-          },
-          {
-            "type": "dropdown",
-            "name": "comparison",
-            "title": {
-              "en": "Comparison",
-              "nl": "Vergelijking",
-              "de": "Vergleich",
-              "fr": "Comparaison"
-            },
-            "values": [
-              {
-                "id": "equal",
-                "title": {
-                  "en": "Equal to",
-                  "nl": "Gelijk aan",
-                  "de": "Gleich",
-                  "fr": "Égal à"
-                }
-              },
-              {
-                "id": "greater",
-                "title": {
-                  "en": "Greater than",
-                  "nl": "Groter dan",
-                  "de": "Größer als",
-                  "fr": "Supérieur à"
-                }
-              },
-              {
-                "id": "less",
-                "title": {
-                  "en": "Less than",
-                  "nl": "Kleiner dan",
-                  "de": "Kleiner als",
-                  "fr": "Inférieur à"
-                }
-              }
-            ]
-          },
-          {
-            "type": "range",
-            "name": "mode",
-            "title": {
-              "en": " Water control mode",
-              "nl": " Water controle modus",
-              "de": " Wassersteuerungsmodus",
-              "fr": " Mode de contrôle de l'eau"
-            },
-            "min": 0,
-            "max": 1,
-            "step": 1,
-            "units": "",
-            "placeholder": {
-              "en": "Mode (0-1)",
-              "nl": "Modus (0-1)",
-              "de": "Modus (0-1)",
-              "fr": "Mode (0-1)"
             }
           }
         ]
@@ -7373,102 +7142,6 @@
         ]
       },
       {
-        "id": "set_volume",
-        "title": {
-          "en": "Set electricity consumption checking",
-          "nl": "Stroomverbruik controleren instellen",
-          "de": "Stromverbrauchsprüfung einstellen",
-          "fr": "Régler le contrôle de la consommation électrique"
-        },
-        "titleFormatted": {
-          "en": "Set electricity consumption checking to [[volume]]",
-          "nl": "Stroomverbruik controleren instellen op [[volume]]",
-          "de": "Stromverbrauchsprüfung einstellen auf [[volume]]",
-          "fr": "Régler le contrôle de la consommation électrique sur [[volume]]"
-        },
-        "hint": {
-          "en": "Set the electricity consumption checking level",
-          "nl": "Stel de stroomverbruik controle niveau in",
-          "de": "Stromverbrauchsprüfungsstufe einstellen",
-          "fr": "Régler le niveau de contrôle de la consommation électrique"
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=intelligent-heatpump-modbus"
-          },
-          {
-            "type": "range",
-            "name": "volume",
-            "title": {
-              "en": " Electricity consumption checking",
-              "nl": " Stroomverbruik controleren",
-              "de": " Stromverbrauchsprüfung",
-              "fr": " Contrôle de la consommation électrique"
-            },
-            "min": 0,
-            "max": 2,
-            "step": 1,
-            "units": "",
-            "placeholder": {
-              "en": "Level (0-2)",
-              "nl": "Niveau (0-2)",
-              "de": "Stufe (0-2)",
-              "fr": "Niveau (0-2)"
-            }
-          }
-        ]
-      },
-      {
-        "id": "set_water_mode",
-        "title": {
-          "en": "Set water control mode",
-          "nl": "Water controle modus instellen",
-          "de": "Wassersteuermodus einstellen",
-          "fr": "Régler le mode de contrôle de l'eau"
-        },
-        "titleFormatted": {
-          "en": "Set water control mode to [[mode]]",
-          "nl": "Water controle modus instellen op [[mode]]",
-          "de": "Wassersteuermodus einstellen auf [[mode]]",
-          "fr": "Régler le mode de contrôle de l'eau sur [[mode]]"
-        },
-        "hint": {
-          "en": "Set the water control mode setting",
-          "nl": "Stel de water controle modus instelling in",
-          "de": "Wassersteuermoduseinstellung einstellen",
-          "fr": "Régler le paramètre du mode de contrôle de l'eau"
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=intelligent-heatpump-modbus"
-          },
-          {
-            "type": "range",
-            "name": "mode",
-            "title": {
-              "en": " Water control mode",
-              "nl": " Water controle modus",
-              "de": " Wassersteuermodus",
-              "fr": " Mode de contrôle de l'eau"
-            },
-            "min": 0,
-            "max": 1,
-            "step": 1,
-            "units": "",
-            "placeholder": {
-              "en": "Mode (0-1)",
-              "nl": "Modus (0-1)",
-              "de": "Modus (0-1)",
-              "fr": "Mode (0-1)"
-            }
-          }
-        ]
-      },
-      {
         "id": "set_work_mode",
         "title": {
           "en": "Set work mode",
@@ -7578,9 +7251,8 @@
         "adlar_state_backwater",
         "adlar_antifreeze",
         "adlar_sterilization",
-        "adlar_hotwater",
-        "adlar_compressor_freq",
-        "adlar_comp_target_freq",
+        "measure_frequency.compressor_freq",
+        "measure_frequency.comp_target_freq",
         "adlar_fan_speed",
         "adlar_eev_step",
         "adlar_evi_step",
@@ -7669,10 +7341,34 @@
         "onoff": {
           "uiQuickAction": false
         },
-        "adlar_hotwater": {
+        "measure_frequency.compressor_freq": {
           "title": {
-            "en": "Hot water setpoint",
-            "nl": "Warmwater setpoint"
+            "en": "Compressor frequency",
+            "nl": "Compressorfrequentie"
+          },
+          "icon": "/assets/compressor-freq.svg",
+          "type": "number",
+          "min": 0,
+          "max": 120,
+          "insights": true,
+          "insightsTitle": {
+            "en": "Compressor frequency",
+            "nl": "Compressorfrequentie"
+          }
+        },
+        "measure_frequency.comp_target_freq": {
+          "title": {
+            "en": "Compressor target frequency",
+            "nl": "Compressor doelfrequentie"
+          },
+          "icon": "/assets/compressor-freq.svg",
+          "type": "number",
+          "min": 0,
+          "max": 120,
+          "insights": true,
+          "insightsTitle": {
+            "en": "Compressor target frequency",
+            "nl": "Compressor doelfrequentie"
           }
         },
         "target_temperature": {
@@ -7710,6 +7406,36 @@
           "min": 15,
           "max": 45,
           "step": 1
+        },
+        "target_temperature.indoor": {
+          "title": {
+            "en": "Desired Indoor Temperature",
+            "nl": "Binnentemperatuur gewenst",
+            "de": "Gewünschte Innentemperatur",
+            "fr": "Température Intérieure Souhaitée"
+          },
+          "desc": {
+            "en": "Target room temperature for adaptive control to maintain. Set your desired comfort temperature here.",
+            "nl": "Doel kamertemperatuur die adaptieve regeling moet handhaven. Stel hier je gewenste comfort temperatuur in.",
+            "de": "Zielraumtemperatur für adaptive Steuerung. Stellen Sie hier Ihre gewünschte Komforttemperatur ein.",
+            "fr": "Température cible pour le contrôle adaptatif. Définissez ici votre température de confort souhaitée."
+          },
+          "insightsTitle": {
+            "en": "Target Indoor Temperature",
+            "nl": "Binnentemperatuur gewenst",
+            "de": "Ziel-Innentemperatur",
+            "fr": "Température Intérieure Cible"
+          },
+          "units": "°C",
+          "decimals": 1,
+          "min": 15,
+          "max": 25,
+          "step": 0.5,
+          "getable": true,
+          "setable": true,
+          "uiComponent": "thermostat",
+          "chartType": "stepLine",
+          "insights": true
         },
         "measure_temperature.outlet": {
           "title": {
@@ -9672,7 +9398,7 @@
         "en": "Antifreeze protection active",
         "nl": "Antivriesbeveiliging actief"
       },
-      "icon": "/assets/fault.svg",
+      "icon": "/assets/antifreeze.svg",
       "uiComponent": "sensor",
       "getable": true,
       "setable": false,
@@ -9880,38 +9606,6 @@
       "setable": false,
       "uiComponent": "sensor",
       "icon": "/assets/cheapest-block-start.svg"
-    },
-    "adlar_comp_target_freq": {
-      "id": "adlar_comp_target_freq",
-      "type": "number",
-      "title": {
-        "en": "Compressor target frequency",
-        "nl": "Compressor doelfrequentie"
-      },
-      "icon": "/assets/compressor-state.svg",
-      "uiComponent": "sensor",
-      "getable": true,
-      "setable": false,
-      "units": "Hz",
-      "decimals": 0,
-      "min": 0,
-      "max": 120
-    },
-    "adlar_compressor_freq": {
-      "id": "adlar_compressor_freq",
-      "type": "number",
-      "title": {
-        "en": "Compressor frequency",
-        "nl": "Compressorfrequentie"
-      },
-      "icon": "/assets/compressor-state.svg",
-      "uiComponent": "sensor",
-      "getable": true,
-      "setable": false,
-      "units": "Hz",
-      "decimals": 0,
-      "min": 0,
-      "max": 120
     },
     "adlar_compressor_on": {
       "id": "adlar_compressor_on",
@@ -11251,38 +10945,6 @@
       "min": -25,
       "max": 10
     },
-    "adlar_hotwater": {
-      "id": "adlar_hotwater",
-      "title": {
-        "en": "Hot Water Set Temp",
-        "nl": "Warmwater stel temperatuur",
-        "de": "Warmwasser Solltemperatur",
-        "fr": "Température de consigne eau chaude"
-      },
-      "type": "number",
-      "getable": true,
-      "setable": true,
-      "uiComponent": "slider",
-      "units": {
-        "en": "℃",
-        "nl": "℃",
-        "de": "℃",
-        "fr": "℃"
-      },
-      "min": 10,
-      "max": 75,
-      "step": 1,
-      "insights": true,
-      "insightsTitle": {
-        "en": "Hot Water Set Temp",
-        "nl": "Warmwater stel temperatuur",
-        "de": "Warmwasser Solltemperatur",
-        "fr": "Température de consigne eau chaude"
-      },
-      "description": {
-        "nl": "dp 101 : minitemp_set - Hot Water Set Temp"
-      }
-    },
     "adlar_last_indoor_temp_received": {
       "id": "adlar_last_indoor_temp_received",
       "type": "string",
@@ -11669,7 +11331,7 @@
         "en": "Pump PWM",
         "nl": "Pomp PWM"
       },
-      "icon": "/assets/external-flow.svg",
+      "icon": "/assets/pump.svg",
       "uiComponent": "sensor",
       "getable": true,
       "setable": false,
@@ -11913,7 +11575,7 @@
         "en": "Water flow",
         "nl": "Waterdebiet"
       },
-      "icon": "/assets/external-flow.svg",
+      "icon": "/assets/water-flow.svg",
       "uiComponent": "sensor",
       "getable": true,
       "setable": false,

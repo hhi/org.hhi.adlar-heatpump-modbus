@@ -37,9 +37,8 @@
     "adlar_state_backwater",
     "adlar_antifreeze",
     "adlar_sterilization",
-    "adlar_hotwater",
-    "adlar_compressor_freq",
-    "adlar_comp_target_freq",
+    "measure_frequency.compressor_freq",
+    "measure_frequency.comp_target_freq",
     "adlar_fan_speed",
     "adlar_eev_step",
     "adlar_evi_step",
@@ -128,10 +127,34 @@
     "onoff": {
       "uiQuickAction": false
     },
-    "adlar_hotwater": {
+    "measure_frequency.compressor_freq": {
       "title": {
-        "en": "Hot water setpoint",
-        "nl": "Warmwater setpoint"
+        "en": "Compressor frequency",
+        "nl": "Compressorfrequentie"
+      },
+      "icon": "/assets/compressor-freq.svg",
+      "type": "number",
+      "min": 0,
+      "max": 120,
+      "insights": true,
+      "insightsTitle": {
+        "en": "Compressor frequency",
+        "nl": "Compressorfrequentie"
+      }
+    },
+    "measure_frequency.comp_target_freq": {
+      "title": {
+        "en": "Compressor target frequency",
+        "nl": "Compressor doelfrequentie"
+      },
+      "icon": "/assets/compressor-freq.svg",
+      "type": "number",
+      "min": 0,
+      "max": 120,
+      "insights": true,
+      "insightsTitle": {
+        "en": "Compressor target frequency",
+        "nl": "Compressor doelfrequentie"
       }
     },
     "target_temperature": {
@@ -169,6 +192,36 @@
       "min": 15,
       "max": 45,
       "step": 1
+    },
+    "target_temperature.indoor": {
+      "title": {
+        "en": "Desired Indoor Temperature",
+        "nl": "Binnentemperatuur gewenst",
+        "de": "Gewünschte Innentemperatur",
+        "fr": "Température Intérieure Souhaitée"
+      },
+      "desc": {
+        "en": "Target room temperature for adaptive control to maintain. Set your desired comfort temperature here.",
+        "nl": "Doel kamertemperatuur die adaptieve regeling moet handhaven. Stel hier je gewenste comfort temperatuur in.",
+        "de": "Zielraumtemperatur für adaptive Steuerung. Stellen Sie hier Ihre gewünschte Komforttemperatur ein.",
+        "fr": "Température cible pour le contrôle adaptatif. Définissez ici votre température de confort souhaitée."
+      },
+      "insightsTitle": {
+        "en": "Target Indoor Temperature",
+        "nl": "Binnentemperatuur gewenst",
+        "de": "Ziel-Innentemperatur",
+        "fr": "Température Intérieure Cible"
+      },
+      "units": "°C",
+      "decimals": 1,
+      "min": 15,
+      "max": 25,
+      "step": 0.5,
+      "getable": true,
+      "setable": true,
+      "uiComponent": "thermostat",
+      "chartType": "stepLine",
+      "insights": true
     },
     "measure_temperature.outlet": {
       "title": {

@@ -11,6 +11,11 @@ import { PerformanceReportService } from './performance-report-service';
 import { SeasonalModeCalculator } from '../seasonal-mode-calculator';
 import { CurveCalculator } from '../curve-calculator';
 import { TimeScheduleCalculator } from '../time-schedule-calculator';
+import {
+  enumIdToHeatingCurve,
+  enumIdToHotWaterCurve,
+  workModeIdToUserMode,
+} from '../modbus/adlar-enum-mappers';
 
 /* eslint-disable camelcase */
 interface PreHeatArgs {
@@ -30,6 +35,48 @@ interface PerformanceReportTokens {
 interface TriggerCardLike {
   trigger: (device: unknown, tokens: PerformanceReportTokens) => Promise<void>;
 }
+
+interface FlowActionDevice {
+  setCapabilityValue: (capability: string, value: unknown) => Promise<void>;
+  triggerCapabilityListener?: (capability: string, value: unknown, opts: Record<string, unknown>) => Promise<void>;
+  getName: () => string;
+  hasCapability: (capability: string) => boolean;
+}
+
+type GenericFlowArgs = Record<string, unknown>;
+
+const HEATING_MODE_TO_MODBUS: Record<string, number> = {
+  cold: 0,
+  heating: 1,
+  hot_water: 2,
+  floor_heating: 3,
+  cold_and_hotwater: 4,
+  heating_and_hot_water: 5,
+  floor_heatign_and_hot_water: 7,
+};
+
+const THRESHOLD_TRIGGER_CARDS: Array<{
+  cardId: string;
+  thresholdArg: string;
+}> = [
+  { cardId: 'ambient_temperature_changed', thresholdArg: 'temperature' },
+  { cardId: 'inlet_temperature_changed', thresholdArg: 'temperature' },
+  { cardId: 'outlet_temperature_changed', thresholdArg: 'temperature' },
+  { cardId: 'coiler_temperature_alert', thresholdArg: 'temperature' },
+  { cardId: 'incoiler_temperature_alert', thresholdArg: 'temperature' },
+  { cardId: 'tank_temperature_alert', thresholdArg: 'temperature' },
+  { cardId: 'suction_temperature_alert', thresholdArg: 'temperature' },
+  { cardId: 'discharge_temperature_alert', thresholdArg: 'temperature' },
+  { cardId: 'economizer_inlet_temperature_alert', thresholdArg: 'temperature' },
+  { cardId: 'economizer_outlet_temperature_alert', thresholdArg: 'temperature' },
+  { cardId: 'high_pressure_temperature_alert', thresholdArg: 'temperature' },
+  { cardId: 'low_pressure_temperature_alert', thresholdArg: 'temperature' },
+  { cardId: 'eev_pulse_steps_alert', thresholdArg: 'pulse_steps' },
+  { cardId: 'evi_pulse_steps_alert', thresholdArg: 'pulse_steps' },
+  { cardId: 'water_flow_alert', thresholdArg: 'flow_rate' },
+  { cardId: 'compressor_efficiency_alert', thresholdArg: 'frequency' },
+  { cardId: 'fan_motor_efficiency_alert', thresholdArg: 'frequency' },
+];
 
 function hasTrigger(value: unknown): value is TriggerCardLike {
   return typeof value === 'object'
@@ -149,6 +196,10 @@ export class FlowCardManagerService {
       await this.registerFlowCardsByCategory('pulseSteps', availableCaps.pulseSteps, userPrefs.flow_pulse_steps_alerts, healthyCapabilities);
       await this.registerFlowCardsByCategory('states', availableCaps.states, userPrefs.flow_state_alerts, healthyCapabilities);
       await this.registerFlowCardsByCategory('efficiency', availableCaps.efficiency, userPrefs.flow_efficiency_alerts, healthyCapabilities);
+
+      // Register Modbus-specific trigger filters and simple action cards.
+      await this.registerModbusTriggerRunListeners();
+      await this.registerModbusSimpleActionCards();
 
       // Expert feature cards
       if (userPrefs.flow_expert_mode) {
@@ -326,6 +377,172 @@ export class FlowCardManagerService {
     }
   }
 
+  private async registerModbusTriggerRunListeners(): Promise<void> {
+    try {
+      for (const { cardId, thresholdArg } of THRESHOLD_TRIGGER_CARDS) {
+        const card = this.device.homey.flow.getDeviceTriggerCard(cardId);
+        const listener = card.registerRunListener(async (args, state) => {
+          const currentValue = this.getStateNumber(state, 'currentValue');
+          const threshold = this.getArgNumber(args as GenericFlowArgs, thresholdArg);
+          const condition = String((args as GenericFlowArgs).condition ?? '');
+          const result = this.evaluateThreshold(condition, currentValue, threshold);
+
+          this.logger('FlowCardManagerService: Threshold trigger evaluated', {
+            cardId,
+            condition,
+            currentValue,
+            threshold,
+            result,
+          });
+
+          return result;
+        });
+        this.flowCardListeners.set(cardId, listener);
+      }
+
+      const faultCard = this.device.homey.flow.getDeviceTriggerCard('fault_detected');
+      const faultListener = faultCard.registerRunListener(async (args, state) => {
+        const requestedCode = String((args as GenericFlowArgs).fault_code ?? '').trim().toLowerCase();
+        const actualCode = String((state as GenericFlowArgs | undefined)?.faultCode ?? '').trim().toLowerCase();
+
+        if (!requestedCode || !actualCode) return false;
+        return requestedCode === actualCode;
+      });
+      this.flowCardListeners.set('fault_detected', faultListener);
+
+      this.logger('FlowCardManagerService: Modbus trigger run listeners registered');
+    } catch (error) {
+      this.logger('FlowCardManagerService: Error registering Modbus trigger run listeners:', error);
+    }
+  }
+
+  private async registerModbusSimpleActionCards(): Promise<void> {
+    try {
+      this.registerCapabilityAction('set_target_temperature', async (args) => {
+        const temperature = this.normalizeTemperatureArg(args, 'temperature', String(args.decimal_handling ?? 'round'));
+        await this.triggerSelectedDeviceCapability(args, 'target_temperature', temperature);
+        return true;
+      });
+
+      this.registerCapabilityAction('set_hotwater_temperature', async (args) => {
+        const temperature = this.normalizeTemperatureArg(args, 'temperature', 'round');
+        await this.triggerSelectedDeviceCapability(args, 'target_temperature.dhw', temperature);
+        return true;
+      });
+
+      this.registerCapabilityAction('set_desired_indoor_temperature', async (args) => {
+        const temperature = this.getRequiredNumberArg(args, 'temperature');
+        await this.triggerSelectedDeviceCapability(args, 'target_temperature.indoor', temperature);
+        return true;
+      });
+
+      this.registerCapabilityAction('set_device_onoff', async (args) => {
+        const state = String(args.state ?? '');
+        if (state !== 'on' && state !== 'off') {
+          throw new Error(`Unsupported power state: ${state}`);
+        }
+        await this.triggerSelectedDeviceCapability(args, 'onoff', state === 'on');
+        return true;
+      });
+
+      this.registerCapabilityAction('set_heating_mode', async (args) => {
+        const modeId = String(args.mode ?? '');
+        const modbusMode = HEATING_MODE_TO_MODBUS[modeId];
+        if (modbusMode === undefined) {
+          throw new Error(`Unsupported heating mode: ${modeId}`);
+        }
+        await this.triggerSelectedDeviceCapability(args, 'adlar_mode', String(modbusMode));
+        return true;
+      });
+
+      this.registerCapabilityAction('set_work_mode', async (args) => {
+        const mode = String(args.mode ?? 'Normal');
+        workModeIdToUserMode(mode);
+        await this.triggerSelectedDeviceCapability(args, 'adlar_enum_work_mode', mode);
+        return true;
+      });
+
+      this.registerCapabilityAction('set_capacity', async (args) => {
+        const capacity = String(args.capacity ?? 'OFF');
+        enumIdToHotWaterCurve(capacity);
+        await this.triggerSelectedDeviceCapability(args, 'adlar_enum_capacity_set', capacity);
+        return true;
+      });
+
+      this.registerCapabilityAction('set_heating_curve', async (args) => {
+        const curve = String(args.curve ?? 'OFF');
+        enumIdToHeatingCurve(curve);
+        await this.triggerSelectedDeviceCapability(args, 'adlar_enum_countdown_set', curve);
+        return true;
+      });
+
+      this.logger('FlowCardManagerService: Modbus simple action cards registered');
+    } catch (error) {
+      this.logger('FlowCardManagerService: Error registering Modbus simple action cards:', error);
+    }
+  }
+
+  private registerCapabilityAction(cardId: string, handler: (args: GenericFlowArgs) => Promise<boolean>): void {
+    const card = this.device.homey.flow.getActionCard(cardId);
+    const listener = card.registerRunListener(async (args) => {
+      this.logger('FlowCardManagerService: Modbus action triggered', { cardId, args });
+      return handler(args as GenericFlowArgs);
+    });
+    this.flowCardListeners.set(cardId, listener);
+  }
+
+  private async triggerSelectedDeviceCapability(args: GenericFlowArgs, capability: string, value: unknown): Promise<void> {
+    const selectedDevice = args.device as FlowActionDevice | undefined;
+    if (!selectedDevice) {
+      throw new Error('No device selected for flow action');
+    }
+    if (!selectedDevice.hasCapability(capability)) {
+      throw new Error(`Device ${selectedDevice.getName()} does not support ${capability}`);
+    }
+
+    if (typeof selectedDevice.triggerCapabilityListener === 'function') {
+      await selectedDevice.triggerCapabilityListener(capability, value, {});
+      return;
+    }
+
+    await selectedDevice.setCapabilityValue(capability, value);
+    this.logger(`FlowCardManagerService: Used setCapabilityValue fallback for ${capability}`);
+  }
+
+  private normalizeTemperatureArg(args: GenericFlowArgs, key: string, decimalHandling: string): number {
+    const value = this.getRequiredNumberArg(args, key);
+    if (Number.isInteger(value)) return value;
+    if (decimalHandling === 'error') {
+      throw new Error(`Temperature ${value} must be a whole number for this device`);
+    }
+    return Math.round(value);
+  }
+
+  private getRequiredNumberArg(args: GenericFlowArgs, key: string): number {
+    const value = Number(args[key]);
+    if (!Number.isFinite(value)) {
+      throw new Error(`Missing or invalid numeric argument: ${key}`);
+    }
+    return value;
+  }
+
+  private getArgNumber(args: GenericFlowArgs, key: string): number | null {
+    const value = Number(args[key]);
+    return Number.isFinite(value) ? value : null;
+  }
+
+  private getStateNumber(state: unknown, key: string): number | null {
+    const value = Number((state as GenericFlowArgs | undefined)?.[key]);
+    return Number.isFinite(value) ? value : null;
+  }
+
+  private evaluateThreshold(condition: string, currentValue: number | null, threshold: number | null): boolean {
+    if (currentValue === null || threshold === null) return false;
+    if (condition === 'above') return currentValue > threshold;
+    if (condition === 'below') return currentValue < threshold;
+    return false;
+  }
+
   /**
    * Register action-based condition cards built from patterns in the app.
    */
@@ -365,7 +582,7 @@ export class FlowCardManagerService {
       const hotWaterTempCard = this.device.homey.flow.getConditionCard('hotwater_temperature_is');
       const hotWaterTempListener = hotWaterTempCard.registerRunListener(async (args) => {
         this.logger('FlowCardManagerService: Hot water temperature condition triggered', { args });
-        const currentValue = this.device.getCapabilityValue('adlar_hotwater') || 0;
+        const currentValue = this.device.getCapabilityValue('target_temperature.dhw') || 0;
         const targetValue = args.temperature || 0;
 
         switch (args.comparison) {
@@ -385,8 +602,9 @@ export class FlowCardManagerService {
       const heatingModeCard = this.device.homey.flow.getConditionCard('heating_mode_is');
       const heatingModeListener = heatingModeCard.registerRunListener(async (args) => {
         this.logger('FlowCardManagerService: Heating mode condition triggered', { args });
-        const currentValue = this.device.getCapabilityValue('adlar_enum_mode');
-        return currentValue === args.mode;
+        const currentValue = String(this.device.getCapabilityValue('adlar_mode') ?? '');
+        const expectedMode = HEATING_MODE_TO_MODBUS[String(args.mode ?? '')];
+        return expectedMode !== undefined && currentValue === String(expectedMode);
       });
       this.flowCardListeners.set('heating_mode_is', heatingModeListener);
 
@@ -398,26 +616,6 @@ export class FlowCardManagerService {
         return currentValue === args.mode;
       });
       this.flowCardListeners.set('work_mode_is', workModeListener);
-
-      // Water mode condition
-      const waterModeCard = this.device.homey.flow.getConditionCard('water_mode_is');
-      const waterModeListener = waterModeCard.registerRunListener(async (args) => {
-        this.logger('FlowCardManagerService: Water mode condition triggered', { args });
-        const currentValue = this.device.getCapabilityValue('adlar_enum_water_mode') || 0;
-        const targetValue = args.mode || 0;
-
-        switch (args.comparison) {
-          case 'equal':
-            return currentValue === targetValue;
-          case 'greater':
-            return currentValue > targetValue;
-          case 'less':
-            return currentValue < targetValue;
-          default:
-            return false;
-        }
-      });
-      this.flowCardListeners.set('water_mode_is', waterModeListener);
 
       // Capacity setting condition
       const capacitySettingCard = this.device.homey.flow.getConditionCard('capacity_setting_is');
@@ -437,25 +635,51 @@ export class FlowCardManagerService {
       });
       this.flowCardListeners.set('heating_curve_is', heatingCurveListener);
 
-      // Volume setting condition
-      const volumeSettingCard = this.device.homey.flow.getConditionCard('volume_setting_is');
-      const volumeSettingListener = volumeSettingCard.registerRunListener(async (args) => {
-        this.logger('FlowCardManagerService: Volume setting condition triggered', { args });
-        const currentValue = this.device.getCapabilityValue('adlar_enum_volume_set') || 0;
-        const targetValue = args.level || 0;
-
-        switch (args.comparison) {
-          case 'equal':
-            return currentValue === targetValue;
-          case 'greater':
-            return currentValue > targetValue;
-          case 'less':
-            return currentValue < targetValue;
-          default:
-            return false;
-        }
+      // Fault active condition
+      const faultActiveCard = this.device.homey.flow.getConditionCard('fault_active');
+      const faultActiveListener = faultActiveCard.registerRunListener(async () => {
+        const faultCount = Number(this.device.getCapabilityValue('adlar_fault') ?? 0);
+        const activeFaultText = String(this.device.getCapabilityValue('adlar_fault_active') ?? '').trim();
+        return faultCount > 0 || activeFaultText.length > 0;
       });
-      this.flowCardListeners.set('volume_setting_is', volumeSettingListener);
+      this.flowCardListeners.set('fault_active', faultActiveListener);
+
+      // Compressor running condition
+      const compressorRunningCard = this.device.homey.flow.getConditionCard('compressor_running');
+      const compressorRunningListener = compressorRunningCard.registerRunListener(async () => {
+        const compressorOn = this.device.getCapabilityValue('adlar_compressor_on');
+        const compressorState = this.device.getCapabilityValue('adlar_state_compressor_state');
+        const compressorFrequency = Number(this.device.getCapabilityValue('measure_frequency.compressor_freq') ?? 0);
+        return compressorOn === true || compressorState === true || compressorFrequency > 0;
+      });
+      this.flowCardListeners.set('compressor_running', compressorRunningListener);
+
+      // Ambient temperature above condition
+      const temperatureAboveCard = this.device.homey.flow.getConditionCard('temperature_above');
+      const temperatureAboveListener = temperatureAboveCard.registerRunListener(async (args) => {
+        const currentValue = Number(this.device.getCapabilityValue('measure_temperature.ambient'));
+        const threshold = Number(args.temperature);
+        return Number.isFinite(currentValue) && Number.isFinite(threshold) && currentValue > threshold;
+      });
+      this.flowCardListeners.set('temperature_above', temperatureAboveListener);
+
+      // Power above threshold condition
+      const powerAboveCard = this.device.homey.flow.getConditionCard('power_above_threshold');
+      const powerAboveListener = powerAboveCard.registerRunListener(async (args) => {
+        const currentValue = Number(this.device.getCapabilityValue('measure_power'));
+        const threshold = Number(args.threshold);
+        return Number.isFinite(currentValue) && Number.isFinite(threshold) && currentValue > threshold;
+      });
+      this.flowCardListeners.set('power_above_threshold', powerAboveListener);
+
+      // Total consumption above condition
+      const totalConsumptionCard = this.device.homey.flow.getConditionCard('total_consumption_above');
+      const totalConsumptionListener = totalConsumptionCard.registerRunListener(async (args) => {
+        const currentValue = Number(this.device.getCapabilityValue('meter_power'));
+        const threshold = Number(args.threshold);
+        return Number.isFinite(currentValue) && Number.isFinite(threshold) && currentValue > threshold;
+      });
+      this.flowCardListeners.set('total_consumption_above', totalConsumptionListener);
 
       // COP efficiency check condition (v1.0.7)
       const copEfficiencyCard = this.device.homey.flow.getConditionCard('cop_efficiency_check');
@@ -467,7 +691,7 @@ export class FlowCardManagerService {
         const threshold = args.threshold || 2.0;
 
         // Check if compressor is actually running (COP only meaningful when active)
-        const compressorFrequency = this.device.getCapabilityValue('adlar_compressor_freq') as number || 0;
+        const compressorFrequency = this.device.getCapabilityValue('measure_frequency.compressor_freq') as number || 0;
 
         if (compressorFrequency === 0) {
           // Compressor idle - COP not meaningful

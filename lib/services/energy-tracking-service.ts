@@ -181,7 +181,7 @@ export class EnergyTrackingService {
   private calculateEstimatedPower(): number {
     try {
       const compressorRunning = this.device.getCapabilityValue('adlar_compressor_on');
-      const compressorFreq = this.device.getCapabilityValue('adlar_compressor_freq') || 0;
+      const compressorFreq = this.device.getCapabilityValue('measure_frequency.compressor_freq') || 0;
       const fanFreq = this.device.getCapabilityValue('adlar_fan_speed') || 0;
       const defrosting = this.device.getCapabilityValue('adlar_defrosting');
 

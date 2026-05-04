@@ -842,7 +842,7 @@ export class AdaptiveControlService {
           copAction = this.copOptimizer.calculateAction(currentCOP, dailyCOP, outdoorTemp, currentSetpoint);
 
           // Collect COP measurement for learning
-          const compressorFreq = (this.device.getCapabilityValue('adlar_compressor_freq') as number) || 0;
+          const compressorFreq = (this.device.getCapabilityValue('measure_frequency.compressor_freq') as number) || 0;
           if (currentCOP > 0 && compressorFreq > 0) {
             this.copOptimizer.addMeasurement({
               timestamp: Date.now(),

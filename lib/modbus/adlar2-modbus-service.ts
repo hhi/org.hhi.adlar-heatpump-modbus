@@ -211,7 +211,7 @@ export interface DataSnapshot {
   diagnostics?: DiagnosticsSnapshot; // ADR-042
 }
 
-type SetpointType = 'heating' | 'cooling' | 'dhw' | 'floor' | 'indoor';
+type SetpointType = 'heating' | 'cooling' | 'dhw' | 'floor';
 type FreqZone = 'above0' | 'neg7to0' | 'below7';
 
 const SETPOINT_DEFINITIONS: Record<SetpointType, NumericRegisterDefinition> = {
@@ -219,7 +219,6 @@ const SETPOINT_DEFINITIONS: Record<SetpointType, NumericRegisterDefinition> = {
   cooling: CONTROL_REGISTERS.tempSetCooling,
   dhw: CONTROL_REGISTERS.tempSetHotWater,
   floor: CONTROL_REGISTERS.tempSetFloorHeating,
-  indoor: CONTROL_REGISTERS.indoorTempSetpoint,
 };
 
 const HEATING_MIN_FREQ_DEFINITIONS: Record<FreqZone, NumericRegisterDefinition> = {

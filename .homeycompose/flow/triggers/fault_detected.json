@@ -26,7 +26,7 @@
       "filter": "driver_id=intelligent-heatpump-modbus"
     },
     {
-      "type": "range",
+      "type": "text",
       "name": "fault_code",
       "title": {
         "en": " code",
@@ -34,21 +34,17 @@
         "de": " code",
         "fr": " code"
       },
-      "min": 1,
-      "max": 100,
-      "step": 1,
-      "units": "",
       "placeholder": {
-        "en": "Fault code to monitor",
-        "nl": "Storing code om te monitoren",
-        "de": "Störungscode zur Überwachung",
-        "fr": "Code de défaut à surveiller"
+        "en": "Fault code to monitor, e.g. F1.1 or SYS1_1",
+        "nl": "Storingscode om te monitoren, bijv. F1.1 of SYS1_1",
+        "de": "Störungscode zur Überwachung, z. B. F1.1 oder SYS1_1",
+        "fr": "Code de défaut à surveiller, p. ex. F1.1 ou SYS1_1"
       }
     }
   ],
   "tokens": [
     {
-      "type": "number",
+      "type": "string",
       "name": "fault_code",
       "title": {
         "en": "Fault code",
@@ -56,7 +52,7 @@
         "de": "Störungscode",
         "fr": "Code de défaut"
       },
-      "example": 15
+      "example": "F1.1"
     },
     {
       "type": "string",
