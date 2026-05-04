@@ -55,6 +55,13 @@ const HEATING_MODE_TO_MODBUS: Record<string, number> = {
   floor_heatign_and_hot_water: 7,
 };
 
+const HEATING_SETPOINT_MIN_C = 15;
+const HEATING_SETPOINT_MAX_C = 60;
+const DHW_SETPOINT_MIN_C = 20;
+const DHW_SETPOINT_MAX_C = 75;
+const INDOOR_TARGET_MIN_C = 15;
+const INDOOR_TARGET_MAX_C = 25;
+
 const THRESHOLD_TRIGGER_CARDS: Array<{
   cardId: string;
   thresholdArg: string;
@@ -420,18 +427,21 @@ export class FlowCardManagerService {
     try {
       this.registerCapabilityAction('set_target_temperature', async (args) => {
         const temperature = this.normalizeTemperatureArg(args, 'temperature', String(args.decimal_handling ?? 'round'));
+        this.assertHeatingSetpointRange(temperature);
         await this.triggerSelectedDeviceCapability(args, 'target_temperature', temperature);
         return true;
       });
 
       this.registerCapabilityAction('set_hotwater_temperature', async (args) => {
         const temperature = this.normalizeTemperatureArg(args, 'temperature', 'round');
+        this.assertSetpointRange('DHW setpoint', temperature, DHW_SETPOINT_MIN_C, DHW_SETPOINT_MAX_C);
         await this.triggerSelectedDeviceCapability(args, 'target_temperature.dhw', temperature);
         return true;
       });
 
       this.registerCapabilityAction('set_desired_indoor_temperature', async (args) => {
         const temperature = this.getRequiredNumberArg(args, 'temperature');
+        this.assertSetpointRange('Desired indoor temperature', temperature, INDOOR_TARGET_MIN_C, INDOOR_TARGET_MAX_C);
         await this.triggerSelectedDeviceCapability(args, 'target_temperature.indoor', temperature);
         return true;
       });
@@ -516,6 +526,16 @@ export class FlowCardManagerService {
       throw new Error(`Temperature ${value} must be a whole number for this device`);
     }
     return Math.round(value);
+  }
+
+  private assertHeatingSetpointRange(value: number): void {
+    this.assertSetpointRange('Heating setpoint', value, HEATING_SETPOINT_MIN_C, HEATING_SETPOINT_MAX_C);
+  }
+
+  private assertSetpointRange(label: string, value: number, min: number, max: number): void {
+    if (value < min || value > max) {
+      throw new Error(`${label} ${value}°C outside supported range ${min}-${max}°C`);
+    }
   }
 
   private getRequiredNumberArg(args: GenericFlowArgs, key: string): number {

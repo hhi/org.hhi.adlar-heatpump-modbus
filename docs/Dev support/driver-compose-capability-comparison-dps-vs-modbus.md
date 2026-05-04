@@ -71,8 +71,8 @@ These capability ids exist in both drivers, but their metadata is not identical.
 
 | Capability | DPS type/ui | Modbus type/ui | DPS min/max/step | Modbus min/max/step | Difference |
 |---|---|---|---|---|---|
-| `target_temperature` | `-/-` | `-/-` | `5/75/1` | `-` | DPS declares range metadata explicitly |
-| `target_temperature.indoor` | `-/thermostat` | `-/-` | `15/25/0.5` | `-` | DPS declares thermostat UI and explicit range |
+| `target_temperature` | `-/-` | `-/-` | `5/75/1` | `15/60/1` | Modbus uses the heating setpoint register range |
+| `target_temperature.indoor` | `-/thermostat` | `-/thermostat` | `15/25/0.5` | `15/25/0.5` | Same adaptive-control range |
 | `measure_temperature.indoor` | `-/sensor` | `-/-` | `-` | `-` | DPS declares UI explicitly |
 | `adlar_enum_work_mode` | `enum/picker` | `enum/sensor` | `-` | `-` | Same enum, different UI presentation |
 | `adlar_enum_capacity_set` | `enum/picker` | `enum/sensor` | `-` | `-` | Same enum, different UI presentation |

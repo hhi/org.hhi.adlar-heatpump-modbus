@@ -34,8 +34,8 @@
         "de": " Temperatur (°C)",
         "fr": " Température (°C)"
       },
-      "min": 5,
-      "max": 75,
+      "min": 15,
+      "max": 60,
       "step": 1,
       "units": "°C",
       "placeholder": {

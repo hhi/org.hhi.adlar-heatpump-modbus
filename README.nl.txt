@@ -6,7 +6,7 @@ Huidige status van de implementatie
 
 - Het koppelen gebruikt alleen de gegevens van de Modbus-gateway: IP-adres, TCP-poort (standaard 502) en Modbus Unit ID (standaard 1).
 - Oude Tuya-velden zoals Device ID, Local Key en protocolversie worden in deze Modbus-app niet gebruikt.
-- Poll-intervallen zijn configureerbaar in de apparaatinstellingen (standaard 10 s / 30 s / 300 s).
+- Poll-intervallen zijn configureerbaar in de apparaatinstellingen (standaard supersnel/snel/medium/langzaam: 5 s / 10 s / 30 s / 300 s). Supersnel pollen kan na live waardewijzigingen tijdelijk naar 2 s versnellen.
 - De huidige registermapping is gericht op Adlar Castra / Aurora II-units die de R32 Modbus-registermap gebruiken.
 - De schaal voor temperatuurregisters wordt automatisch bepaald op basis van het koudemiddeltype (P119): R32 gebruikt x1 (°C), R290 gebruikt x10 (deci-°C).
 
@@ -19,7 +19,7 @@ Vereisten
 Wat werkt vandaag
 
 Uitlezen
-- Verwarmings-, koel- en DHW-setpoints
+- Verwarmings-, koel-, DHW- en vloerverwarming-setpoints
 - Uitlaat-, inlaat-, omgevings-, spoel-, zuig-, uitlaat-, DHW-, economizer-, verzadigings-, buffer- en zonetemperaturen
 - Vermogen, energie, spanning, stroom, compressorfrequentie, ventilatorsnelheid, EEV-stap, pomp-PWM en waterdebiet
 - Bedrijfsstatus, ontdooien, antivries, sterilisatie en gedecodeerde storingsinformatie
@@ -27,19 +27,24 @@ Uitlezen
 
 Bediening vanuit Homey
 - Hoofd aan/uit
-- Bedrijfsmodus
+- Bedrijfsmodus en werkmodus
 - Verwarmingssetpoint
 - Koelsetpoint
 - DHW-setpoint
+- Stooklijn-preset en tapwatercurve-preset
+- Gewenste binnentemperatuur voor adaptieve regeling
+- Flow-kaarten voor direct Modbus-register lezen/schrijven en een DIY-stooklijn flow-kaart
 
 Berekende waarden
 - COP op basis van Modbus-vermogen, watertemperatuurverschil en waterdebiet
-- Externe debietdata kan indien nodig via flow kaarten worden aangeleverd voor COP-berekeningen
+- Extern vermogen, debiet, buitentemperatuur, binnentemperatuur, energieprijzen, zonnepaneelvermogen, zonnestraling en winddata kunnen via flow-kaarten worden aangeleverd
+- Drempel-, alarm- en storings-flowkaarten zijn beschikbaar voor gemonitorde Modbus-waarden
 
 Huidige beperkingen
 
 - Een Modbus TCP-gateway is vereist; deze app gebruikt geen Tuya-cloud of Tuya-local-credentials.
-- Het setpoint voor vloerverwarming en verschillende geavanceerde Modbus-schrijffuncties bestaan in de servicelaag, maar zijn nog niet zichtbaar in de huidige Homey UI/flow-implementatie.
+- Het vloerverwarming-setpoint wordt uitgelezen, getoond en is schrijfbaar via de apparaatcapability; er is nog geen eigen flow-actie voor.
+- Geavanceerde Modbus-schrijfopties zijn beschikbaar via flow-kaarten en het expertdashboard; gebruik ze zorgvuldig.
 - COP kan ontbreken of minder nauwkeurig zijn wanneer bruikbare vermogens- of debietdata niet beschikbaar is.
 - De code geeft een waarschuwing als het gedetecteerde koudemiddel niet R32 is, dus andere registermappen vallen buiten het doel van deze versie.
 
@@ -71,7 +76,7 @@ Apparaatinstellingen
 - TCP-poort
 - Modbus Unit ID
 - Dashboardpoort (standaard 8090)
-- Snelle, middelmatige en langzame poll-intervallen
+- Supersnelle, snelle, middelmatige en langzame poll-intervallen
 - Logniveau
 
 Praktische opmerkingen

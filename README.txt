@@ -6,7 +6,7 @@ Current implementation status
 
 - Pairing uses only the Modbus gateway details: IP address, TCP port (default 502) and Modbus Unit ID (default 1).
 - The old Tuya fields such as Device ID, Local Key and protocol version are not used in this Modbus app.
-- Polling intervals are configurable in the device settings (default 10 s / 30 s / 300 s).
+- Polling intervals are configurable in the device settings (default superfast/fast/medium/slow: 5 s / 10 s / 30 s / 300 s). Superfast polling can adapt to 2 s after live value changes.
 - The current register mapping is aimed at Adlar Castra / Aurora II units that use the R32 Modbus register map.
 - Temperature register scaling is detected automatically from the refrigerant type (P119): R32 uses x1 (°C), R290 uses x10 (deci-°C).
 
@@ -19,7 +19,7 @@ Requirements
 What works today
 
 Readout
-- Heating, cooling and DHW setpoints
+- Heating, cooling, DHW and floor heating setpoints
 - Outlet, inlet, ambient, coil, suction, exhaust, DHW, economizer, saturation, buffer and zone temperatures
 - Power, energy, voltage, current, compressor frequency, fan speed, EEV step, pump PWM and water flow
 - Running state, defrost, antifreeze, sterilization and decoded fault information
@@ -27,19 +27,24 @@ Readout
 
 Control from Homey
 - Main on/off
-- Operating mode
+- Operating mode and work mode
 - Heating setpoint
 - Cooling setpoint
 - DHW setpoint
+- Heating curve preset and hot water curve preset
+- Desired indoor temperature for adaptive control
+- Direct Modbus register read/write flow cards and a DIY heating curve flow card
 
 Calculated values
 - COP based on Modbus power, water temperature delta and water flow
-- External flow data can be supplied via flow cards for COP calculations when needed
+- External power, flow, ambient, indoor temperature, energy prices, solar power, solar radiation and wind data can be supplied via flow cards
+- Threshold, alert and fault flow cards are available for monitored Modbus values
 
 Current limitations
 
 - A Modbus TCP gateway is required; this app does not use Tuya cloud or Tuya local credentials.
-- The floor heating setpoint and several advanced Modbus write functions exist in the service layer, but are not yet exposed in the current Homey UI/flow implementation.
+- The floor heating setpoint is read, displayed and writable from the device capability; there is no dedicated flow action for it yet.
+- Advanced Modbus write tools are available through flow cards and the expert dashboard; use them with care.
 - COP can be missing or less accurate when usable power or flow data is unavailable.
 - The code warns when the detected refrigerant is not R32, so other register maps are not the target of this version.
 
@@ -71,7 +76,7 @@ Device settings
 - TCP port
 - Modbus Unit ID
 - Dashboard port (default 8090)
-- Fast, medium and slow polling intervals
+- Superfast, fast, medium and slow polling intervals
 - Log level
 
 Practical notes

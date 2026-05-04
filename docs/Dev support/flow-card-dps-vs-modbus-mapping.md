@@ -1,15 +1,21 @@
 # Flow Card DPS vs Modbus Mapping
 
+> Current note: the local Modbus `lib/flow-helpers.ts` legacy file has been
+> removed. Supported Modbus flow cards are registered through
+> `FlowCardManagerService` and service/device trigger hooks. Older conclusions
+> about a missing `flow-helpers.ts` bootstrap are historical only.
+
 This document compares the runtime implementation status of flow cards in:
 
 - `org.hhi.adlar-heatpump` (DPS / Tuya)
 - `org.hhi.adlar-heatpump-modbus` (Modbus)
 
-The `.homeycompose/flow` catalog is currently the same in both repos. The main difference is runtime wiring.
+The `.homeycompose/flow` catalogs are similar, but the runtime wiring is driver-specific.
+Do not copy DPS helper assumptions into the Modbus driver: Modbus uses explicit handlers.
 
 ## Legend
 
-- `helper`: registered in app bootstrap via `flow-helpers.ts`
+- `helper`: registered in the DPS app bootstrap via its `flow-helpers.ts`
 - `custom`: registered directly in `app.ts`
 - `manager`: registered by `FlowCardManagerService`
 - `direct`: directly fired by a service or device implementation
@@ -18,7 +24,7 @@ The `.homeycompose/flow` catalog is currently the same in both repos. The main d
 - `alias gap`: runtime registration exists, but it points to a DPS compatibility capability that the Modbus driver does not populate or listen to
 - `not wired`: code tries to use a trigger path, but the current Modbus implementation does not provide the required device hook
 - `ok`: current Modbus runtime is functionally present
-- `missing helper bootstrap`: the DPS app registers the shared helper cards from `app.ts`, the Modbus app does not
+- `missing helper bootstrap`: historical pre-cleanup status where the DPS app registered helper cards from `app.ts`, while the Modbus app did not use that helper path
 - `missing app custom listener`: a DPS custom `app.ts` registration path is absent in Modbus
 - `missing app trigger listener`: the DPS app registers a `getDeviceTriggerCard(...).registerRunListener(...)` path that Modbus does not
 - `missing device trigger source`: no Modbus-side code currently detects and fires the trigger
@@ -31,11 +37,11 @@ The `.homeycompose/flow` catalog is currently the same in both repos. The main d
 
 ## Main Differences
 
-- The DPS app initializes `registerSimpleActions()`, `registerSimpleConditions()`, temperature/pulse trigger helpers, and several custom calculator and trigger listeners from `app.ts`.
-- The Modbus app `app.ts` does not initialize `flow-helpers.ts` and does not register the custom calculator or trigger listeners that the DPS app registers in `app.ts`.
-- The Modbus `FlowCardManagerService` does register the action-based condition cards, external-data cards, performance report card, and pricing/adaptive cards.
+- The DPS app initializes its legacy helper path from `app.ts`.
+- The Modbus app does not use the DPS helper bootstrap path; supported Modbus flow cards are handled by `FlowCardManagerService` and service/device trigger hooks.
+- The Modbus `FlowCardManagerService` registers Modbus-specific simple actions, simple conditions, threshold trigger run listeners, external-data cards, performance report cards, and pricing/adaptive cards.
 - The Modbus `ServiceCoordinator` does not inject `BuildingInsightsService` into `FlowCardManagerService`, so the related action and condition cards are skipped.
-- The Modbus driver uses several different capability ids than the DPS app. That creates multiple `alias gap` cases in action-based conditions.
+- The Modbus driver uses several different capability ids than the DPS app. Current Modbus handlers should use Modbus capability ids directly instead of DPS aliases.
 - The Modbus device does not expose the DPS-style `triggerFlowCard()` helper, and `RollingCOPCalculator` is created without a device trigger hook. That leaves several trigger cards effectively unwired.
 
 ## Device Scope Note

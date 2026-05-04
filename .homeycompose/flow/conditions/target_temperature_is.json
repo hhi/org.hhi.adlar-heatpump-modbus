@@ -72,9 +72,9 @@
         "de": " Temperatur ",
         "fr": " Température "
       },
-      "min": 5,
+      "min": 15,
       "max": 60,
-      "step": 0.5,
+      "step": 1,
       "units": "°C",
       "placeholder": {
         "en": "Target temperature in °C",

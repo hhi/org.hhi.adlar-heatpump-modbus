@@ -517,6 +517,9 @@ class AdlarModbusDevice extends Homey.Device {
 
     this.registerCapabilityListener('target_temperature', async (value: number) => {
       this.logger.debug('Set heating setpoint:', value);
+      if (value < 15 || value > 60) {
+        throw new Error(`Heating setpoint ${value}°C outside supported range 15-60°C`);
+      }
       if (!this.coordinator) return;
       await this.coordinator.setTemperature('heating', value);
       // Persist target for adaptive control simulated-target sync on restart
@@ -525,18 +528,36 @@ class AdlarModbusDevice extends Homey.Device {
 
     this.registerCapabilityListener('target_temperature.indoor', async (value: number) => {
       this.logger.debug('Set desired indoor temperature for adaptive control:', value);
+      if (value < 15 || value > 25) {
+        throw new Error(`Desired indoor temperature ${value}°C outside supported range 15-25°C`);
+      }
     });
 
     this.registerCapabilityListener('target_temperature.cooling', async (value: number) => {
       this.logger.debug('Set cooling setpoint:', value);
+      if (value < 7 || value > 25) {
+        throw new Error(`Cooling setpoint ${value}°C outside supported range 7-25°C`);
+      }
       if (!this.coordinator) return;
       await this.coordinator.setTemperature('cooling', value);
     });
 
     this.registerCapabilityListener('target_temperature.dhw', async (value: number) => {
       this.logger.debug('Set DHW setpoint:', value);
+      if (value < 20 || value > 75) {
+        throw new Error(`DHW setpoint ${value}°C outside supported range 20-75°C`);
+      }
       if (!this.coordinator) return;
       await this.coordinator.setTemperature('dhw', value);
+    });
+
+    this.registerCapabilityListener('target_temperature.floor', async (value: number) => {
+      this.logger.debug('Set floor heating setpoint:', value);
+      if (value < 20 || value > 60) {
+        throw new Error(`Floor heating setpoint ${value}°C outside supported range 20-60°C`);
+      }
+      if (!this.coordinator) return;
+      await this.coordinator.setTemperature('floor', value);
     });
 
     this.registerCapabilityListener('adlar_mode', async (value: string) => {
