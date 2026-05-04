@@ -560,7 +560,7 @@ export class PerformanceReportService {
     const highPressureSat = this.getCapNum('measure_temperature.hp_sat');
     const lowPressureSat = this.getCapNum('measure_temperature.lp_sat');
     const condenser = this.getCapNum('measure_temperature.inner_coil');
-    const compressorFreq = this.getCapNum('adlar_compressor_freq');
+    const compressorFreq = this.getCapNum('measure_frequency.compressor_freq');
     const flow = this.getCapNum('adlar_water_flow');
     const compressorState = this.device.getCapabilityValue('adlar_state_compressor_state') as boolean | null;
 

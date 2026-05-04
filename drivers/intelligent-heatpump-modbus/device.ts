@@ -346,7 +346,7 @@ class AdlarModbusDevice extends Homey.Device {
     set('target_temperature', snap.control.heatingSetpointC);
     set('target_temperature.cooling', snap.control.coolingSetpointC);
     set('target_temperature.dhw', snap.control.dhwSetpointC);
-    set('adlar_hotwater', snap.control.dhwSetpointC);
+
     set('target_temperature.floor', snap.control.floorSetpointC);
     set('adlar_mode', String(snap.control.mode));
     set('adlar_enum_countdown_set', heatingCurveToEnumId(snap.control.heatingCurve));
@@ -405,8 +405,8 @@ class AdlarModbusDevice extends Homey.Device {
     this.copService?.processSnapshot(snap, set);
 
     // Mechanical sensors
-    set('adlar_compressor_freq', s.compRunningFreq?.value);
-    set('adlar_comp_target_freq', s.compTargetFreq?.value);
+    set('measure_frequency.compressor_freq', s.compRunningFreq?.value);
+    set('measure_frequency.comp_target_freq', s.compTargetFreq?.value);
     set('adlar_fan_speed', s.fanSpeed?.value);
     set('adlar_eev_step', s.eevStep?.value);
     set('adlar_evi_step', s.eviStep?.value);
@@ -524,9 +524,7 @@ class AdlarModbusDevice extends Homey.Device {
     });
 
     this.registerCapabilityListener('target_temperature.indoor', async (value: number) => {
-      this.logger.debug('Set indoor temperature setpoint:', value);
-      if (!this.coordinator) return;
-      await this.coordinator.setTemperature('indoor', value);
+      this.logger.debug('Set desired indoor temperature for adaptive control:', value);
     });
 
     this.registerCapabilityListener('target_temperature.cooling', async (value: number) => {
@@ -545,12 +543,6 @@ class AdlarModbusDevice extends Homey.Device {
       this.logger.debug('Set mode:', value);
       if (!this.coordinator) return;
       await this.coordinator.setMode(parseInt(value, 10));
-    });
-
-    this.registerCapabilityListener('adlar_hotwater', async (value: number) => {
-      this.logger.debug('Set hot water setpoint:', value);
-      if (!this.coordinator) return;
-      await this.coordinator.setTemperature('dhw', value);
     });
 
     this.registerCapabilityListener('adlar_enum_countdown_set', async (value: string) => {

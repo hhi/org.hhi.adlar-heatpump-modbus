@@ -294,7 +294,7 @@ export class CapabilityHealthService {
       || capability === 'dim'
       || capability.startsWith('adlar_enum_') // All enum pickers (mode, water_mode, work_mode, etc.)
       || capability.startsWith('adlar_picker_') // All picker controls (countdown, capacity, volume)
-      || capability === 'adlar_hotwater' // Hot water setpoint
+      || capability === 'target_temperature.dhw' // Hot water setpoint
     ) {
       return DeviceConstants.CAPABILITY_TIMEOUTS.CONTROL; // Infinity
     }
