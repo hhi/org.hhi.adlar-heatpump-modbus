@@ -1104,7 +1104,7 @@ export class AdaptiveControlService {
     // Calculate new warmtepomp setpoint with integer adjustment (cascade control)
     const newSetpoint = currentSetpoint + integerAdjustment;
 
-    // Safety: clamp warmtepomp setpoint to realistic range (25-65°C for floor heating/radiators)
+    // Safety: clamp warmtepomp setpoint to the Modbus heating setpoint range.
     const clampedSetpoint = Math.max(
       this._getMinSetpoint(),
       Math.min(DeviceConstants.ADAPTIVE_MAX_SETPOINT, newSetpoint),

@@ -6,7 +6,7 @@ Etat actuel de l'implementation
 
 - L'appairage utilise uniquement les informations de la passerelle Modbus : adresse IP, port TCP (502 par defaut) et Modbus Unit ID (1 par defaut).
 - Les anciens champs Tuya comme Device ID, Local Key et version de protocole ne sont pas utilises dans cette application Modbus.
-- Les intervalles de polling sont configurables dans les parametres du peripherique (10 s / 30 s / 300 s par defaut).
+- Les intervalles de polling sont configurables dans les parametres du peripherique (super rapide/rapide/moyen/lent par defaut : 5 s / 10 s / 30 s / 300 s). Le polling super rapide peut accelerer temporairement a 2 s apres un changement de valeur live.
 - La cartographie actuelle des registres vise les unites Adlar Castra / Aurora II qui utilisent la table de registres Modbus R32.
 - L'echelle des registres de temperature est detectee automatiquement a partir du type de refrigerant (P119) : R32 utilise x1 (°C), R290 utilise x10 (deci-°C).
 
@@ -19,7 +19,7 @@ Prerequis
 Ce qui fonctionne aujourd'hui
 
 Lecture
-- Consignes chauffage, refroidissement et eau chaude sanitaire
+- Consignes chauffage, refroidissement, eau chaude sanitaire et chauffage au sol
 - Temperatures de sortie, d'entree, ambiante, serpentins, aspiration, refoulement, ECS, economiseur, saturation, ballon tampon et zones
 - Puissance, energie, tension, courant, frequence compresseur, vitesse ventilateur, pas EEV, PWM pompe et debit d'eau
 - Etat de marche, degivrage, antigel, sterilisation et informations de defaut decodees
@@ -27,19 +27,24 @@ Lecture
 
 Commande depuis Homey
 - Marche/arret principal
-- Mode de fonctionnement
+- Mode de fonctionnement et mode de travail
 - Consigne de chauffage
 - Consigne de refroidissement
 - Consigne d'eau chaude sanitaire
+- Prereglage de courbe de chauffage et prereglage de courbe eau chaude
+- Temperature interieure souhaitee pour le controle adaptatif
+- Cartes Flow pour lecture/ecriture directe de registres Modbus et carte Flow de courbe de chauffe DIY
 
 Valeurs calculees
 - COP calcule a partir de la puissance Modbus, du delta de temperature d'eau et du debit d'eau
-- Des donnees de debit externes peuvent etre fournies via des cartes Flow pour les calculs COP si necessaire
+- Puissance externe, debit, temperature exterieure, temperature interieure, prix de l'energie, puissance solaire, rayonnement solaire et vent peuvent etre fournis via des cartes Flow
+- Des cartes Flow de seuil, d'alerte et de defaut sont disponibles pour les valeurs Modbus surveillees
 
 Limites actuelles
 
 - Une passerelle Modbus TCP est obligatoire ; cette application n'utilise ni Tuya cloud ni des identifiants Tuya local.
-- La consigne chauffage sol et plusieurs fonctions d'ecriture Modbus avancees existent dans la couche service, mais ne sont pas encore exposees dans l'implementation actuelle de l'interface/flows Homey.
+- La consigne de chauffage au sol est lue, affichee et modifiable via la capacite de l'appareil ; il n'existe pas encore d'action Flow dediee.
+- Des outils d'ecriture Modbus avances sont disponibles via les cartes Flow et le tableau expert ; utilisez-les avec prudence.
 - Le COP peut etre absent ou moins precis si les donnees de puissance ou de debit exploitables sont indisponibles.
 - Le code signale un avertissement si le refrigerant detecte n'est pas du R32 ; les autres tables de registres ne sont donc pas la cible de cette version.
 
@@ -71,7 +76,7 @@ Parametres du peripherique
 - Port TCP
 - Modbus Unit ID
 - Port des tableaux de bord (8090 par defaut)
-- Intervalles de polling rapides, moyens et lents
+- Intervalles de polling super rapides, rapides, moyens et lents
 - Niveau de journalisation
 
 Remarques pratiques

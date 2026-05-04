@@ -121,8 +121,8 @@ export class DeviceConstants {
   /** Absolute maximum target temperature (safety clamp) - legacy indoor temp range */
   static readonly ADAPTIVE_MAX_TARGET_TEMP = 28.0; // °C (legacy indoor temp range)
 
-  /** Maximum warmtepomp setpoint (DPS 4) - cascade control safety clamp */
-  static readonly ADAPTIVE_MAX_SETPOINT = 65.0; // °C (realistic radiator maximum)
+  /** Maximum warmtepomp setpoint - Modbus heating setpoint register maximum */
+  static readonly ADAPTIVE_MAX_SETPOINT = 60.0; // °C
 
   /** External temperature validation - minimum acceptable value */
   static readonly EXTERNAL_TEMP_MIN = -10.0; // °C

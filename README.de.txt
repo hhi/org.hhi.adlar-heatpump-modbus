@@ -6,7 +6,7 @@ Aktueller Stand der Implementierung
 
 - Beim Koppeln werden nur die Modbus-Gateway-Daten verwendet: IP-Adresse, TCP-Port (Standard 502) und Modbus Unit ID (Standard 1).
 - Alte Tuya-Felder wie Device ID, Local Key und Protokollversion werden in dieser Modbus-App nicht verwendet.
-- Die Polling-Intervalle sind in den Geraeteeinstellungen konfigurierbar (Standard 10 s / 30 s / 300 s).
+- Die Polling-Intervalle sind in den Geraeteeinstellungen konfigurierbar (Standard superschnell/schnell/mittel/langsam: 5 s / 10 s / 30 s / 300 s). Superschnelles Polling kann nach Live-Wertaenderungen kurz auf 2 s beschleunigen.
 - Das aktuelle Register-Mapping ist auf Adlar Castra / Aurora II Geraete mit der R32-Modbus-Registerkarte ausgerichtet.
 - Die Skalierung von Temperaturregistern wird automatisch aus dem Kaeltemitteltyp (P119) ermittelt: R32 verwendet x1 (°C), R290 verwendet x10 (Dezi-°C).
 
@@ -19,7 +19,7 @@ Voraussetzungen
 Was heute funktioniert
 
 Auslesen
-- Heiz-, Kuehl- und Warmwasser-Sollwerte
+- Heiz-, Kuehl-, Warmwasser- und Fussbodenheizungs-Sollwerte
 - Auslass-, Einlass-, Aussen-, Verdampfer-, Saug-, Verdichterauslass-, Warmwasser-, Economizer-, Saettigungs-, Puffer- und Zonentemperaturen
 - Leistung, Energie, Spannung, Strom, Verdichterfrequenz, Ventilatordrehzahl, EEV-Schritt, Pumpen-PWM und Wasserdurchfluss
 - Betriebszustand, Abtauung, Frostschutz, Sterilisation und decodierte Stoerungsinformationen
@@ -27,19 +27,24 @@ Auslesen
 
 Steuerung aus Homey
 - Haupt-Ein/Aus
-- Betriebsmodus
+- Betriebsmodus und Arbeitsmodus
 - Heiz-Sollwert
 - Kuehl-Sollwert
 - Warmwasser-Sollwert
+- Heizkurven-Preset und Warmwasser-Kurven-Preset
+- Gewuenschte Innentemperatur fuer adaptive Regelung
+- Flow-Karten fuer direktes Modbus-Register Lesen/Schreiben und eine DIY-Heizkurven-Flow-Karte
 
 Berechnete Werte
 - COP auf Basis von Modbus-Leistung, Wasser-Temperaturdifferenz und Wasserdurchfluss
-- Externe Durchflussdaten koennen bei Bedarf ueber Flow-Karten fuer COP-Berechnungen geliefert werden
+- Externe Leistung, Durchfluss, Aussentemperatur, Innentemperatur, Energiepreise, Solarleistung, Sonnenstrahlung und Winddaten koennen ueber Flow-Karten geliefert werden
+- Schwellenwert-, Alarm- und Stoerungs-Flow-Karten sind fuer ueberwachte Modbus-Werte verfuegbar
 
 Aktuelle Einschraenkungen
 
 - Ein Modbus-TCP-Gateway ist erforderlich; diese App verwendet weder Tuya-Cloud noch Tuya-Local-Zugangsdaten.
-- Der Fussbodenheizungs-Sollwert und mehrere erweiterte Modbus-Schreibfunktionen existieren in der Service-Schicht, sind aber in der aktuellen Homey-UI/Flow-Implementierung noch nicht freigeschaltet.
+- Der Fussbodenheizungs-Sollwert wird gelesen, angezeigt und ist ueber die Geraetecapability schreibbar; es gibt noch keine eigene Flow-Aktion dafuer.
+- Erweiterte Modbus-Schreibwerkzeuge sind ueber Flow-Karten und das Experten-Dashboard verfuegbar; verwenden Sie sie vorsichtig.
 - Der COP kann fehlen oder ungenauer sein, wenn nutzbare Leistungs- oder Durchflussdaten fehlen.
 - Der Code gibt eine Warnung aus, wenn das erkannte Kaeltemittel nicht R32 ist; andere Registerkarten sind daher nicht Ziel dieser Version.
 
@@ -71,7 +76,7 @@ Geraeteeinstellungen
 - TCP-Port
 - Modbus Unit ID
 - Dashboard-Port (Standard 8090)
-- Schnelle, mittlere und langsame Polling-Intervalle
+- Superschnelle, schnelle, mittlere und langsame Polling-Intervalle
 - Log-Level
 
 Praktische Hinweise

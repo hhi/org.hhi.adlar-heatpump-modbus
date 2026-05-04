@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "org.hhi.adlar-heatpump-modbus",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "compatibility": ">=12.2.0",
   "sdk": 3,
   "platforms": [
@@ -4602,7 +4602,7 @@
               "de": " Warmwassertemperatur ",
               "fr": " Température de l'eau chaude "
             },
-            "min": 30,
+            "min": 20,
             "max": 75,
             "step": 1,
             "units": "°C",
@@ -5134,9 +5134,9 @@
               "de": " Temperatur ",
               "fr": " Température "
             },
-            "min": 5,
+            "min": 15,
             "max": 60,
-            "step": 0.5,
+            "step": 1,
             "units": "°C",
             "placeholder": {
               "en": "Target temperature in °C",
@@ -7048,7 +7048,7 @@
               "de": " Warmwassertemperatur (°C)",
               "fr": " Température de l'eau chaude (°C)"
             },
-            "min": 30,
+            "min": 20,
             "max": 75,
             "step": 1,
             "units": "°C",
@@ -7097,8 +7097,8 @@
               "de": " Temperatur (°C)",
               "fr": " Température (°C)"
             },
-            "min": 5,
-            "max": 75,
+            "min": 15,
+            "max": 60,
             "step": 1,
             "units": "°C",
             "placeholder": {
@@ -7376,16 +7376,17 @@
             "en": "Heating setpoint",
             "nl": "Verwarming setpoint"
           },
-          "min": 25,
+          "min": 15,
           "max": 60,
-          "step": 1
+          "step": 1,
+          "uiComponent": "thermostat"
         },
         "target_temperature.cooling": {
           "title": {
             "en": "Cooling setpoint",
             "nl": "Koeling setpoint"
           },
-          "min": 5,
+          "min": 7,
           "max": 25,
           "step": 1
         },
@@ -7394,7 +7395,7 @@
             "en": "DHW setpoint",
             "nl": "Warmwater setpoint"
           },
-          "min": 40,
+          "min": 20,
           "max": 75,
           "step": 1
         },
@@ -7403,8 +7404,8 @@
             "en": "Floor heating setpoint",
             "nl": "Vloerverwarming setpoint"
           },
-          "min": 15,
-          "max": 45,
+          "min": 20,
+          "max": 60,
           "step": 1
         },
         "target_temperature.indoor": {

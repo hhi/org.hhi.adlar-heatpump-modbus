@@ -162,16 +162,17 @@
         "en": "Heating setpoint",
         "nl": "Verwarming setpoint"
       },
-      "min": 25,
+      "min": 15,
       "max": 60,
-      "step": 1
+      "step": 1,
+      "uiComponent": "thermostat"
     },
     "target_temperature.cooling": {
       "title": {
         "en": "Cooling setpoint",
         "nl": "Koeling setpoint"
       },
-      "min": 5,
+      "min": 7,
       "max": 25,
       "step": 1
     },
@@ -180,7 +181,7 @@
         "en": "DHW setpoint",
         "nl": "Warmwater setpoint"
       },
-      "min": 40,
+      "min": 20,
       "max": 75,
       "step": 1
     },
@@ -189,8 +190,8 @@
         "en": "Floor heating setpoint",
         "nl": "Vloerverwarming setpoint"
       },
-      "min": 15,
-      "max": 45,
+      "min": 20,
+      "max": 60,
       "step": 1
     },
     "target_temperature.indoor": {
