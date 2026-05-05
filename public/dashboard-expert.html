@@ -16,6 +16,10 @@
   .status-bar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #94a3b8; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0; }
   .dot.ok { background: #22c55e; }
+  .view-toggle { display: inline-flex; gap: 2px; padding: 3px; margin: 0 0 1rem; background: #111827; border: 1px solid #334155; border-radius: 7px; }
+  .view-toggle button { border: 0; background: transparent; color: #94a3b8; padding: 0.35rem 0.75rem; border-radius: 5px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+  .view-toggle button:hover { color: #f8fafc; background: #1e293b; }
+  .view-toggle button.active { color: #e0f2fe; background: #075985; }
 
   /* Accordion */
   .block { border: 1px solid #2d3548; border-radius: 10px; margin-bottom: 0.75rem; overflow: hidden; }
@@ -132,6 +136,11 @@
   <span id="status-text">Laden&hellip;</span>
 </div>
 
+<div class="view-toggle" aria-label="Dashboard weergave">
+  <button id="view-address" class="active" onclick="setViewMode('address')">Adresweergave</button>
+  <button id="view-functional" onclick="setViewMode('functional')">Functioneel</button>
+</div>
+
 <div id="blocks-container"></div>
 
 <!-- Write popup -->
@@ -155,6 +164,9 @@
 <script>
 // ── State ──────────────────────────────────────────────────────────────────────
 let blocks = [];
+let functionalBlocks = [];
+let visibleBlocks = [];
+let viewMode = 'address';
 let pendingWrite = null; // { reg, rowEl }
 
 // ── Init ───────────────────────────────────────────────────────────────────────
@@ -163,6 +175,8 @@ async function init() {
     const r = await fetch('/api/registers');
     if (!r.ok) throw new Error(r.statusText);
     blocks = await r.json();
+    functionalBlocks = buildFunctionalBlocks(blocks);
+    visibleBlocks = blocks;
     renderBlocks();
     document.getElementById('dot').className = 'dot ok';
     document.getElementById('status-text').textContent = 'Registermetadata geladen';
@@ -175,7 +189,8 @@ async function init() {
 function renderBlocks() {
   const container = document.getElementById('blocks-container');
   container.innerHTML = '';
-  for (const block of blocks) {
+  visibleBlocks = viewMode === 'functional' ? functionalBlocks : blocks;
+  for (const block of visibleBlocks) {
     const el = document.createElement('div');
     el.className = 'block';
     el.id = 'block-' + block.id;
@@ -198,6 +213,71 @@ function renderBlocks() {
       </div>`;
     container.appendChild(el);
   }
+}
+
+function setViewMode(mode) {
+  viewMode = mode;
+  document.getElementById('view-address').classList.toggle('active', mode === 'address');
+  document.getElementById('view-functional').classList.toggle('active', mode === 'functional');
+  renderBlocks();
+}
+
+function buildFunctionalBlocks(sourceBlocks) {
+  const categories = [
+    { id: 'func_status', label: 'Status & storingen', match: r => inAddress(r, 0x0000, 0x0028) || hasAny(r, ['fault', 'status', 'state', 'switch', 'relay']) },
+    { id: 'func_heating', label: 'Verwarming', match: r => hasAny(r, ['heating', 'heat', 'floor', 'zone', 'curve', 'stooklijn', 'water outlet', 'water inlet']) || inAddress(r, 0x0301, 0x0303) },
+    { id: 'func_dhw', label: 'Tapwater & retourcirculatie', match: r => hasAny(r, ['dhw', 'hot water', 'tank', 'backwater', 'return water', 'sterilization']) || inAddress(r, 0x080B, 0x080F) || r.address === 0x0054 || r.address === 0x0059 },
+    { id: 'func_cooling', label: 'Koeling', match: r => hasAny(r, ['cooling', 'cool']) || r.address === 0x0300 },
+    { id: 'func_compressor', label: 'Compressor & ventilator', match: r => hasAny(r, ['compressor', 'fan', 'frequency', 'freq', 'ipm', 'eev', 'evi']) || inAddress(r, 0x0040, 0x0048) },
+    { id: 'func_water', label: 'Watercircuit', match: r => hasAny(r, ['water', 'flow', 'pump', 'pressure', 'mixing', 'buffer']) },
+    { id: 'func_energy', label: 'Energie & COP', match: r => hasAny(r, ['energy', 'power', 'current', 'voltage', 'consumption', 'cop']) },
+    { id: 'func_smartgrid', label: "Smart Grid & commando's", match: r => hasAny(r, ['smart grid', 'command', 'mode']) || inAddress(r, 0x0330, 0x0345) || !!r.isCoil },
+    { id: 'func_service', label: 'Service & firmware', match: r => hasAny(r, ['version', 'firmware', 'protocol', 'manufacturer', 'protection']) || inAddress(r, 0x0360, 0x0363) || !!r.serviceOnly },
+  ];
+
+  const flat = [];
+  for (const block of sourceBlocks) {
+    for (const reg of block.registers) {
+      flat.push({ ...reg, sourceBlockId: block.id, sourceBlockLabel: block.label, readOnly: reg.readOnly || block.readOnly });
+    }
+  }
+
+  const assigned = new Set();
+  const result = categories.map(category => {
+    const registers = flat.filter(reg => {
+      if (assigned.has(reg.address)) return false;
+      if (!category.match(reg)) return false;
+      assigned.add(reg.address);
+      return true;
+    });
+    return {
+      id: category.id,
+      label: category.label,
+      readOnly: registers.every(reg => reg.readOnly),
+      registers,
+    };
+  }).filter(block => block.registers.length > 0);
+
+  const remaining = flat.filter(reg => !assigned.has(reg.address));
+  if (remaining.length > 0) {
+    result.push({
+      id: 'func_overig',
+      label: 'Overig',
+      readOnly: remaining.every(reg => reg.readOnly),
+      registers: remaining,
+    });
+  }
+
+  return result;
+}
+
+function hasAny(reg, terms) {
+  const text = `${reg.key || ''} ${reg.registerId || ''} ${reg.name || ''} ${reg.desc || ''}`.toLowerCase();
+  return terms.some(term => text.includes(term));
+}
+
+function inAddress(reg, start, end) {
+  return reg.address >= start && reg.address <= end;
 }
 
 function renderRow(block, reg) {
@@ -259,10 +339,14 @@ function renderBitsTable(reg) {
 function rangeStr(reg) {
   if (reg.isCoil) return 'bool';
   if (reg.min != null && reg.max != null) {
-    const mul = reg.multiply || 1;
+    const mul = scaleMultiply(reg);
     return `${(reg.min*mul).toFixed(mul<1?1:0)}–${(reg.max*mul).toFixed(mul<1?1:0)}`;
   }
   return '—';
+}
+
+function scaleMultiply(reg) {
+  return reg.scaleMultiply || reg.multiply || 1;
 }
 
 function esc(s) {
@@ -316,7 +400,7 @@ async function readRow(addr, isCoil, multiply) {
 }
 
 async function readBlock(blockId) {
-  const block = blocks.find(b => b.id === blockId);
+  const block = visibleBlocks.find(b => b.id === blockId);
   if (!block) return;
   // Lees registers met korte pauze om Modbus niet te overbelasten
   for (const reg of block.registers) {
@@ -330,7 +414,7 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 function updateBits(addr, rawValue) {
   const bitsRow = document.getElementById('bits-' + addr);
   if (!bitsRow) return;
-  const block = blocks.find(b => b.registers.some(r => r.address === addr));
+  const block = visibleBlocks.find(b => b.registers.some(r => r.address === addr));
   if (!block) return;
   const reg = block.registers.find(r => r.address === addr);
   if (!reg || !reg.bits) return;
@@ -353,7 +437,7 @@ function flashRow(addr) {
 
 // ── Write dialog ──────────────────────────────────────────────────────────────
 function openWriteDialog(addr) {
-  const block = blocks.find(b => b.registers.some(r => r.address === addr));
+  const block = visibleBlocks.find(b => b.registers.some(r => r.address === addr));
   if (!block) return;
   const reg = block.registers.find(r => r.address === addr);
   if (!reg) return;
@@ -394,7 +478,7 @@ function openWriteDialog(addr) {
   } else {
     inputEl.style.display = 'block';
     selectEl.style.display = 'none';
-    const mul = reg.multiply || 1;
+    const mul = scaleMultiply(reg);
     document.getElementById('dlg-input-label').textContent = 'Nieuwe waarde' + (reg.unit ? ' (' + reg.unit + ')' : '');
     inputEl.value = '';
     inputEl.step = mul < 1 ? String(mul) : '1';
@@ -415,7 +499,7 @@ function updateRawPreview(reg) {
   const previewEl = document.getElementById('dlg-raw-preview');
   const v = parseFloat(inputEl.value);
   if (isNaN(v)) { previewEl.textContent = ''; return; }
-  const mul = reg.multiply || 1;
+  const mul = scaleMultiply(reg);
   const raw = Math.round(v / mul);
   previewEl.textContent = '→ Registerwaarde: ' + raw;
 }
@@ -427,7 +511,7 @@ function validateDlgOk() {
   if (reg.isCoil) { btn.disabled = false; return; }
   const v = parseFloat(document.getElementById('dlg-input').value);
   if (isNaN(v)) { btn.disabled = true; return; }
-  const mul = reg.multiply || 1;
+  const mul = scaleMultiply(reg);
   const ok = (reg.min == null || v >= reg.min * mul) && (reg.max == null || v <= reg.max * mul);
   btn.disabled = !ok;
 }
@@ -448,7 +532,7 @@ async function confirmWrite() {
     rawValue = parseInt(document.getElementById('dlg-select').value, 10);
   } else {
     const v = parseFloat(document.getElementById('dlg-input').value);
-    rawValue = Math.round(v / (reg.multiply || 1));
+    rawValue = Math.round(v / scaleMultiply(reg));
   }
 
   try {
