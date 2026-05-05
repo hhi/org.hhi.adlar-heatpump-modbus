@@ -38,6 +38,7 @@ import {
   SWITCH_2_BITS,
   SWITCH_3_BITS,
   TemperatureRegisterScale,
+  isAdlar2TemperatureRegister,
   scaleRegisterValue,
 } from '../modbus/adlar-modbus-registers';
 
@@ -68,6 +69,8 @@ interface RegisterMeta {
   name: string;
   unit?: string;
   multiply?: number;
+  scaleMultiply?: number;
+  isTemperatureRegister?: boolean;
   min?: number;
   max?: number;
   default?: number;
@@ -122,7 +125,6 @@ export class DashboardService {
   private readonly port: number;
   private readonly publicDir: string;
   private readonly logger: (msg: string, ...args: unknown[]) => void;
-  private readonly registerBlocksJson: string;
 
   // Callbacks — worden laat gebonden vanuit device.ts
   private onWriteRegister: ((address: number, rawValue: number) => Promise<void>) | null = null;
@@ -135,7 +137,6 @@ export class DashboardService {
     this.port = options.port ?? 8090;
     this.publicDir = path.join(options.appDir, 'public');
     this.logger = options.logger;
-    this.registerBlocksJson = JSON.stringify(buildRegisterBlocks());
   }
 
   // ── Publieke setters voor laat binden van callbacks ──────────────────────────
@@ -246,8 +247,9 @@ export class DashboardService {
       return;
     }
     if (method === 'GET' && url === '/api/registers') {
+      const tempScale = this.getTemperatureScale?.() ?? 'x1';
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(this.registerBlocksJson);
+      res.end(JSON.stringify(buildRegisterBlocks(tempScale)));
       return;
     }
     if (method === 'POST' && url === '/api/expert/read') {
@@ -490,7 +492,7 @@ export class DashboardService {
 
 // ── Registermetadata builder voor /api/registers ─────────────────────────────
 
-function buildRegisterBlocks(): RegisterBlock[] {
+function buildRegisterBlocks(tempScale: TemperatureRegisterScale = 'x1'): RegisterBlock[] {
   return [
     {
       id: 'blok1_status',
@@ -515,6 +517,8 @@ function buildRegisterBlocks(): RegisterBlock[] {
         name: (def as { name: string }).name,
         unit: (def as { unit?: string }).unit,
         multiply: (def as { multiply?: number }).multiply,
+        scaleMultiply: _scaleMultiplyForDef(def, tempScale),
+        isTemperatureRegister: _isTemperatureDef(def),
         readOnly: true,
         pollGroups: _pollGroupsForAddress((def as { address: number }).address),
       })),
@@ -529,6 +533,8 @@ function buildRegisterBlocks(): RegisterBlock[] {
         name: (def as { name: string }).name,
         unit: (def as { unit?: string }).unit,
         multiply: (def as { multiply?: number }).multiply,
+        scaleMultiply: _scaleMultiplyForDef(def, tempScale),
+        isTemperatureRegister: _isTemperatureDef(def),
         min: (def as { min?: number }).min,
         max: (def as { max?: number }).max,
         default: (def as { default?: number }).default,
@@ -547,6 +553,8 @@ function buildRegisterBlocks(): RegisterBlock[] {
         name: (def as { name: string }).name,
         unit: (def as { unit?: string }).unit,
         multiply: (def as { multiply?: number }).multiply,
+        scaleMultiply: _scaleMultiplyForDef(def, tempScale),
+        isTemperatureRegister: _isTemperatureDef(def),
         min: (def as { min?: number }).min,
         max: (def as { max?: number }).max,
         default: (def as { default?: number }).default,
@@ -566,6 +574,8 @@ function buildRegisterBlocks(): RegisterBlock[] {
         name: (def as { name: string }).name,
         unit: (def as { unit?: string }).unit,
         multiply: (def as { multiply?: number }).multiply,
+        scaleMultiply: _scaleMultiplyForDef(def, tempScale),
+        isTemperatureRegister: _isTemperatureDef(def),
         min: (def as { min?: number }).min,
         max: (def as { max?: number }).max,
         default: (def as { default?: number }).default,
@@ -645,6 +655,19 @@ function _serializeBits(def: unknown): Record<string, number> | undefined {
   return Object.fromEntries(
     Object.entries(bits).map(([k, v]) => [k, Number(v)]),
   );
+}
+
+function _isTemperatureDef(def: unknown): boolean {
+  const register = def as { address: number; unit?: string };
+  return isAdlar2TemperatureRegister(register.address, register);
+}
+
+function _scaleMultiplyForDef(def: unknown, tempScale: TemperatureRegisterScale): number {
+  const register = def as { multiply?: number };
+  if (_isTemperatureDef(def)) {
+    return tempScale === 'x10' ? 0.1 : 1;
+  }
+  return register.multiply ?? 1;
 }
 
 // Bits-constanten worden geïmporteerd zodat de compiler ze als gebruikt beschouwt

@@ -3,13 +3,13 @@
     "en": "Adlar Castra Heat Pump (Aurora-II Modbus)",
     "nl": "Adlar Castra Warmtepomp (Aurora-II Modbus)"
   },
-  "class": "thermostat",
+  "class": "heatpump",
   "capabilities": [
-    "onoff",
     "target_temperature",
     "target_temperature.cooling",
     "target_temperature.dhw",
     "target_temperature.floor",
+    "onoff",
     "measure_temperature.outlet",
     "measure_temperature.inlet",
     "measure_temperature.ambient",
@@ -165,7 +165,8 @@
       "min": 15,
       "max": 60,
       "step": 1,
-      "uiComponent": "thermostat"
+      "unit": "°C",
+      "setable": true
     },
     "target_temperature.cooling": {
       "title": {
