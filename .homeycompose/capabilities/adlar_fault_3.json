@@ -23,5 +23,11 @@
     "nl": "Foutregister 3 opgeheven",
     "de": "Fehlerregister 3 zurückgesetzt",
     "fr": "Registre de défaut 3 effacé"
+  },
+  "description": {
+    "en": "True when any F3-series or SYS1 fault bit is set in Modbus fault registers 0x0004–0x0009 (faultState3, sys1FaultState1/2, sys1DriveFault1/2/3).",
+    "nl": "Waar wanneer een of meer F3-serie of SYS1-storingsbits actief zijn in Modbus-foutregisters 0x0004–0x0009 (faultState3, sys1FaultState1/2, sys1DriveFault1/2/3).",
+    "de": "Wahr, wenn ein F3- oder SYS1-Fehlerbit in den Modbus-Fehlerregistern 0x0004–0x0009 (faultState3, sys1FaultState1/2, sys1DriveFault1/2/3) gesetzt ist.",
+    "fr": "Vrai si un bit de défaut F3 ou SYS1 est actif dans les registres de défaut Modbus 0x0004–0x0009 (faultState3, sys1FaultState1/2, sys1DriveFault1/2/3)."
   }
 }

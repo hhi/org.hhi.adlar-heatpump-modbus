@@ -75,5 +75,11 @@
         "fr": "Chauffage par le sol + Eau chaude"
       }
     }
-  ]
+  ],
+  "description": {
+    "en": "Active operating mode read from Modbus control register 0x0304. Writable: changing this value sends a write command to the heat pump.",
+    "nl": "Actieve bedrijfsmodus uitgelezen uit Modbus-stuurregister 0x0304. Schrijfbaar: een wijziging stuurt een schrijfopdracht naar de warmtepomp.",
+    "de": "Aktiver Betriebsmodus aus Modbus-Steuerregister 0x0304. Schreibbar: Eine Änderung sendet einen Schreibbefehl an die Wärmepumpe.",
+    "fr": "Mode de fonctionnement actif lu depuis le registre de commande Modbus 0x0304. Inscriptible : une modification envoie une commande d'écriture à la pompe à chaleur."
+  }
 }

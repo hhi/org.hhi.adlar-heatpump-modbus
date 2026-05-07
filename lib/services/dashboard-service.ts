@@ -306,7 +306,16 @@ export class DashboardService {
       res.end();
       return;
     }
-    const json = JSON.stringify(this.snapshot);
+    // ADR-041b: JSON-replacer om floating point-getallen af te ronden.
+    // Dit voorkomt weergaveproblemen zoals 1.2000000000000002 op het dashboard.
+    const replacer = (_key: string, value: unknown): unknown => {
+      if (typeof value === 'number' && !Number.isInteger(value)) {
+        // Rond af op 4 decimalen om onnodige precisie te verwijderen.
+        return Math.round(value * 10000) / 10000;
+      }
+      return value;
+    };
+    const json = JSON.stringify(this.snapshot, replacer);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(json);
   }

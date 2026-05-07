@@ -1,6 +1,6 @@
 # Modbus TCP gateway setup voor Adlar Aurora II / Castra
 
-De app werkt met elke gateway die RS485 (Modbus RTU) naar Modbus TCP vertaalt — zoals de Elfin EW11A, USR-W610 of een Raspberry Pi met `mbusd`. Vereisten: TCP Server mode, poort `502`, half-duplex serieel op `9600 8N1`.
+*De app werkt met elke gateway die RS485 (Modbus RTU) naar Modbus TCP vertaalt — zoals de Elfin EW11A, USR-W610 of een Raspberry Pi met `mbusd`. Vereisten: TCP Server mode, poort `502`, half-duplex serieel op `9600 8N1`.*
 
 Deze map bevat screenshots en aansluitbeelden voor de **Elfin EW11A** als voorbeeldgateway.
 
