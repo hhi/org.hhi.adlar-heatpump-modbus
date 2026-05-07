@@ -3,7 +3,9 @@
   "type": "number",
   "title": {
     "en": "EVI opening steps",
-    "nl": "EVI-openingsstappen"
+    "nl": "EVI-openingsstappen",
+    "de": "EVI-Öffnungsschritte",
+    "fr": "Pas d'ouverture EVI"
   },
   "icon": "/assets/pulse-steps.svg",
   "uiComponent": "sensor",

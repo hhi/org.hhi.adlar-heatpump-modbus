@@ -56,7 +56,7 @@ Installatie
 4. Vul het IP-adres, de TCP-poort en de Modbus Unit ID van de gateway in.
 5. Pas na het koppelen desgewenst poll-intervallen en overige apparaatinstellingen aan.
 
-Zie [docs/setup](docs/setup/README.md) voor EW11A-aansluitbeelden en configuratiescreenshots.
+Zie docs/setup/README.md voor de volledige installatieprocedure voor het aansluiten van de warmtepomp via een Modbus TCP-gateway.
 
 Lokale dashboards
 

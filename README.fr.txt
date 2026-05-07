@@ -56,7 +56,7 @@ Installation
 4. Saisissez l'adresse IP, le port TCP et le Modbus Unit ID de la passerelle.
 5. Apres l'appairage, ajustez si besoin les intervalles de polling et les autres parametres du peripherique.
 
-Pour les schemas de cablage EW11A et les captures de configuration, voir docs/setup/README.md.
+Pour la procedure d'installation complete de raccordement de la pompe a chaleur via une passerelle Modbus TCP, voir docs/setup/README.md.
 
 Tableaux de bord locaux
 

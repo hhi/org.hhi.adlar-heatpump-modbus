@@ -3,7 +3,9 @@
   "type": "boolean",
   "title": {
     "en": "Fault register 2 active",
-    "nl": "Foutregister 2 actief"
+    "nl": "Foutregister 2 actief",
+    "de": "Fehlerregister 2 aktiv",
+    "fr": "Registre de défaut 2 actif"
   },
   "icon": "/assets/fault.svg",
   "uiComponent": "sensor",
@@ -12,10 +14,14 @@
   "insights": true,
   "insightsTitleTrue": {
     "en": "Fault register 2 triggered",
-    "nl": "Foutregister 2 actief"
+    "nl": "Foutregister 2 actief",
+    "de": "Fehlerregister 2 ausgelöst",
+    "fr": "Registre de défaut 2 déclenché"
   },
   "insightsTitleFalse": {
     "en": "Fault register 2 cleared",
-    "nl": "Foutregister 2 opgeheven"
+    "nl": "Foutregister 2 opgeheven",
+    "de": "Fehlerregister 2 zurückgesetzt",
+    "fr": "Registre de défaut 2 effacé"
   }
 }

@@ -24,8 +24,10 @@
     "de": "Kompressor ist AUS",
     "fr": "Compresseur est ÉTEINT"
   },
-
   "description": {
-    "nl": "dp 27 : compressor_state - Compressor state"
+    "en": "0x0040: compressor active when running frequency > 0 Hz",
+    "nl": "0x0040: compressor actief wanneer loopfrequentie > 0 Hz",
+    "de": "0x0040: Kompressor aktiv bei Lauffrequenz > 0 Hz",
+    "fr": "0x0040 : compresseur actif quand fréquence de fonctionnement > 0 Hz"
   }
 }

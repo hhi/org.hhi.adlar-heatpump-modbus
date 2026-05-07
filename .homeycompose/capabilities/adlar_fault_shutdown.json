@@ -3,7 +3,9 @@
   "type": "boolean",
   "title": {
     "en": "Fault shutdown",
-    "nl": "Fout - unit gestopt"
+    "nl": "Fout - unit gestopt",
+    "de": "Fehlerabschaltung",
+    "fr": "Arrêt sur défaut"
   },
   "icon": "/assets/fault.svg",
   "uiComponent": "sensor",
@@ -12,10 +14,14 @@
   "insights": true,
   "insightsTitleTrue": {
     "en": "Unit shut down due to fault",
-    "nl": "Unit gestopt door fout"
+    "nl": "Unit gestopt door fout",
+    "de": "Gerät durch Fehler abgeschaltet",
+    "fr": "Unité arrêtée en raison d'un défaut"
   },
   "insightsTitleFalse": {
     "en": "Fault shutdown cleared",
-    "nl": "Fout-stop opgeheven"
+    "nl": "Fout-stop opgeheven",
+    "de": "Fehlerabschaltung aufgehoben",
+    "fr": "Arrêt sur défaut effacé"
   }
 }

@@ -151,6 +151,7 @@ export interface ControlSnapshot {
   floorSetpointC: number;
   heatingCurve: number;
   hotWaterCurve: number;
+  backwaterMode: number;
   protocolVersion: number;
   coilsAvailable: boolean;
 }
@@ -636,6 +637,9 @@ export class Adlar2ModbusService extends EventEmitter {
       floorSetpointC: this.readScaledValue(CONTROL_REGISTERS.tempSetFloorHeating),
       heatingCurve: this.tcp.u16(CONTROL_REGISTERS.heatingCurve.address),
       hotWaterCurve: this.tcp.u16(CONTROL_REGISTERS.hotWaterCurve.address),
+      backwaterMode: this.tcp.has(L_PARAMETERS.L22_backwaterMode.address)
+        ? this.tcp.u16(L_PARAMETERS.L22_backwaterMode.address)
+        : 0,
       protocolVersion: protocolVersion ?? 0,
       coilsAvailable: protocolVersion !== null && protocolSupportsCoils(protocolVersion),
     };

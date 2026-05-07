@@ -3,7 +3,9 @@
   "type": "string",
   "title": {
     "en": "Active fault description",
-    "nl": "Actieve foutomschrijving"
+    "nl": "Actieve foutomschrijving",
+    "de": "Aktive Fehlerbeschreibung",
+    "fr": "Description du défaut actif"
   },
   "icon": "/assets/fault.svg",
   "uiComponent": "sensor",

@@ -1783,6 +1783,7 @@ export const POLL_GROUP_MEDIUM = {
     { start: 0x0300, count: 8, label: 'Control 0x3000x307' },
     { start: 0x0313, count: 4, label: 'Curves 0x03130x0316' }, // verplaatst van SLOW: max 40s feedback na write
     { start: 0x01FF, count: 2, label: 'P255/P256 Smart Grid' }, // verplaatst van SLOW: max 40s feedback na write
+    { start: 0x080B, count: 5, label: 'L22L26 backwater circulatie' },
     { start: 0x0810, count: 3, label: 'L27L29 DIY stooklijn' }, // verplaatst van SLOW: max 30s feedback na write (ADR-049)
   ],
 } as const;

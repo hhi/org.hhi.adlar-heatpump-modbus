@@ -1,6 +1,8 @@
-# Elfin EW11 setup voor Adlar Aurora II / Castra
+# Modbus TCP gateway setup voor Adlar Aurora II / Castra
 
-Deze map bevat screenshots en aansluitbeelden voor het koppelen van een Elfin EW11A Modbus TCP naar RS485 gateway aan een Adlar Aurora II / Castra warmtepomp.
+De app werkt met elke gateway die RS485 (Modbus RTU) naar Modbus TCP vertaalt — zoals de Elfin EW11A, USR-W610 of een Raspberry Pi met `mbusd`. Vereisten: TCP Server mode, poort `502`, half-duplex serieel op `9600 8N1`.
+
+Deze map bevat screenshots en aansluitbeelden voor de **Elfin EW11A** als voorbeeldgateway.
 
 ## Aansluiten
 
@@ -30,7 +32,17 @@ Gebruik de screenshots als referentie:
 - [Communication Settings](<Elfin EW11 - Adlar Aurora 2/EW11 - communication settngs - Aurora II series.png>)
 - [System Settings](<Elfin EW11 - Adlar Aurora 2/EW11 - system settings - Aurora II series.png>)
 
-Aanbevolen instellingen voor Aurora II / Castra:
+## Wifi-verbinding
+
+Voordat je de EW11 kunt configureren, moet je eerst verbinding maken met het Wifi-netwerk van de EW11:
+
+1. Selecteer het Wifi-netwerk `EW11_xxxx` (waarbij `xxxx` afhankelijk is van de identificatie van jouw Elfin)
+2. De EW11 is bereikbaar op het IP-adres `10.10.100.254`
+3. Stel de Wifi-mode in op `AP+STA` zodat de EW11 onder een eigen lokaal IP-adres bereikbaar is
+4. **Belangrijk:** Stel een statisch IP-adres in. Dit is nodig voor configuratie en voor gebruik door de Homey app.
+
+
+### Aanbevolen instellingen voor Aurora I en II series 
 
 | Onderdeel | Instelling |
 |---|---|

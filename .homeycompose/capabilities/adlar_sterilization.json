@@ -3,7 +3,9 @@
   "type": "boolean",
   "title": {
     "en": "Sterilization mode active",
-    "nl": "Sterilisatiemodus actief"
+    "nl": "Sterilisatiemodus actief",
+    "de": "Sterilisierungsmodus aktiv",
+    "fr": "Mode stérilisation actif"
   },
   "icon": "/assets/sterilization.svg",
   "uiComponent": "sensor",
@@ -12,10 +14,14 @@
   "insights": true,
   "insightsTitleTrue": {
     "en": "Sterilization mode started",
-    "nl": "Sterilisatiemodus gestart"
+    "nl": "Sterilisatiemodus gestart",
+    "de": "Sterilisierungsmodus gestartet",
+    "fr": "Mode stérilisation démarré"
   },
   "insightsTitleFalse": {
     "en": "Sterilization mode stopped",
-    "nl": "Sterilisatiemodus gestopt"
+    "nl": "Sterilisatiemodus gestopt",
+    "de": "Sterilisierungsmodus gestoppt",
+    "fr": "Mode stérilisation arrêté"
   }
 }

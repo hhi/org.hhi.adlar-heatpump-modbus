@@ -3,7 +3,9 @@
   "type": "enum",
   "title": {
     "en": "Operating mode",
-    "nl": "Bedrijfsmodus"
+    "nl": "Bedrijfsmodus",
+    "de": "Betriebsmodus",
+    "fr": "Mode de fonctionnement"
   },
   "icon": "/assets/cop-efficiency.svg",
   "uiComponent": "picker",
@@ -14,49 +16,63 @@
       "id": "0",
       "title": {
         "en": "Cooling",
-        "nl": "Koeling"
+        "nl": "Koeling",
+        "de": "Kühlung",
+        "fr": "Refroidissement"
       }
     },
     {
       "id": "1",
       "title": {
         "en": "Heating",
-        "nl": "Verwarming"
+        "nl": "Verwarming",
+        "de": "Heizung",
+        "fr": "Chauffage"
       }
     },
     {
       "id": "2",
       "title": {
         "en": "Hot Water",
-        "nl": "Warmwater"
+        "nl": "Warmwater",
+        "de": "Warmwasser",
+        "fr": "Eau chaude"
       }
     },
     {
       "id": "3",
       "title": {
         "en": "Floor Heating",
-        "nl": "Vloerverwarming"
+        "nl": "Vloerverwarming",
+        "de": "Fußbodenheizung",
+        "fr": "Chauffage par le sol"
       }
     },
     {
       "id": "4",
       "title": {
         "en": "Cooling + Hot Water",
-        "nl": "Koeling + Warmwater"
+        "nl": "Koeling + Warmwater",
+        "de": "Kühlung + Warmwasser",
+        "fr": "Refroidissement + Eau chaude"
       }
     },
     {
       "id": "5",
       "title": {
         "en": "Heating + Hot Water",
-        "nl": "Verwarming + Warmwater"
+        "nl": "Verwarming + Warmwater",
+        "de": "Heizung + Warmwasser",
+        "fr": "Chauffage + Eau chaude"
       }
     },
     {
       "id": "7",
       "title": {
         "en": "Floor Heating + Hot Water",
-        "nl": "Vloerverwarming + Warmwater"
+        "nl": "Vloerverwarming + Warmwater",
+        "de": "Fußbodenheizung + Warmwasser",
+        "fr": "Chauffage par le sol + Eau chaude"
       }
     }
   ]

@@ -59,7 +59,7 @@ This app gives Homey Pro local Modbus TCP access to an Adlar Castra / Aurora II 
 4. Enter the gateway IP address, TCP port and Modbus Unit ID.
 5. Optionally adjust polling intervals and other device settings after pairing.
 
-For EW11A wiring and configuration screenshots, see [docs/setup](docs/setup/README.md).
+For the full setup procedure for connecting the heat pump via a Modbus TCP gateway, see [docs/setup](docs/setup/README.md).
 
 ## Local Dashboards
 

@@ -3,7 +3,9 @@
   "type": "number",
   "title": {
     "en": "Water flow",
-    "nl": "Waterdebiet"
+    "nl": "Waterdebiet",
+    "de": "Wasserdurchfluss",
+    "fr": "Débit d'eau"
   },
   "icon": "/assets/water-flow.svg",
   "uiComponent": "sensor",

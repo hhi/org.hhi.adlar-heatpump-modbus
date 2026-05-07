@@ -667,10 +667,9 @@ export class FlowCardManagerService {
       // Compressor running condition
       const compressorRunningCard = this.device.homey.flow.getConditionCard('compressor_running');
       const compressorRunningListener = compressorRunningCard.registerRunListener(async () => {
-        const compressorOn = this.device.getCapabilityValue('adlar_compressor_on');
         const compressorState = this.device.getCapabilityValue('adlar_state_compressor_state');
         const compressorFrequency = Number(this.device.getCapabilityValue('measure_frequency.compressor_freq') ?? 0);
-        return compressorOn === true || compressorState === true || compressorFrequency > 0;
+        return compressorState === true || compressorFrequency > 0;
       });
       this.flowCardListeners.set('compressor_running', compressorRunningListener);
 
