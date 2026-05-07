@@ -3,7 +3,9 @@
   "type": "number",
   "title": {
     "en": "EEV opening steps",
-    "nl": "EEV-openingsstappen"
+    "nl": "EEV-openingsstappen",
+    "de": "EEV-Öffnungsschritte",
+    "fr": "Pas d'ouverture EEV"
   },
   "icon": "/assets/pulse-steps.svg",
   "uiComponent": "sensor",

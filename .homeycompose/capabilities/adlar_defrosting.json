@@ -3,7 +3,9 @@
   "type": "boolean",
   "title": {
     "en": "Defrosting",
-    "nl": "Ontdooien"
+    "nl": "Ontdooien",
+    "de": "Abtauen",
+    "fr": "Dégivrage"
   },
   "icon": "/assets/defrost-state.svg",
   "uiComponent": "sensor",
@@ -12,10 +14,14 @@
   "insights": true,
   "insightsTitleTrue": {
     "en": "Defrosting started",
-    "nl": "Ontdooien gestart"
+    "nl": "Ontdooien gestart",
+    "de": "Abtauen gestartet",
+    "fr": "Dégivrage démarré"
   },
   "insightsTitleFalse": {
     "en": "Defrosting stopped",
-    "nl": "Ontdooien gestopt"
+    "nl": "Ontdooien gestopt",
+    "de": "Abtauen gestoppt",
+    "fr": "Dégivrage arrêté"
   }
 }

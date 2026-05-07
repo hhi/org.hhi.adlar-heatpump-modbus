@@ -3,7 +3,9 @@
   "type": "boolean",
   "title": {
     "en": "Antifreeze protection active",
-    "nl": "Antivriesbeveiliging actief"
+    "nl": "Antivriesbeveiliging actief",
+    "de": "Frostschutz aktiv",
+    "fr": "Protection antigel active"
   },
   "icon": "/assets/antifreeze.svg",
   "uiComponent": "sensor",
@@ -12,10 +14,14 @@
   "insights": true,
   "insightsTitleTrue": {
     "en": "Antifreeze protection activated",
-    "nl": "Antivriesbeveiliging geactiveerd"
+    "nl": "Antivriesbeveiliging geactiveerd",
+    "de": "Frostschutz aktiviert",
+    "fr": "Protection antigel activée"
   },
   "insightsTitleFalse": {
     "en": "Antifreeze protection deactivated",
-    "nl": "Antivriesbeveiliging uitgeschakeld"
+    "nl": "Antivriesbeveiliging uitgeschakeld",
+    "de": "Frostschutz deaktiviert",
+    "fr": "Protection antigel désactivée"
   }
 }

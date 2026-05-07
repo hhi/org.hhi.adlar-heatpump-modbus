@@ -13,6 +13,7 @@ import {
   workModeIdToUserMode,
   hotWaterCurveToEnumId,
   enumIdToHotWaterCurve,
+  backwaterModeToEnumId,
 } from '../../lib/modbus/adlar-enum-mappers';
 import { FAULT_DESCRIPTIONS } from '../../lib/modbus/adlar-fault-descriptions';
 import { ModbusCOPService } from '../../lib/services/modbus-cop-service';
@@ -352,11 +353,11 @@ class AdlarModbusDevice extends Homey.Device {
     set('adlar_enum_countdown_set', heatingCurveToEnumId(snap.control.heatingCurve));
     set('adlar_enum_work_mode', userModeToWorkModeId(snap.control.userMode));
     set('adlar_enum_capacity_set', hotWaterCurveToEnumId(snap.control.hotWaterCurve));
+    set('adlar_state_backwater', backwaterModeToEnumId(snap.control.backwaterMode));
 
     // Status
     set('adlar_defrosting', snap.status.defrosting);
     set('adlar_running', snap.status.running);
-    set('adlar_compressor_on', snap.status.compressorOn);
     set('adlar_antifreeze', snap.status.antifreeze);
     set('adlar_sterilization', snap.status.sterilization);
     set('adlar_fault_shutdown', snap.status.faultShutdown);

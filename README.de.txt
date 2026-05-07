@@ -56,7 +56,7 @@ Installation
 4. Geben Sie IP-Adresse, TCP-Port und Modbus Unit ID des Gateways ein.
 5. Passen Sie nach dem Koppeln bei Bedarf Polling-Intervalle und weitere Geraeteeinstellungen an.
 
-EW11A-Anschlussbilder und Konfigurations-Screenshots finden Sie unter docs/setup/README.md.
+Die vollstaendige Einrichtungsanleitung fuer den Anschluss der Waermepumpe ueber ein Modbus-TCP-Gateway finden Sie unter docs/setup/README.md.
 
 Lokale Dashboards
 

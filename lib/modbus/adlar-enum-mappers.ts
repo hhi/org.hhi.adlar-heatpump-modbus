@@ -60,3 +60,14 @@ export function enumIdToHotWaterCurve(id: string): number {
   if (id.startsWith('H')) return parseInt(id.slice(1), 10);
   return 0; // OFF
 }
+
+/**
+ * Converteert register L22 (0x080B) naar adlar_state_backwater enum-id.
+ * 0=disable, 1=continuous return, 2=cycle return, 3=temperature diff return
+ */
+export function backwaterModeToEnumId(raw: number): string {
+  if (raw === 1) return 'continuous';
+  if (raw === 2) return 'cycle';
+  if (raw === 3) return 'temp_diff';
+  return 'disable';
+}

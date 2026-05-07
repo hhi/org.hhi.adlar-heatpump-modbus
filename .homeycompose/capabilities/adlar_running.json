@@ -3,7 +3,9 @@
   "type": "boolean",
   "title": {
     "en": "Unit running",
-    "nl": "Unit in bedrijf"
+    "nl": "Unit in bedrijf",
+    "de": "Gerät in Betrieb",
+    "fr": "Unité en marche"
   },
   "icon": "/assets/compressor-state.svg",
   "uiComponent": "sensor",
@@ -12,10 +14,14 @@
   "insights": true,
   "insightsTitleTrue": {
     "en": "Unit started running",
-    "nl": "Unit gestart"
+    "nl": "Unit gestart",
+    "de": "Gerät gestartet",
+    "fr": "Unité démarrée"
   },
   "insightsTitleFalse": {
     "en": "Unit stopped running",
-    "nl": "Unit gestopt"
+    "nl": "Unit gestopt",
+    "de": "Gerät gestoppt",
+    "fr": "Unité arrêtée"
   }
 }

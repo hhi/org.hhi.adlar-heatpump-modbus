@@ -20,8 +20,10 @@
     "de": "Fehlerstatuscode",
     "fr": "Code d'état de défaut"
   },
-
   "description": {
-    "nl": "dp 15 : fault - Fault"
+    "en": "0x0002–0x0004: number of active fault register bits",
+    "nl": "0x0002–0x0004: aantal actieve foutregisterbits",
+    "de": "0x0002–0x0004: Anzahl aktiver Fehlerregisterbits",
+    "fr": "0x0002–0x0004 : nombre de bits de registre de défauts actifs"
   }
 }

@@ -3,7 +3,9 @@
   "type": "number",
   "title": {
     "en": "Heating Curve Intercept",
-    "nl": "Verwarmingscurve Intercept"
+    "nl": "Verwarmingscurve Intercept",
+    "de": "Heizkurven-Achsenabschnitt",
+    "fr": "Intercept de la courbe de chauffe"
   },
   "getable": true,
   "setable": false,

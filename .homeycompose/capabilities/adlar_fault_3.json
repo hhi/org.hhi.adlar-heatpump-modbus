@@ -3,7 +3,9 @@
   "type": "boolean",
   "title": {
     "en": "Fault register 3 active",
-    "nl": "Foutregister 3 actief"
+    "nl": "Foutregister 3 actief",
+    "de": "Fehlerregister 3 aktiv",
+    "fr": "Registre de défaut 3 actif"
   },
   "icon": "/assets/fault.svg",
   "uiComponent": "sensor",
@@ -12,10 +14,14 @@
   "insights": true,
   "insightsTitleTrue": {
     "en": "Fault register 3 triggered",
-    "nl": "Foutregister 3 actief"
+    "nl": "Foutregister 3 actief",
+    "de": "Fehlerregister 3 ausgelöst",
+    "fr": "Registre de défaut 3 déclenché"
   },
   "insightsTitleFalse": {
     "en": "Fault register 3 cleared",
-    "nl": "Foutregister 3 opgeheven"
+    "nl": "Foutregister 3 opgeheven",
+    "de": "Fehlerregister 3 zurückgesetzt",
+    "fr": "Registre de défaut 3 effacé"
   }
 }

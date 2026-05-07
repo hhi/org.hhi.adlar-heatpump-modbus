@@ -30,7 +30,6 @@
     "measure_temperature.zone1_mix",
     "measure_temperature.zone2",
     "adlar_running",
-    "adlar_compressor_on",
     "adlar_mode",
     "adlar_state_compressor_state",
     "adlar_state_defrost_state",

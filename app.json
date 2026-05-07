@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "org.hhi.adlar-heatpump-modbus",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "compatibility": ">=12.2.0",
   "sdk": 3,
   "platforms": [
@@ -7244,7 +7244,6 @@
         "measure_temperature.zone1_mix",
         "measure_temperature.zone2",
         "adlar_running",
-        "adlar_compressor_on",
         "adlar_mode",
         "adlar_state_compressor_state",
         "adlar_state_defrost_state",
@@ -9398,7 +9397,9 @@
       "type": "boolean",
       "title": {
         "en": "Antifreeze protection active",
-        "nl": "Antivriesbeveiliging actief"
+        "nl": "Antivriesbeveiliging actief",
+        "de": "Frostschutz aktiv",
+        "fr": "Protection antigel active"
       },
       "icon": "/assets/antifreeze.svg",
       "uiComponent": "sensor",
@@ -9407,11 +9408,15 @@
       "insights": true,
       "insightsTitleTrue": {
         "en": "Antifreeze protection activated",
-        "nl": "Antivriesbeveiliging geactiveerd"
+        "nl": "Antivriesbeveiliging geactiveerd",
+        "de": "Frostschutz aktiviert",
+        "fr": "Protection antigel activée"
       },
       "insightsTitleFalse": {
         "en": "Antifreeze protection deactivated",
-        "nl": "Antivriesbeveiliging uitgeschakeld"
+        "nl": "Antivriesbeveiliging uitgeschakeld",
+        "de": "Frostschutz deaktiviert",
+        "fr": "Protection antigel désactivée"
       }
     },
     "adlar_building_c": {
@@ -9608,27 +9613,6 @@
       "setable": false,
       "uiComponent": "sensor",
       "icon": "/assets/cheapest-block-start.svg"
-    },
-    "adlar_compressor_on": {
-      "id": "adlar_compressor_on",
-      "type": "boolean",
-      "title": {
-        "en": "Compressor active",
-        "nl": "Compressor actief"
-      },
-      "icon": "/assets/compressor-state.svg",
-      "uiComponent": "sensor",
-      "getable": true,
-      "setable": false,
-      "insights": true,
-      "insightsTitleTrue": {
-        "en": "Compressor started",
-        "nl": "Compressor gestart"
-      },
-      "insightsTitleFalse": {
-        "en": "Compressor stopped",
-        "nl": "Compressor gestopt"
-      }
     },
     "adlar_connection_active": {
       "id": "adlar_connection_active",
@@ -9969,7 +9953,9 @@
       "type": "boolean",
       "title": {
         "en": "Defrosting",
-        "nl": "Ontdooien"
+        "nl": "Ontdooien",
+        "de": "Abtauen",
+        "fr": "Dégivrage"
       },
       "icon": "/assets/defrost-state.svg",
       "uiComponent": "sensor",
@@ -9978,11 +9964,15 @@
       "insights": true,
       "insightsTitleTrue": {
         "en": "Defrosting started",
-        "nl": "Ontdooien gestart"
+        "nl": "Ontdooien gestart",
+        "de": "Abtauen gestartet",
+        "fr": "Dégivrage démarré"
       },
       "insightsTitleFalse": {
         "en": "Defrosting stopped",
-        "nl": "Ontdooien gestopt"
+        "nl": "Ontdooien gestopt",
+        "de": "Abtauen gestoppt",
+        "fr": "Dégivrage arrêté"
       }
     },
     "adlar_eev_step": {
@@ -9990,7 +9980,9 @@
       "type": "number",
       "title": {
         "en": "EEV opening steps",
-        "nl": "EEV-openingsstappen"
+        "nl": "EEV-openingsstappen",
+        "de": "EEV-Öffnungsschritte",
+        "fr": "Pas d'ouverture EEV"
       },
       "icon": "/assets/pulse-steps.svg",
       "uiComponent": "sensor",
@@ -10438,7 +10430,9 @@
       "type": "number",
       "title": {
         "en": "EVI opening steps",
-        "nl": "EVI-openingsstappen"
+        "nl": "EVI-openingsstappen",
+        "de": "EVI-Öffnungsschritte",
+        "fr": "Pas d'ouverture EVI"
       },
       "icon": "/assets/pulse-steps.svg",
       "uiComponent": "sensor",
@@ -10751,7 +10745,9 @@
       "type": "number",
       "title": {
         "en": "Fan speed",
-        "nl": "Ventilatorsnelheid"
+        "nl": "Ventilatorsnelheid",
+        "de": "Lüftergeschwindigkeit",
+        "fr": "Vitesse du ventilateur"
       },
       "icon": "/assets/fan-speed.svg",
       "uiComponent": "sensor",
@@ -10785,7 +10781,10 @@
         "fr": "Code d'état de défaut"
       },
       "description": {
-        "nl": "dp 15 : fault - Fault"
+        "en": "0x0002–0x0004: number of active fault register bits",
+        "nl": "0x0002–0x0004: aantal actieve foutregisterbits",
+        "de": "0x0002–0x0004: Anzahl aktiver Fehlerregisterbits",
+        "fr": "0x0002–0x0004 : nombre de bits de registre de défauts actifs"
       }
     },
     "adlar_fault_1": {
@@ -10793,7 +10792,9 @@
       "type": "boolean",
       "title": {
         "en": "Fault register 1 active",
-        "nl": "Foutregister 1 actief"
+        "nl": "Foutregister 1 actief",
+        "de": "Fehlerregister 1 aktiv",
+        "fr": "Registre de défaut 1 actif"
       },
       "icon": "/assets/fault.svg",
       "uiComponent": "sensor",
@@ -10802,11 +10803,15 @@
       "insights": true,
       "insightsTitleTrue": {
         "en": "Fault register 1 triggered",
-        "nl": "Foutregister 1 actief"
+        "nl": "Foutregister 1 actief",
+        "de": "Fehlerregister 1 ausgelöst",
+        "fr": "Registre de défaut 1 déclenché"
       },
       "insightsTitleFalse": {
         "en": "Fault register 1 cleared",
-        "nl": "Foutregister 1 opgeheven"
+        "nl": "Foutregister 1 opgeheven",
+        "de": "Fehlerregister 1 zurückgesetzt",
+        "fr": "Registre de défaut 1 effacé"
       }
     },
     "adlar_fault_2": {
@@ -10814,7 +10819,9 @@
       "type": "boolean",
       "title": {
         "en": "Fault register 2 active",
-        "nl": "Foutregister 2 actief"
+        "nl": "Foutregister 2 actief",
+        "de": "Fehlerregister 2 aktiv",
+        "fr": "Registre de défaut 2 actif"
       },
       "icon": "/assets/fault.svg",
       "uiComponent": "sensor",
@@ -10823,11 +10830,15 @@
       "insights": true,
       "insightsTitleTrue": {
         "en": "Fault register 2 triggered",
-        "nl": "Foutregister 2 actief"
+        "nl": "Foutregister 2 actief",
+        "de": "Fehlerregister 2 ausgelöst",
+        "fr": "Registre de défaut 2 déclenché"
       },
       "insightsTitleFalse": {
         "en": "Fault register 2 cleared",
-        "nl": "Foutregister 2 opgeheven"
+        "nl": "Foutregister 2 opgeheven",
+        "de": "Fehlerregister 2 zurückgesetzt",
+        "fr": "Registre de défaut 2 effacé"
       }
     },
     "adlar_fault_3": {
@@ -10835,7 +10846,9 @@
       "type": "boolean",
       "title": {
         "en": "Fault register 3 active",
-        "nl": "Foutregister 3 actief"
+        "nl": "Foutregister 3 actief",
+        "de": "Fehlerregister 3 aktiv",
+        "fr": "Registre de défaut 3 actif"
       },
       "icon": "/assets/fault.svg",
       "uiComponent": "sensor",
@@ -10844,11 +10857,15 @@
       "insights": true,
       "insightsTitleTrue": {
         "en": "Fault register 3 triggered",
-        "nl": "Foutregister 3 actief"
+        "nl": "Foutregister 3 actief",
+        "de": "Fehlerregister 3 ausgelöst",
+        "fr": "Registre de défaut 3 déclenché"
       },
       "insightsTitleFalse": {
         "en": "Fault register 3 cleared",
-        "nl": "Foutregister 3 opgeheven"
+        "nl": "Foutregister 3 opgeheven",
+        "de": "Fehlerregister 3 zurückgesetzt",
+        "fr": "Registre de défaut 3 effacé"
       }
     },
     "adlar_fault_active": {
@@ -10856,7 +10873,9 @@
       "type": "string",
       "title": {
         "en": "Active fault description",
-        "nl": "Actieve foutomschrijving"
+        "nl": "Actieve foutomschrijving",
+        "de": "Aktive Fehlerbeschreibung",
+        "fr": "Description du défaut actif"
       },
       "icon": "/assets/fault.svg",
       "uiComponent": "sensor",
@@ -10868,7 +10887,9 @@
       "type": "boolean",
       "title": {
         "en": "Fault shutdown",
-        "nl": "Fout - unit gestopt"
+        "nl": "Fout - unit gestopt",
+        "de": "Fehlerabschaltung",
+        "fr": "Arrêt sur défaut"
       },
       "icon": "/assets/fault.svg",
       "uiComponent": "sensor",
@@ -10877,11 +10898,15 @@
       "insights": true,
       "insightsTitleTrue": {
         "en": "Unit shut down due to fault",
-        "nl": "Unit gestopt door fout"
+        "nl": "Unit gestopt door fout",
+        "de": "Gerät durch Fehler abgeschaltet",
+        "fr": "Unité arrêtée en raison d'un défaut"
       },
       "insightsTitleFalse": {
         "en": "Fault shutdown cleared",
-        "nl": "Fout-stop opgeheven"
+        "nl": "Fout-stop opgeheven",
+        "de": "Fehlerabschaltung aufgehoben",
+        "fr": "Arrêt sur défaut effacé"
       }
     },
     "adlar_firmware_mcu": {
@@ -11052,7 +11077,9 @@
       "type": "enum",
       "title": {
         "en": "Operating mode",
-        "nl": "Bedrijfsmodus"
+        "nl": "Bedrijfsmodus",
+        "de": "Betriebsmodus",
+        "fr": "Mode de fonctionnement"
       },
       "icon": "/assets/cop-efficiency.svg",
       "uiComponent": "picker",
@@ -11063,49 +11090,63 @@
           "id": "0",
           "title": {
             "en": "Cooling",
-            "nl": "Koeling"
+            "nl": "Koeling",
+            "de": "Kühlung",
+            "fr": "Refroidissement"
           }
         },
         {
           "id": "1",
           "title": {
             "en": "Heating",
-            "nl": "Verwarming"
+            "nl": "Verwarming",
+            "de": "Heizung",
+            "fr": "Chauffage"
           }
         },
         {
           "id": "2",
           "title": {
             "en": "Hot Water",
-            "nl": "Warmwater"
+            "nl": "Warmwater",
+            "de": "Warmwasser",
+            "fr": "Eau chaude"
           }
         },
         {
           "id": "3",
           "title": {
             "en": "Floor Heating",
-            "nl": "Vloerverwarming"
+            "nl": "Vloerverwarming",
+            "de": "Fußbodenheizung",
+            "fr": "Chauffage par le sol"
           }
         },
         {
           "id": "4",
           "title": {
             "en": "Cooling + Hot Water",
-            "nl": "Koeling + Warmwater"
+            "nl": "Koeling + Warmwater",
+            "de": "Kühlung + Warmwasser",
+            "fr": "Refroidissement + Eau chaude"
           }
         },
         {
           "id": "5",
           "title": {
             "en": "Heating + Hot Water",
-            "nl": "Verwarming + Warmwater"
+            "nl": "Verwarming + Warmwater",
+            "de": "Heizung + Warmwasser",
+            "fr": "Chauffage + Eau chaude"
           }
         },
         {
           "id": "7",
           "title": {
             "en": "Floor Heating + Hot Water",
-            "nl": "Vloerverwarming + Warmwater"
+            "nl": "Vloerverwarming + Warmwater",
+            "de": "Fußbodenheizung + Warmwasser",
+            "fr": "Chauffage par le sol + Eau chaude"
           }
         }
       ]
@@ -11331,7 +11372,9 @@
       "type": "number",
       "title": {
         "en": "Pump PWM",
-        "nl": "Pomp PWM"
+        "nl": "Pomp PWM",
+        "de": "Pumpe PWM",
+        "fr": "PWM pompe"
       },
       "icon": "/assets/pump.svg",
       "uiComponent": "sensor",
@@ -11347,7 +11390,9 @@
       "type": "boolean",
       "title": {
         "en": "Unit running",
-        "nl": "Unit in bedrijf"
+        "nl": "Unit in bedrijf",
+        "de": "Gerät in Betrieb",
+        "fr": "Unité en marche"
       },
       "icon": "/assets/compressor-state.svg",
       "uiComponent": "sensor",
@@ -11356,11 +11401,15 @@
       "insights": true,
       "insightsTitleTrue": {
         "en": "Unit started running",
-        "nl": "Unit gestart"
+        "nl": "Unit gestart",
+        "de": "Gerät gestartet",
+        "fr": "Unité démarrée"
       },
       "insightsTitleFalse": {
         "en": "Unit stopped running",
-        "nl": "Unit gestopt"
+        "nl": "Unit gestopt",
+        "de": "Gerät gestoppt",
+        "fr": "Unité arrêtée"
       }
     },
     "adlar_scop": {
@@ -11462,31 +11511,57 @@
     "adlar_state_backwater": {
       "id": "adlar_state_backwater",
       "title": {
-        "en": "Backwater state",
-        "nl": "Retourwater status",
-        "de": "Rücklaufstatus",
-        "fr": "État du retour"
+        "en": "Backwater mode",
+        "nl": "Retourwater modus",
+        "de": "Rücklaufmodus",
+        "fr": "Mode retour d'eau"
       },
-      "type": "boolean",
+      "type": "enum",
+      "values": [
+        {
+          "id": "disable",
+          "title": {
+            "en": "Disabled",
+            "nl": "Uitgeschakeld",
+            "de": "Deaktiviert",
+            "fr": "Désactivé"
+          }
+        },
+        {
+          "id": "continuous",
+          "title": {
+            "en": "Continuous return",
+            "nl": "Continue circulatie",
+            "de": "Dauerkreislauf",
+            "fr": "Retour continu"
+          }
+        },
+        {
+          "id": "cycle",
+          "title": {
+            "en": "Cycle return",
+            "nl": "Cyclische circulatie",
+            "de": "Zyklischer Kreislauf",
+            "fr": "Retour cyclique"
+          }
+        },
+        {
+          "id": "temp_diff",
+          "title": {
+            "en": "Temperature differential return",
+            "nl": "Temperatuurverschil circulatie",
+            "de": "Temperaturdifferenz-Kreislauf",
+            "fr": "Retour différentiel de température"
+          }
+        }
+      ],
       "setable": false,
       "getable": true,
       "uiComponent": "sensor",
       "icon": "/assets/backwater-state.svg",
       "insights": true,
-      "insightsTitleTrue": {
-        "en": "Backwater is ON",
-        "nl": "Retourwater is AAN",
-        "de": "Rücklauf ist EIN",
-        "fr": "Retour est ALLUMÉ"
-      },
-      "insightsTitleFalse": {
-        "en": "Backwater is OFF",
-        "nl": "Retourwater is UIT",
-        "de": "Rücklauf ist AUS",
-        "fr": "Retour est ÉTEINT"
-      },
       "description": {
-        "nl": "dp 31 : backwater - Backwater state"
+        "nl": "L22 (0x080B): DHW retourwater circulatiemodus"
       }
     },
     "adlar_state_compressor_state": {
@@ -11516,7 +11591,10 @@
         "fr": "Compresseur est ÉTEINT"
       },
       "description": {
-        "nl": "dp 27 : compressor_state - Compressor state"
+        "en": "0x0040: compressor active when running frequency > 0 Hz",
+        "nl": "0x0040: compressor actief wanneer loopfrequentie > 0 Hz",
+        "de": "0x0040: Kompressor aktiv bei Lauffrequenz > 0 Hz",
+        "fr": "0x0040 : compresseur actif quand fréquence de fonctionnement > 0 Hz"
       }
     },
     "adlar_state_defrost_state": {
@@ -11546,7 +11624,10 @@
         "fr": "Dégivrage inactif"
       },
       "description": {
-        "nl": "dp 33 : defrost_state - Defrosting"
+        "en": "0x0000 bit 8: defrosting active (SYSTEM_DEFROST)",
+        "nl": "0x0000 bit 8: ontdooiing actief (SYSTEM_DEFROST)",
+        "de": "0x0000 Bit 8: Abtauen aktiv (SYSTEM_DEFROST)",
+        "fr": "0x0000 bit 8 : dégivrage actif (SYSTEM_DEFROST)"
       }
     },
     "adlar_sterilization": {
@@ -11554,7 +11635,9 @@
       "type": "boolean",
       "title": {
         "en": "Sterilization mode active",
-        "nl": "Sterilisatiemodus actief"
+        "nl": "Sterilisatiemodus actief",
+        "de": "Sterilisierungsmodus aktiv",
+        "fr": "Mode stérilisation actif"
       },
       "icon": "/assets/sterilization.svg",
       "uiComponent": "sensor",
@@ -11563,11 +11646,15 @@
       "insights": true,
       "insightsTitleTrue": {
         "en": "Sterilization mode started",
-        "nl": "Sterilisatiemodus gestart"
+        "nl": "Sterilisatiemodus gestart",
+        "de": "Sterilisierungsmodus gestartet",
+        "fr": "Mode stérilisation démarré"
       },
       "insightsTitleFalse": {
         "en": "Sterilization mode stopped",
-        "nl": "Sterilisatiemodus gestopt"
+        "nl": "Sterilisatiemodus gestopt",
+        "de": "Sterilisierungsmodus gestoppt",
+        "fr": "Mode stérilisation arrêté"
       }
     },
     "adlar_water_flow": {
@@ -11575,7 +11662,9 @@
       "type": "number",
       "title": {
         "en": "Water flow",
-        "nl": "Waterdebiet"
+        "nl": "Waterdebiet",
+        "de": "Wasserdurchfluss",
+        "fr": "Débit d'eau"
       },
       "icon": "/assets/water-flow.svg",
       "uiComponent": "sensor",
@@ -11804,7 +11893,9 @@
       "type": "string",
       "title": {
         "en": "Heating Curve Formula",
-        "nl": "Verwarmingscurve Formule"
+        "nl": "Verwarmingscurve Formule",
+        "de": "Heizkurven-Formel",
+        "fr": "Formule de courbe de chauffe"
       },
       "getable": true,
       "setable": false,
@@ -11816,7 +11907,9 @@
       "type": "number",
       "title": {
         "en": "Heating Curve Intercept",
-        "nl": "Verwarmingscurve Intercept"
+        "nl": "Verwarmingscurve Intercept",
+        "de": "Heizkurven-Achsenabschnitt",
+        "fr": "Intercept de la courbe de chauffe"
       },
       "getable": true,
       "setable": false,
@@ -11828,7 +11921,9 @@
       "type": "number",
       "title": {
         "en": "Reference Outdoor Temperature",
-        "nl": "Referentie Buitentemperatuur"
+        "nl": "Referentie Buitentemperatuur",
+        "de": "Referenz-Außentemperatur",
+        "fr": "Température extérieure de référence"
       },
       "getable": true,
       "setable": false,
@@ -11840,7 +11935,9 @@
       "type": "number",
       "title": {
         "en": "Reference Temperature",
-        "nl": "Referentie Temperatuur"
+        "nl": "Referentie Temperatuur",
+        "de": "Referenztemperatur",
+        "fr": "Température de référence"
       },
       "getable": true,
       "setable": false,
@@ -11852,7 +11949,9 @@
       "type": "number",
       "title": {
         "en": "Heating Curve Slope",
-        "nl": "Verwarmingscurve Helling"
+        "nl": "Verwarmingscurve Helling",
+        "de": "Heizkurven-Steigung",
+        "fr": "Pente de la courbe de chauffe"
       },
       "getable": true,
       "setable": false,
