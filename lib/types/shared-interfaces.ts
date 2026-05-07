@@ -32,14 +32,10 @@ export interface CapabilityCategories {
  * Used by FlowCardManagerService and device settings validation.
  */
 export interface UserFlowPreferences {
-  flow_temperature_alerts: 'disabled' | 'auto' | 'enabled';
   flow_voltage_alerts: 'disabled' | 'auto' | 'enabled';
   flow_current_alerts: 'disabled' | 'auto' | 'enabled';
   flow_power_alerts: 'disabled' | 'auto' | 'enabled';
   flow_pulse_steps_alerts: 'disabled' | 'auto' | 'enabled';
-  flow_state_alerts: 'disabled' | 'auto' | 'enabled';
-  flow_efficiency_alerts: 'disabled' | 'auto' | 'enabled';
-  flow_expert_mode: boolean;
 }
 /* eslint-enable camelcase */
 

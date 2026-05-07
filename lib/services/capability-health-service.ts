@@ -321,14 +321,10 @@ export class CapabilityHealthService {
    */
   private getUserFlowPreferences(): UserFlowPreferences {
     return {
-      flow_temperature_alerts: this.device.getSetting('flow_temperature_alerts') || 'auto',
       flow_voltage_alerts: this.device.getSetting('flow_voltage_alerts') || 'auto',
       flow_current_alerts: this.device.getSetting('flow_current_alerts') || 'auto',
       flow_power_alerts: this.device.getSetting('flow_power_alerts') || 'auto',
       flow_pulse_steps_alerts: this.device.getSetting('flow_pulse_steps_alerts') || 'auto',
-      flow_state_alerts: this.device.getSetting('flow_state_alerts') || 'auto',
-      flow_efficiency_alerts: this.device.getSetting('flow_efficiency_alerts') || 'auto',
-      flow_expert_mode: this.device.getSetting('flow_expert_mode') || false,
     };
   }
 
@@ -348,7 +344,7 @@ export class CapabilityHealthService {
 
     switch (category) {
       case 'temperature':
-        return userPrefs.flow_temperature_alerts !== 'disabled';
+        return true;
 
       case 'voltage':
       case 'current':
@@ -363,7 +359,7 @@ export class CapabilityHealthService {
       case 'efficiency':
         // v1.2.1 FIX: If COP calculation disabled, efficiency category is ALWAYS disabled
         if (!enableCOPCalculation) return false;
-        return userPrefs.flow_efficiency_alerts !== 'disabled';
+        return true;
 
       case 'calculated':
       case 'external':
@@ -374,7 +370,7 @@ export class CapabilityHealthService {
       case 'pulseSteps':
         return userPrefs.flow_pulse_steps_alerts !== 'disabled';
       case 'states':
-        return userPrefs.flow_state_alerts !== 'disabled';
+        return true;
       default:
         return true; // Unknown categories are enabled by default
     }

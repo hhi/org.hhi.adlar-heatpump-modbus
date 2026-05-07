@@ -196,22 +196,14 @@ export class FlowCardManagerService {
       const healthyCapabilities = capabilitiesWithData || await this.detectCapabilitiesWithData();
 
       // Register flow cards based on settings
-      await this.registerFlowCardsByCategory('temperature', availableCaps.temperature, userPrefs.flow_temperature_alerts, healthyCapabilities);
       await this.registerFlowCardsByCategory('voltage', availableCaps.voltage, userPrefs.flow_voltage_alerts, healthyCapabilities);
       await this.registerFlowCardsByCategory('current', availableCaps.current, userPrefs.flow_current_alerts, healthyCapabilities);
       await this.registerFlowCardsByCategory('power', availableCaps.power, userPrefs.flow_power_alerts, healthyCapabilities);
       await this.registerFlowCardsByCategory('pulseSteps', availableCaps.pulseSteps, userPrefs.flow_pulse_steps_alerts, healthyCapabilities);
-      await this.registerFlowCardsByCategory('states', availableCaps.states, userPrefs.flow_state_alerts, healthyCapabilities);
-      await this.registerFlowCardsByCategory('efficiency', availableCaps.efficiency, userPrefs.flow_efficiency_alerts, healthyCapabilities);
 
       // Register Modbus-specific trigger filters and simple action cards.
       await this.registerModbusTriggerRunListeners();
       await this.registerModbusSimpleActionCards();
-
-      // Expert feature cards
-      if (userPrefs.flow_expert_mode) {
-        await this.registerExpertFeatureCards();
-      }
 
       // Register action-based condition cards (always available)
       await this.registerActionBasedConditionCards();
@@ -244,14 +236,10 @@ export class FlowCardManagerService {
    */
   private getUserFlowPreferences(): UserFlowPreferences {
     return {
-      flow_temperature_alerts: this.device.getSetting('flow_temperature_alerts') || 'auto',
       flow_voltage_alerts: this.device.getSetting('flow_voltage_alerts') || 'auto',
       flow_current_alerts: this.device.getSetting('flow_current_alerts') || 'auto',
       flow_power_alerts: this.device.getSetting('flow_power_alerts') || 'auto',
       flow_pulse_steps_alerts: this.device.getSetting('flow_pulse_steps_alerts') || 'auto',
-      flow_state_alerts: this.device.getSetting('flow_state_alerts') || 'auto',
-      flow_efficiency_alerts: this.device.getSetting('flow_efficiency_alerts') || 'auto',
-      flow_expert_mode: this.device.getSetting('flow_expert_mode') || false,
     };
   }
 
@@ -366,21 +354,6 @@ export class FlowCardManagerService {
         // Auto mode: require both capability AND data
         return availableCaps.length > 0
           && availableCaps.some((cap) => capabilitiesWithData.includes(cap));
-    }
-  }
-
-  /**
-   * Register advanced/expert-only flow cards. Called only when user enables expert features.
-   */
-  private async registerExpertFeatureCards(): Promise<void> {
-    try {
-      // v1.3.12: Expert trigger cards now registered in app.ts with full threshold monitoring
-      // This method kept for compatibility but no longer registers cards here
-      // Cards: compressor_efficiency_alert, fan_motor_efficiency_alert, water_flow_alert
-
-      this.logger('FlowCardManagerService: Expert feature cards registration skipped (handled in app.ts)');
-    } catch (error) {
-      this.logger('FlowCardManagerService: Error in registerExpertFeatureCards:', error);
     }
   }
 
@@ -2104,14 +2077,10 @@ export class FlowCardManagerService {
   async updateSettings(changedKeys: string[]): Promise<void> {
     // Check if any flow-related settings changed
     const flowSettingKeys = [
-      'flow_temperature_alerts',
       'flow_voltage_alerts',
       'flow_current_alerts',
       'flow_power_alerts',
       'flow_pulse_steps_alerts',
-      'flow_state_alerts',
-      'flow_efficiency_alerts',
-      'flow_expert_mode',
     ];
 
     const flowSettingsChanged = changedKeys.some((key) => flowSettingKeys.includes(key));
