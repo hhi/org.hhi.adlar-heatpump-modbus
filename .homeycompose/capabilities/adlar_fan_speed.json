@@ -14,5 +14,11 @@
   "units": "RPM",
   "decimals": 0,
   "min": 0,
-  "max": 3000
+  "max": 3000,
+  "description": {
+    "en": "Outdoor fan speed from Modbus sensor register 0x0041 (fanRunningSpeed), in RPM.",
+    "nl": "Ventilatorsnelheid buitenunit uit Modbus-sensorregister 0x0041 (fanRunningSpeed), in RPM.",
+    "de": "Lüfterdrehzahl der Außeneinheit aus Modbus-Sensorregister 0x0041 (fanRunningSpeed), in U/min.",
+    "fr": "Vitesse du ventilateur extérieur depuis le registre capteur Modbus 0x0041 (fanRunningSpeed), en tr/min."
+  }
 }

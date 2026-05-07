@@ -1,19 +1,23 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "org.hhi.adlar-heatpump-modbus",
-  "version": "2.3.3",
+  "version": "2.3.4",
   "compatibility": ">=12.2.0",
   "sdk": 3,
   "platforms": [
     "local"
   ],
   "name": {
-    "en": "Adlar Castra Heatpump ( Aurora-II Modbus)",
-    "nl": "Adlar Castra Warmtepomp (Aurora-II Modbus)"
+    "en": "Adlar Castra Heatpump ( Aurora I/II Modbus)",
+    "nl": "Adlar Castra Warmtepomp (Aurora I/II Modbus)",
+    "de": "Adlar Castra Wärmepumpe (Aurora I/II Modbus)",
+    "fr": "Adlar Castra Pompe à Chaleur (Aurora I/II Modbus)"
   },
   "description": {
     "en": "Local Modbus TCP access to the Adlar Castra I/II series heatpump device.",
-    "nl": "Lokale Modbus TCP toegang tot het Adlar I/II Castra-serie warmtepompapparaat."
+    "nl": "Lokale Modbus TCP toegang tot het Adlar I/II Castra-serie warmtepompapparaat.",
+    "de": "Lokaler Modbus TCP Zugriff auf das Adlar Castra I/II Serie Wärmepumpengerät.",
+    "fr": "Accès local Modbus TCP à l'appareil de pompe à chaleur Adlar Castra I/II série."
   },
   "category": [
     "climate"
@@ -37,6 +41,18 @@
     ],
     "nl": [
       "warmtepomp",
+      "adlar",
+      "aurora",
+      "modbus"
+    ],
+    "de": [
+      "wärmepumpe",
+      "adlar",
+      "aurora",
+      "modbus"
+    ],
+    "fr": [
+      "pompe à chaleur",
       "adlar",
       "aurora",
       "modbus"
@@ -9417,6 +9433,12 @@
         "nl": "Antivriesbeveiliging uitgeschakeld",
         "de": "Frostschutz deaktiviert",
         "fr": "Protection antigel désactivée"
+      },
+      "description": {
+        "en": "Antifreeze protection status from Modbus status register 0x0000, bits 1–2 (PRIMARY_ANTIFREEZE | SECONDARY_ANTIFREEZE). True when either circuit is in antifreeze mode.",
+        "nl": "Antivriesbeveiligingsstatus uit Modbus-statusregister 0x0000, bits 1–2 (PRIMARY_ANTIFREEZE | SECONDARY_ANTIFREEZE). Waar wanneer een van beide circuits in antivriesstand staat.",
+        "de": "Frostschutzstatus aus Modbus-Statusregister 0x0000, Bits 1–2 (PRIMARY_ANTIFREEZE | SECONDARY_ANTIFREEZE). Wahr, wenn einer der Kreise im Frostschutzmodus ist.",
+        "fr": "État de protection antigel depuis le registre de statut Modbus 0x0000, bits 1–2 (PRIMARY_ANTIFREEZE | SECONDARY_ANTIFREEZE). Vrai si l'un des circuits est en mode antigel."
       }
     },
     "adlar_building_c": {
@@ -9973,6 +9995,12 @@
         "nl": "Ontdooien gestopt",
         "de": "Abtauen gestoppt",
         "fr": "Dégivrage arrêté"
+      },
+      "description": {
+        "en": "Defrost status from Modbus status register 0x0000, bit 8 (SYSTEM_DEFROST). True while the outdoor coil is actively being defrosted.",
+        "nl": "Ontdooistatus uit Modbus-statusregister 0x0000, bit 8 (SYSTEM_DEFROST). Waar zolang de buitenste spoel actief wordt ontdooid.",
+        "de": "Abtaustatus aus Modbus-Statusregister 0x0000, Bit 8 (SYSTEM_DEFROST). Wahr, solange der Außenluftkreis aktiv abgetaut wird.",
+        "fr": "État de dégivrage depuis le registre de statut Modbus 0x0000, bit 8 (SYSTEM_DEFROST). Vrai pendant le dégivrage actif de l'échangeur extérieur."
       }
     },
     "adlar_eev_step": {
@@ -9991,7 +10019,13 @@
       "units": "steps",
       "decimals": 0,
       "min": 0,
-      "max": 500
+      "max": 500,
+      "description": {
+        "en": "Electronic Expansion Valve (EEV) opening position from Modbus sensor register 0x0042 (eevOpenStep), in stepper motor steps.",
+        "nl": "Openingspositie van de elektronische expansieklep (EEV) uit Modbus-sensorregister 0x0042 (eevOpenStep), in stappenmotor-stappen.",
+        "de": "Öffnungsposition des elektronischen Expansionsventils (EEV) aus Modbus-Sensorregister 0x0042 (eevOpenStep), in Schrittmotorschritten.",
+        "fr": "Position d'ouverture du détendeur électronique (EEV) depuis le registre capteur Modbus 0x0042 (eevOpenStep), en pas moteur pas à pas."
+      }
     },
     "adlar_energy_cost_daily": {
       "id": "adlar_energy_cost_daily",
@@ -10441,7 +10475,13 @@
       "units": "steps",
       "decimals": 0,
       "min": 0,
-      "max": 500
+      "max": 500,
+      "description": {
+        "en": "Enhanced Vapor Injection (EVI) valve opening position from Modbus sensor register 0x0043 (eviValveOpenStep), in stepper motor steps.",
+        "nl": "Openingspositie van de EVI-klep (Enhanced Vapor Injection) uit Modbus-sensorregister 0x0043 (eviValveOpenStep), in stappenmotor-stappen.",
+        "de": "Öffnungsposition des EVI-Ventils (Enhanced Vapor Injection) aus Modbus-Sensorregister 0x0043 (eviValveOpenStep), in Schrittmotorschritten.",
+        "fr": "Position d'ouverture de la vanne EVI (Enhanced Vapor Injection) depuis le registre capteur Modbus 0x0043 (eviValveOpenStep), en pas moteur pas à pas."
+      }
     },
     "adlar_external_ambient": {
       "id": "adlar_external_ambient",
@@ -10756,7 +10796,13 @@
       "units": "RPM",
       "decimals": 0,
       "min": 0,
-      "max": 3000
+      "max": 3000,
+      "description": {
+        "en": "Outdoor fan speed from Modbus sensor register 0x0041 (fanRunningSpeed), in RPM.",
+        "nl": "Ventilatorsnelheid buitenunit uit Modbus-sensorregister 0x0041 (fanRunningSpeed), in RPM.",
+        "de": "Lüfterdrehzahl der Außeneinheit aus Modbus-Sensorregister 0x0041 (fanRunningSpeed), in U/min.",
+        "fr": "Vitesse du ventilateur extérieur depuis le registre capteur Modbus 0x0041 (fanRunningSpeed), en tr/min."
+      }
     },
     "adlar_fault": {
       "id": "adlar_fault",
@@ -10812,6 +10858,12 @@
         "nl": "Foutregister 1 opgeheven",
         "de": "Fehlerregister 1 zurückgesetzt",
         "fr": "Registre de défaut 1 effacé"
+      },
+      "description": {
+        "en": "True when any F1-series fault bit is set in Modbus fault register 0x0002 (faultState1).",
+        "nl": "Waar wanneer een of meer F1-serie storingsbits actief zijn in Modbus-foutregister 0x0002 (faultState1).",
+        "de": "Wahr, wenn ein F1-Fehlerbit im Modbus-Fehlerregister 0x0002 (faultState1) gesetzt ist.",
+        "fr": "Vrai si un bit de défaut F1 est actif dans le registre de défaut Modbus 0x0002 (faultState1)."
       }
     },
     "adlar_fault_2": {
@@ -10839,6 +10891,12 @@
         "nl": "Foutregister 2 opgeheven",
         "de": "Fehlerregister 2 zurückgesetzt",
         "fr": "Registre de défaut 2 effacé"
+      },
+      "description": {
+        "en": "True when any F2-series fault bit is set in Modbus fault register 0x0003 (faultState2).",
+        "nl": "Waar wanneer een of meer F2-serie storingsbits actief zijn in Modbus-foutregister 0x0003 (faultState2).",
+        "de": "Wahr, wenn ein F2-Fehlerbit im Modbus-Fehlerregister 0x0003 (faultState2) gesetzt ist.",
+        "fr": "Vrai si un bit de défaut F2 est actif dans le registre de défaut Modbus 0x0003 (faultState2)."
       }
     },
     "adlar_fault_3": {
@@ -10866,6 +10924,12 @@
         "nl": "Foutregister 3 opgeheven",
         "de": "Fehlerregister 3 zurückgesetzt",
         "fr": "Registre de défaut 3 effacé"
+      },
+      "description": {
+        "en": "True when any F3-series or SYS1 fault bit is set in Modbus fault registers 0x0004–0x0009 (faultState3, sys1FaultState1/2, sys1DriveFault1/2/3).",
+        "nl": "Waar wanneer een of meer F3-serie of SYS1-storingsbits actief zijn in Modbus-foutregisters 0x0004–0x0009 (faultState3, sys1FaultState1/2, sys1DriveFault1/2/3).",
+        "de": "Wahr, wenn ein F3- oder SYS1-Fehlerbit in den Modbus-Fehlerregistern 0x0004–0x0009 (faultState3, sys1FaultState1/2, sys1DriveFault1/2/3) gesetzt ist.",
+        "fr": "Vrai si un bit de défaut F3 ou SYS1 est actif dans les registres de défaut Modbus 0x0004–0x0009 (faultState3, sys1FaultState1/2, sys1DriveFault1/2/3)."
       }
     },
     "adlar_fault_active": {
@@ -10880,7 +10944,13 @@
       "icon": "/assets/fault.svg",
       "uiComponent": "sensor",
       "getable": true,
-      "setable": false
+      "setable": false,
+      "description": {
+        "en": "Decoded fault description from Modbus fault registers 0x0002–0x0009. Shows the active fault code and name, or empty when no fault is present.",
+        "nl": "Gedecodeerde storingsbeschrijving uit Modbus-foutregisters 0x0002–0x0009. Toont de actieve storingscode en naam, of is leeg bij geen storing.",
+        "de": "Dekodierte Fehlerbeschreibung aus den Modbus-Fehlerregistern 0x0002–0x0009. Zeigt den aktiven Fehlercode und -namen oder ist leer, wenn kein Fehler vorliegt.",
+        "fr": "Description de défaut décodée depuis les registres de défaut Modbus 0x0002–0x0009. Affiche le code et le nom du défaut actif, ou vide en l'absence de défaut."
+      }
     },
     "adlar_fault_shutdown": {
       "id": "adlar_fault_shutdown",
@@ -10907,6 +10977,12 @@
         "nl": "Fout-stop opgeheven",
         "de": "Fehlerabschaltung aufgehoben",
         "fr": "Arrêt sur défaut effacé"
+      },
+      "description": {
+        "en": "Fault shutdown status from Modbus status register 0x0000, bit 13 (FAULT_SHUTDOWN). True when the heat pump has stopped due to a fault.",
+        "nl": "Fout-stopstatus uit Modbus-statusregister 0x0000, bit 13 (FAULT_SHUTDOWN). Waar wanneer de warmtepomp door een storing is gestopt.",
+        "de": "Fehlerabschaltstatus aus Modbus-Statusregister 0x0000, Bit 13 (FAULT_SHUTDOWN). Wahr, wenn die Wärmepumpe aufgrund eines Fehlers abgeschaltet wurde.",
+        "fr": "État d'arrêt sur défaut depuis le registre de statut Modbus 0x0000, bit 13 (FAULT_SHUTDOWN). Vrai lorsque la pompe à chaleur s'est arrêtée suite à un défaut."
       }
     },
     "adlar_firmware_mcu": {
@@ -11149,7 +11225,13 @@
             "fr": "Chauffage par le sol + Eau chaude"
           }
         }
-      ]
+      ],
+      "description": {
+        "en": "Active operating mode read from Modbus control register 0x0304. Writable: changing this value sends a write command to the heat pump.",
+        "nl": "Actieve bedrijfsmodus uitgelezen uit Modbus-stuurregister 0x0304. Schrijfbaar: een wijziging stuurt een schrijfopdracht naar de warmtepomp.",
+        "de": "Aktiver Betriebsmodus aus Modbus-Steuerregister 0x0304. Schreibbar: Eine Änderung sendet einen Schreibbefehl an die Wärmepumpe.",
+        "fr": "Mode de fonctionnement actif lu depuis le registre de commande Modbus 0x0304. Inscriptible : une modification envoie une commande d'écriture à la pompe à chaleur."
+      }
     },
     "adlar_openmeteo_last_fetch": {
       "id": "adlar_openmeteo_last_fetch",
@@ -11383,7 +11465,13 @@
       "units": "%",
       "decimals": 0,
       "min": 0,
-      "max": 100
+      "max": 100,
+      "description": {
+        "en": "Circulation pump speed from Modbus sensor register 0x0057 (waterPumpSpeedPWM), as a PWM duty cycle percentage.",
+        "nl": "Snelheid van de circulatiepomp uit Modbus-sensorregister 0x0057 (waterPumpSpeedPWM), als PWM-vulgraad in procent.",
+        "de": "Umwälzpumpendrehzahl aus Modbus-Sensorregister 0x0057 (waterPumpSpeedPWM), als PWM-Tastverhältnis in Prozent.",
+        "fr": "Vitesse de la pompe de circulation depuis le registre capteur Modbus 0x0057 (waterPumpSpeedPWM), en pourcentage de rapport cyclique PWM."
+      }
     },
     "adlar_running": {
       "id": "adlar_running",
@@ -11410,6 +11498,12 @@
         "nl": "Unit gestopt",
         "de": "Gerät gestoppt",
         "fr": "Unité arrêtée"
+      },
+      "description": {
+        "en": "Unit running status from Modbus status register 0x0000, bit 14 (MACHINE_RUN). True when the heat pump is actively running.",
+        "nl": "Bedrijfsstatus van de unit uit Modbus-statusregister 0x0000, bit 14 (MACHINE_RUN). Waar wanneer de warmtepomp actief in bedrijf is.",
+        "de": "Betriebsstatus des Geräts aus Modbus-Statusregister 0x0000, Bit 14 (MACHINE_RUN). Wahr, wenn die Wärmepumpe aktiv in Betrieb ist.",
+        "fr": "État de fonctionnement de l'unité depuis le registre de statut Modbus 0x0000, bit 14 (MACHINE_RUN). Vrai lorsque la pompe à chaleur est en cours de fonctionnement."
       }
     },
     "adlar_scop": {
@@ -11655,6 +11749,12 @@
         "nl": "Sterilisatiemodus gestopt",
         "de": "Sterilisierungsmodus gestoppt",
         "fr": "Mode stérilisation arrêté"
+      },
+      "description": {
+        "en": "Sterilization cycle status from Modbus status register 0x0001, bit 0 (HIGH_TEMP_STERILIZATION). True during an active Legionella prevention cycle.",
+        "nl": "Status van de sterilisatiecyclus uit Modbus-statusregister 0x0001, bit 0 (HIGH_TEMP_STERILIZATION). Waar tijdens een actieve legionellapreventiecyclus.",
+        "de": "Status des Sterilisierungszyklus aus Modbus-Statusregister 0x0001, Bit 0 (HIGH_TEMP_STERILIZATION). Wahr während eines aktiven Legionellen-Präventionszyklus.",
+        "fr": "État du cycle de stérilisation depuis le registre de statut Modbus 0x0001, bit 0 (HIGH_TEMP_STERILIZATION). Vrai pendant un cycle actif de prévention de la légionellose."
       }
     },
     "adlar_water_flow": {
@@ -11673,7 +11773,13 @@
       "units": "L/min",
       "decimals": 1,
       "min": 0,
-      "max": 60
+      "max": 60,
+      "description": {
+        "en": "Water flow rate from Modbus sensor register 0x0058 (waterFlow), in L/min.",
+        "nl": "Waterdebiet uit Modbus-sensorregister 0x0058 (waterFlow), in L/min.",
+        "de": "Wasserdurchfluss aus Modbus-Sensorregister 0x0058 (waterFlow), in L/min.",
+        "fr": "Débit d'eau depuis le registre capteur Modbus 0x0058 (waterFlow), en L/min."
+      }
     },
     "building_insight_insulation": {
       "id": "building_insight_insulation",

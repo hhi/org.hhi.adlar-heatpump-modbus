@@ -14,5 +14,11 @@
   "units": "L/min",
   "decimals": 1,
   "min": 0,
-  "max": 60
+  "max": 60,
+  "description": {
+    "en": "Water flow rate from Modbus sensor register 0x0058 (waterFlow), in L/min.",
+    "nl": "Waterdebiet uit Modbus-sensorregister 0x0058 (waterFlow), in L/min.",
+    "de": "Wasserdurchfluss aus Modbus-Sensorregister 0x0058 (waterFlow), in L/min.",
+    "fr": "Débit d'eau depuis le registre capteur Modbus 0x0058 (waterFlow), en L/min."
+  }
 }

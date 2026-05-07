@@ -1,4 +1,8 @@
 {
+  "2.3.4": {
+    "en": "Dashboard live values are now rounded to 4 decimal places, preventing display artefacts such as 1.2000000000000002. Capability descriptions added for 15 Modbus-linked capabilities, each referencing the corresponding register address and bit.",
+    "nl": "Live waarden op het dashboard worden nu afgerond op 4 decimalen, waardoor weergaveproblemen zoals 1.2000000000000002 niet meer voorkomen. Capability-beschrijvingen toegevoegd voor 15 Modbus-gekoppelde capabilities, elk met verwijzing naar het bijbehorende registeradres en bit."
+  },
   "2.3.3": {
     "en": "Backwater return circulation mode (L22) is now read and shown as a capability with four states: disabled, continuous return, cycle return, and temperature-difference return. Device name during pairing changed from 'Adlar Heat Pump Modbus' to 'Aurora I/II Modbus'. Compressor-on boolean replaced by the compressor state indicator in energy estimation and flow card conditions.",
     "nl": "Backwater-retourcirculatiemodus (L22) wordt nu uitgelezen en getoond als capability met vier standen: uitgeschakeld, continu retour, cyclisch retour en temperatuurverschil retour. De apparaatnaam bij koppelen is gewijzigd van 'Adlar Heat Pump Modbus' naar 'Aurora I/II Modbus'. De compressor-boolean is vervangen door de compressorstatus-indicator in energieschatting en flow-voorwaarden.",
