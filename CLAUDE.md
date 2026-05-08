@@ -13,11 +13,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 npm run build               # Compile TypeScript → .homeybuild/
 npm run lint                # ESLint (athom/homey-app ruleset)
+homey app build             # Build + compose → app.json (run after compose changes)
 homey app validate          # Validate Homey app structure (run after build)
 homey app validate -l debug # Detailed validation output
+homey app run               # Deploy and run on paired Homey (development)
+homey app install           # Install on paired Homey
 ```
 
 There are no automated tests. Always run `npm run build` after making changes to verify TypeScript compiles.
+
+For offline Modbus simulation (no hardware required):
+
+```bash
+npx tsx test/test-modbus-service.ts   # Simulate Modbus TCP connection
+npx tsx test/test-sim-registers.ts    # Simulate register responses
+```
+
+Set `DEBUG=1` to enable the debug inspector and force log level to DEBUG.
 
 ## Architecture
 
@@ -25,7 +37,7 @@ This is a Homey SDK v3 app that gives Homey Pro local Modbus TCP access to Adlar
 
 ### Layer structure (top-down)
 
-1. **`app.ts`** — App entry point. Initializes `Logger` and `SelfHealingRegistry`. Sets global unhandled-rejection/exception handlers.
+1. **`app.ts`** — App entry point. Initializes `Logger`, `SelfHealingRegistry`, and `DashboardService`. Sets global unhandled-rejection/exception handlers.
 
 2. **`drivers/intelligent-heatpump-modbus/device.ts`** — The single Homey device class (`AdlarModbusDevice`). Owns the `ServiceCoordinator` lifecycle, registers capability listeners, and exposes `applyModbusSnapshot()` which maps a `DataSnapshot` onto Homey capabilities.
 
@@ -37,12 +49,18 @@ This is a Homey SDK v3 app that gives Homey Pro local Modbus TCP access to Adlar
 
 6. **`lib/modbus/modbus-tcp-service.ts`** — Protocol-agnostic Modbus TCP transport (jsmodbus). Handles socket lifecycle, reconnect with backoff, FC03/FC05/FC06, register cache, and the multi-tier polling engine. Contains no device-specific logic.
 
-7. **`lib/modbus/adlar-modbus-registers.ts`** — All register metadata: addresses, scale factors, ranges, calibration curves, poll groups (`POLL_GROUP_FAST/MEDIUM/SLOW/ONCE`), and decode helpers (`decodeFaults`, `encodeTemperature`, etc.).
+7. **`lib/modbus/modbus-runtime-service.ts`** — Thin adapter layer between `modbus-tcp-service.ts` and the rest of the app; provides a stable interface for read/write without exposing transport internals.
+
+8. **`lib/modbus/adlar-modbus-registers.ts`** — All register metadata: addresses, scale factors, ranges, calibration curves, poll groups (`POLL_GROUP_FAST/MEDIUM/SLOW/ONCE`), and decode helpers (`decodeFaults`, `encodeTemperature`, etc.). Also contains `adlar-enum-mappers.ts` (enum ↔ string) and `adlar-fault-descriptions.ts` (fault code lookup).
+
+9. **`lib/services/dashboard-service.ts`** — Serves the local HTTP dashboards in `public/` (`dashboard.html`, `dashboard-interactive.html`, `dashboard-expert.html`) for live monitoring and expert-level register access directly on the local network.
 
 ### Supporting libraries
 
 - **`lib/adaptive/`** — Advanced features: `HeatingController` (PI control), `CopOptimizer`, `DefrostLearner`, `BuildingModelLearner`, `WeightedDecisionMaker`, `EnergyPriceOptimizer`.
-- **`lib/services/`** — Individual services: `CopCalculator`, `RollingCopCalculator`, `SCopCalculator`, `EnergyTrackingService`, `CapabilityHealthService`, `FlowCardManagerService`, `SettingsManagerService`, `PerformanceReportService`, `BuildingInsightsService`.
+- **`lib/services/`** — Individual services: `CopCalculator`, `ModbusCopService`, `RollingCopCalculator`, `SCopCalculator`, `EnergyTrackingService`, `CapabilityHealthService`, `FlowCardManagerService`, `SettingsManagerService`, `PerformanceReportService`, `BuildingInsightsService`, `BuildingModelService`, `AdaptiveControlService`, `ExternalTemperatureService`, `WeatherForecastService`, `WindCorrectionService`, `SnapshotTriggerService`.
+- **`lib/types/shared-interfaces.ts`** — Shared TypeScript interfaces used across services (e.g. `DataSnapshot`).
+- **`lib/utils/preheat-calculator.ts`** — Standalone preheat timing calculations.
 - **`lib/logger.ts`** — Structured logger with configurable `LogLevel`. Services receive a `(msg, ...args) => void` callback — they never import Logger directly.
 - **`lib/constants.ts`** — All timing, threshold, and calculation constants (`DeviceConstants`).
 - **`lib/self-healing-registry.ts`** — App-level registry for automatic error recovery.
@@ -80,6 +98,15 @@ Never use `console.log()`. Use the structured `Logger` class (`this.logger.error
 
 ### Type safety
 Never use `as any`. Use `@ts-expect-error` with an explanation comment when a cast is unavoidable.
+
+### Modbus write safety
+All Modbus write operations must be validated against the safe ranges defined in `adlar-modbus-registers.ts` before sending. Out-of-range writes can cause hardware damage.
+
+### Capability/register consistency
+When adding or changing a capability, keep these three files in sync:
+- `.homeycompose/capabilities/` — capability definition
+- `drivers/intelligent-heatpump-modbus/device.ts` — `applyModbusSnapshot()` mapping
+- `lib/modbus/adlar-modbus-registers.ts` — register address and decode logic
 
 ### Localization
 All strings exposed to the user must be localized. Add translations to `locales/en.json` and `locales/nl.json`.
