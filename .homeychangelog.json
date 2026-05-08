@@ -1,7 +1,7 @@
 {
   "2.3.5": {
-    "en": "Removed 8 settings that had no effect: COP outlier detection, manual COP method selection, COP min/max thresholds, flow card alert preferences (temperature, efficiency, state), and HVAC expert mode toggle. The corresponding flow cards and COP calculation remain fully active.",
-    "nl": "8 instellingen verwijderd die geen effect hadden: COP outlier detectie, handmatige COP methode keuze, COP min/max drempelwaarden, flow-kaart alertvoorkeuren (temperatuur, efficiëntie, status) en de HVAC expert modus schakelaar. De bijbehorende flow-kaarten en COP-berekening blijven volledig actief."
+    "en": "Removed 8 settings that had no effect: COP outlier detection, manual COP method selection, COP min/max thresholds, flow card alert preferences (temperature, efficiency, state), and HVAC expert mode toggle. The corresponding flow cards and COP calculation remain fully active. Dashboard: superfast poll group now shown with its own badge and register ranges.",
+    "nl": "8 instellingen verwijderd die geen effect hadden: COP outlier detectie, handmatige COP methode keuze, COP min/max drempelwaarden, flow-kaart alertvoorkeuren (temperatuur, efficiëntie, status) en de HVAC expert modus schakelaar. De bijbehorende flow-kaarten en COP-berekening blijven volledig actief. Dashboard: superfast pollgroep wordt nu getoond met een eigen badge en bijbehorende registerbereiken."
   },
   "2.3.4": {
     "en": "Dashboard live values are now rounded to 4 decimal places, preventing display artefacts such as 1.2000000000000002. Capability descriptions added for 15 Modbus-linked capabilities, each referencing the corresponding register address and bit.",

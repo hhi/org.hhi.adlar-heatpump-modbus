@@ -133,6 +133,7 @@
       letter-spacing: 0.02em;
     }
 
+    .badge-SUPERFAST { background: #7f1d1d; color: #fecaca; }
     .badge-FAST   { background: #0c4a6e; color: #38bdf8; }
     .badge-MEDIUM { background: #1e3a5f; color: #93c5fd; }
     .badge-SLOW   { background: #1e1b4b; color: #a5b4fc; }
@@ -215,6 +216,7 @@
 // ── Poll-groep lookup ────────────────────────────────────────────────────────
 // Afgeleid uit adlar-modbus-registers.ts POLL_GROUP_FAST/MEDIUM/SLOW/ONCE
 const POLL_RANGES = [
+  { group: 'SUPERFAST', ranges: [[0x0000, 0x0001], [0x0027, 0x0027], [0x0040, 0x0040], [0x004F, 0x0050], [0x0057, 0x0058], [0x005C, 0x005C]] },
   { group: 'FAST',   ranges: [[0x0000, 0x0001], [0x0040, 0x005D]] },
   { group: 'MEDIUM', ranges: [[0x0002, 0x0009], [0x0019, 0x0020], [0x0072, 0x007D], [0x0300, 0x0307]] },
   { group: 'SLOW',   ranges: [[0x0313, 0x0316], [0x01FF, 0x0200], [0x0174, 0x0178], [0x011E, 0x011E],
