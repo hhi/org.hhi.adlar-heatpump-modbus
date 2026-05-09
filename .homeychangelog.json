@@ -1,4 +1,8 @@
 {
+  "2.4.0": {
+    "en": "Expert dashboard: 107 additional P-parameters added across 14 new functional categories (EEV & valve control, EVI, frequency shielding, defrost & antifreeze, water temperature compensation, cooling antifreeze, heat source limits, load shedding, dual zone & mixing valve, and more). Working condition calibration registers (P184–P253) placed in a separate block 9. P-parameters in block 4 are now sorted by register address.",
+    "nl": "Expertdashboard: 107 extra P-parameters toegevoegd in 14 nieuwe functionele categorieën (EEV & ventielregeling, EVI, frequentie-afscherming, ontdooiing & antibevriezing, watertemperatuur compensatie, koeling antibevriezing, warmtebron temperatuurlimieten, load shedding, dubbele zone & mengklep en meer). Werkconditie-ijkpunten (P184–P253) ondergebracht in een apart blok 9. P-parameters in blok 4 worden gesorteerd op registeradres."
+  },
   "2.3.5": {
     "en": "Removed 8 settings that had no effect: COP outlier detection, manual COP method selection, COP min/max thresholds, flow card alert preferences (temperature, efficiency, state), and HVAC expert mode toggle. The corresponding flow cards and COP calculation remain fully active. Dashboard: superfast poll group now shown with its own badge and register ranges.",
     "nl": "8 instellingen verwijderd die geen effect hadden: COP outlier detectie, handmatige COP methode keuze, COP min/max drempelwaarden, flow-kaart alertvoorkeuren (temperatuur, efficiëntie, status) en de HVAC expert modus schakelaar. De bijbehorende flow-kaarten en COP-berekening blijven volledig actief. Dashboard: superfast pollgroep wordt nu getoond met een eigen badge en bijbehorende registerbereiken."

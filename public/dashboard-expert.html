@@ -228,11 +228,18 @@ function buildFunctionalBlocks(sourceBlocks) {
     { id: 'func_heating', label: 'Verwarming', match: r => hasAny(r, ['heating', 'heat', 'floor', 'zone', 'curve', 'stooklijn', 'water outlet', 'water inlet']) || inAddress(r, 0x0301, 0x0303) },
     { id: 'func_dhw', label: 'Tapwater & retourcirculatie', match: r => hasAny(r, ['dhw', 'hot water', 'tank', 'backwater', 'return water', 'sterilization']) || inAddress(r, 0x080B, 0x080F) || r.address === 0x0054 || r.address === 0x0059 },
     { id: 'func_cooling', label: 'Koeling', match: r => hasAny(r, ['cooling', 'cool']) || r.address === 0x0300 },
-    { id: 'func_compressor', label: 'Compressor & ventilator', match: r => hasAny(r, ['compressor', 'fan', 'frequency', 'freq', 'ipm', 'eev', 'evi']) || inAddress(r, 0x0040, 0x0048) },
-    { id: 'func_water', label: 'Watercircuit', match: r => hasAny(r, ['water', 'flow', 'pump', 'pressure', 'mixing', 'buffer']) },
+    { id: 'func_compressor', label: 'Compressor & ventilator', match: r => hasAny(r, ['compressor', 'fan', 'ipm', 'four-way', 'strong mode', 'powerful mode']) || inAddress(r, 0x0040, 0x0048) },
+    { id: 'func_eev', label: 'EEV & ventielregeling', match: r => hasAny(r, ['eev', 'valve', 'enthalpy', 'superheat', 'opening', 'coeff']) },
+    { id: 'func_evi', label: 'EVI & vloeistofinjector', match: r => hasAny(r, ['evi', 'liquid injection']) },
+    { id: 'func_freqshield', label: 'Frequentie-afscherming', match: r => hasAny(r, ['freq shield', 'frequency shield']) },
+    { id: 'func_defrost', label: 'Ontdooiing & antibevriezing', match: r => hasAny(r, ['defrost', 'antifreeze', 'anti-condensation', 'throttle bypass', 'dew point', 'constant temp operation']) },
+    { id: 'func_water', label: 'Watercircuit', match: r => hasAny(r, ['water', 'flow', 'pump', 'pressure', 'buffer', 'tank temp']) },
+    { id: 'func_loadshedding', label: 'Load shedding & cascading', match: r => hasAny(r, ['load shedding', 'loading cycle', 'emergency stop return', 'start ratio']) },
+    { id: 'func_dualzone', label: 'Dubbele zone & mengklep', match: r => hasAny(r, ['dual', 'mixing']) },
+    { id: 'func_workcond', label: 'Werkconditie-ijkpunten', match: r => hasAny(r, ['working cond', 'pfc']) },
     { id: 'func_energy', label: 'Energie & COP', match: r => hasAny(r, ['energy', 'power', 'current', 'voltage', 'consumption', 'cop']) },
     { id: 'func_smartgrid', label: "Smart Grid & commando's", match: r => hasAny(r, ['smart grid', 'command', 'mode']) || inAddress(r, 0x0330, 0x0345) || !!r.isCoil },
-    { id: 'func_service', label: 'Service & firmware', match: r => hasAny(r, ['version', 'firmware', 'protocol', 'manufacturer', 'protection']) || inAddress(r, 0x0360, 0x0363) || !!r.serviceOnly },
+    { id: 'func_service', label: 'Service & firmware', match: r => hasAny(r, ['version', 'firmware', 'protocol', 'manufacturer', 'protection', 'password', 'compressor code']) || inAddress(r, 0x0360, 0x0363) || !!r.serviceOnly },
   ];
 
   const flat = [];
