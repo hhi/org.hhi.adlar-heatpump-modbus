@@ -1,4 +1,8 @@
 {
+  "2.4.1": {
+    "en": "Security: fast-uri updated from 3.1.0 to 3.1.2.",
+    "nl": "Beveiliging: fast-uri bijgewerkt van 3.1.0 naar 3.1.2."
+  },
   "2.4.0": {
     "en": "Expert dashboard: 107 additional P-parameters added across 14 new functional categories (EEV & valve control, EVI, frequency shielding, defrost & antifreeze, water temperature compensation, cooling antifreeze, heat source limits, load shedding, dual zone & mixing valve, and more). Working condition calibration registers (P184–P253) placed in a separate block 9. P-parameters in block 4 are now sorted by register address.",
     "nl": "Expertdashboard: 107 extra P-parameters toegevoegd in 14 nieuwe functionele categorieën (EEV & ventielregeling, EVI, frequentie-afscherming, ontdooiing & antibevriezing, watertemperatuur compensatie, koeling antibevriezing, warmtebron temperatuurlimieten, load shedding, dubbele zone & mengklep en meer). Werkconditie-ijkpunten (P184–P253) ondergebracht in een apart blok 9. P-parameters in blok 4 worden gesorteerd op registeradres."
