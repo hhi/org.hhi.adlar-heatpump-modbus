@@ -1310,6 +1310,9 @@ export const P_PARAMETERS = {
   P82_auxValveMaxOpening: {
     address: 0x0152, min: 100, max: 500, unit: 'P', name: 'EEV aux valve max opening',
   },
+  P83_auxValveMinOpening: {
+    address: 0x0153, min: 50, max: 300, unit: 'P', name: 'EEV aux valve min opening',
+  },
   P84_mainValveRegulationPeriod: {
     address: 0x0154, min: 10, max: 120, unit: 's', name: 'EEV main valve regulation period',
   },
@@ -1687,6 +1690,14 @@ export const P_PARAMETERS_EXTRA = {
   },
   P259_mixingValveFullCycle: {
     address: 0x0203, min: 0, max: 180, unit: 's', name: 'Mixing valve full cycle time',
+  },
+
+  // -------------------------------------------------------------------------
+  // Vloerverwarming testmodus (P262)
+  // -------------------------------------------------------------------------
+  P262_floorHeatingTestMode: {
+    address: 0x0206, min: 0, max: 1, name: 'Floor heating test mode selection',
+    desc: '0=Enable, 1=Disable',
   },
 
 } as const;

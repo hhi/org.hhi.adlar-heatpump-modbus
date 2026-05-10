@@ -662,11 +662,11 @@ function buildRegisterBlocks(tempScale: TemperatureRegisterScale = 'x1'): Regist
     },
     {
       id: 'blok10_p_uncharted',
-      label: 'Blok 10 — P-registers ongedocumenteerd (0x0206–0x0235)',
+      label: 'Blok 10 — P-registers ongedocumenteerd (0x0207–0x0235)',
       readOnly: true,
-      registers: Array.from({ length: 48 }, (_, i) => {
-        const addr = 0x0206 + i;
-        const label = `P${262 + i}`;
+      registers: Array.from({ length: 47 }, (_, i) => {
+        const addr = 0x0207 + i;
+        const label = `P${263 + i}`;
         return {
           key: `${label}_unknown`,
           registerId: label,
