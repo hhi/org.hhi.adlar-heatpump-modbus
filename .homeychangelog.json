@@ -1,4 +1,8 @@
 {
+  "2.5.0": {
+    "en": "Flow trigger cards for temperature alerts, pulse steps, compressor and fan frequency, and water flow now use their intended change thresholds. Threshold checks now include exact matches, and expert trigger card descriptions no longer refer to the removed expert-mode setting.",
+    "nl": "Flow-triggerkaarten voor temperatuuralarmen, puls-stappen, compressor- en ventilatorfrequentie en waterdebiet gebruiken nu hun bedoelde wijzigingsdrempels. Drempelcontroles nemen exacte matches nu mee, en beschrijvingen van expert-triggerkaarten verwijzen niet meer naar de verwijderde expertmodus-instelling."
+  },
   "2.4.3": {
     "en": "Expert dashboard: P83 (EEV auxiliary valve minimum opening, 0x0153) and P262 (floor heating test mode, 0x0206) added to block 4. All 263 OEM P-parameters (0x0100–0x0206) are now documented. Block 10 (undocumented) starts at P263.",
     "nl": "Expertdashboard: P83 (EEV hulpklep minimale opening, 0x0153) en P262 (vloerverwarming testmodus, 0x0206) toegevoegd aan blok 4. Alle 263 OEM P-parameters (0x0100–0x0206) zijn nu gedocumenteerd. Blok 10 (ongedocumenteerd) begint nu bij P263."

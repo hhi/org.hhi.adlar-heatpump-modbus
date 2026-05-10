@@ -1,11 +1,9 @@
 {
   "id": "org.hhi.adlar-heatpump-modbus",
-  "version": "2.4.3",
+  "version": "2.5.0",
   "compatibility": ">=12.2.0",
   "sdk": 3,
-  "platforms": [
-    "local"
-  ],
+  "platforms": ["local"],
   "name": {
     "en": "Adlar Castra Heatpump ( Aurora I/II Modbus)",
     "nl": "Adlar Castra Warmtepomp (Aurora I/II Modbus)",
@@ -18,9 +16,7 @@
     "de": "Lokaler Modbus TCP Zugriff auf das Adlar Castra I/II Serie Wärmepumpengerät.",
     "fr": "Accès local Modbus TCP à l'appareil de pompe à chaleur Adlar Castra I/II série."
   },
-  "category": [
-    "climate"
-  ],
+  "category": ["climate"],
   "permissions": [],
   "images": {
     "small": "/assets/images/WP-adlar3-modbus-250x175.png",
@@ -40,6 +36,7 @@
   "brandColor": "#f5a623",
   "author": "H Hi",
   "icon": "/assets/adlar-icon-white.svg",
+  "homeyCommunityTopicId": 154741,
   "contributors": {
     "developers": [
       {
