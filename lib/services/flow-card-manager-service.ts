@@ -65,24 +65,25 @@ const INDOOR_TARGET_MAX_C = 25;
 const THRESHOLD_TRIGGER_CARDS: Array<{
   cardId: string;
   thresholdArg: string;
+  stateField: string;
 }> = [
-  { cardId: 'ambient_temperature_changed', thresholdArg: 'temperature' },
-  { cardId: 'inlet_temperature_changed', thresholdArg: 'temperature' },
-  { cardId: 'outlet_temperature_changed', thresholdArg: 'temperature' },
-  { cardId: 'coiler_temperature_alert', thresholdArg: 'temperature' },
-  { cardId: 'incoiler_temperature_alert', thresholdArg: 'temperature' },
-  { cardId: 'tank_temperature_alert', thresholdArg: 'temperature' },
-  { cardId: 'suction_temperature_alert', thresholdArg: 'temperature' },
-  { cardId: 'discharge_temperature_alert', thresholdArg: 'temperature' },
-  { cardId: 'economizer_inlet_temperature_alert', thresholdArg: 'temperature' },
-  { cardId: 'economizer_outlet_temperature_alert', thresholdArg: 'temperature' },
-  { cardId: 'high_pressure_temperature_alert', thresholdArg: 'temperature' },
-  { cardId: 'low_pressure_temperature_alert', thresholdArg: 'temperature' },
-  { cardId: 'eev_pulse_steps_alert', thresholdArg: 'pulse_steps' },
-  { cardId: 'evi_pulse_steps_alert', thresholdArg: 'pulse_steps' },
-  { cardId: 'water_flow_alert', thresholdArg: 'flow_rate' },
-  { cardId: 'compressor_efficiency_alert', thresholdArg: 'frequency' },
-  { cardId: 'fan_motor_efficiency_alert', thresholdArg: 'frequency' },
+  { cardId: 'ambient_temperature_changed', thresholdArg: 'temperature', stateField: 'temperature' },
+  { cardId: 'inlet_temperature_changed', thresholdArg: 'temperature', stateField: 'temperature' },
+  { cardId: 'outlet_temperature_changed', thresholdArg: 'temperature', stateField: 'temperature' },
+  { cardId: 'coiler_temperature_alert', thresholdArg: 'temperature', stateField: 'temperature' },
+  { cardId: 'incoiler_temperature_alert', thresholdArg: 'temperature', stateField: 'temperature' },
+  { cardId: 'tank_temperature_alert', thresholdArg: 'temperature', stateField: 'temperature' },
+  { cardId: 'suction_temperature_alert', thresholdArg: 'temperature', stateField: 'temperature' },
+  { cardId: 'discharge_temperature_alert', thresholdArg: 'temperature', stateField: 'temperature' },
+  { cardId: 'economizer_inlet_temperature_alert', thresholdArg: 'temperature', stateField: 'temperature' },
+  { cardId: 'economizer_outlet_temperature_alert', thresholdArg: 'temperature', stateField: 'temperature' },
+  { cardId: 'high_pressure_temperature_alert', thresholdArg: 'temperature', stateField: 'temperature' },
+  { cardId: 'low_pressure_temperature_alert', thresholdArg: 'temperature', stateField: 'temperature' },
+  { cardId: 'eev_pulse_steps_alert', thresholdArg: 'pulse_steps', stateField: 'pulse_steps' },
+  { cardId: 'evi_pulse_steps_alert', thresholdArg: 'pulse_steps', stateField: 'pulse_steps' },
+  { cardId: 'water_flow_alert', thresholdArg: 'flow_rate', stateField: 'flow_rate' },
+  { cardId: 'compressor_efficiency_alert', thresholdArg: 'frequency', stateField: 'frequency' },
+  { cardId: 'fan_motor_efficiency_alert', thresholdArg: 'frequency', stateField: 'frequency' },
 ];
 
 function hasTrigger(value: unknown): value is TriggerCardLike {
@@ -359,10 +360,10 @@ export class FlowCardManagerService {
 
   private async registerModbusTriggerRunListeners(): Promise<void> {
     try {
-      for (const { cardId, thresholdArg } of THRESHOLD_TRIGGER_CARDS) {
+      for (const { cardId, thresholdArg, stateField } of THRESHOLD_TRIGGER_CARDS) {
         const card = this.device.homey.flow.getDeviceTriggerCard(cardId);
         const listener = card.registerRunListener(async (args, state) => {
-          const currentValue = this.getStateNumber(state, 'currentValue');
+          const currentValue = this.getStateNumber(state, stateField);
           const threshold = this.getArgNumber(args as GenericFlowArgs, thresholdArg);
           const condition = String((args as GenericFlowArgs).condition ?? '');
           const result = this.evaluateThreshold(condition, currentValue, threshold);
@@ -370,6 +371,7 @@ export class FlowCardManagerService {
           this.logger('FlowCardManagerService: Threshold trigger evaluated', {
             cardId,
             condition,
+            stateField,
             currentValue,
             threshold,
             result,
@@ -531,8 +533,8 @@ export class FlowCardManagerService {
 
   private evaluateThreshold(condition: string, currentValue: number | null, threshold: number | null): boolean {
     if (currentValue === null || threshold === null) return false;
-    if (condition === 'above') return currentValue > threshold;
-    if (condition === 'below') return currentValue < threshold;
+    if (condition === 'above') return currentValue >= threshold;
+    if (condition === 'below') return currentValue <= threshold;
     return false;
   }
 
