@@ -1,3 +1,29 @@
+❯ npx tsx test/test-sim-registers.ts 192.168.50.92 read 0x01fe 8
+
+Verbinden met 192.168.50.92:502 (unit 1)...
+[ModbusTCP] Connecting to 192.168.50.92:502...
+[ModbusTCP] Connected to 192.168.50.92:502 (unit 1)
+✅ Verbonden!
+
+Lezen: 0x01fe, count=8
+
+[ModbusTCP] FC03 READ  0x01fe count=8
+[ModbusTCP]   → 0x01fe=0, 0x01ff=1, 0x0200=30, 0x0201=2, 0x0202=7, 0x0203=120, 0x0204=99, 0x0205=30
+──────────────────────────────────────────────────────────────────────
+Adres    Raw      Signed   Scaled       Eenheid  Label
+──────────────────────────────────────────────────────────────────────
+0x01fe  0       0       0                   
+0x01ff  1       1       1                   
+0x0200  30      30      30                  
+0x0201  2       2       2                   
+0x0202  7       7       7                   
+0x0203  120     120     120                 
+0x0204  99      99      99                  
+0x0205  30      30      30                  
+──────────────────────────────────────────────────────────────────────
+
+
+
 ❯ npx tsx test/test-sim-registers.ts 192.168.50.92 read 0x0206 48
 
 Verbinden met 192.168.50.92:502 (unit 1)...

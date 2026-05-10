@@ -1,4 +1,8 @@
 {
+  "2.4.3": {
+    "en": "Expert dashboard: P83 (EEV auxiliary valve minimum opening, 0x0153) and P262 (floor heating test mode, 0x0206) added to block 4. All 263 OEM P-parameters (0x0100–0x0206) are now documented. Block 10 (undocumented) starts at P263.",
+    "nl": "Expertdashboard: P83 (EEV hulpklep minimale opening, 0x0153) en P262 (vloerverwarming testmodus, 0x0206) toegevoegd aan blok 4. Alle 263 OEM P-parameters (0x0100–0x0206) zijn nu gedocumenteerd. Blok 10 (ongedocumenteerd) begint nu bij P263."
+  },
   "2.4.2": {
     "en": "Expert dashboard: filter bar added with search (by name, ID, or address), poll-group toggles (superfast/fast/medium/slow/once/manual), and a writable-only toggle with register count. Expand all / collapse all buttons added. Matching blocks auto-expand when a filter is active. Two new read-only blocks added for undocumented registers: P262–P309 (block 10) and L37–L60 (block 11), shown under a separate 'Other — undocumented' category in the functional view.",
     "nl": "Expertdashboard: filterbalk toegevoegd met zoekfunctie (op naam, ID of adres), poll-groep-toggles (superfast/fast/medium/slow/once/manual) en een alleen-schrijfbaar-filter met registerteller. Knoppen 'Alles uitklappen' en 'Alles inklappen' toegevoegd. Bij een actief filter worden overeenkomende blokken automatisch uitgeklapt. Twee nieuwe alleen-lezen blokken toegevoegd voor ongedocumenteerde registers: P262–P309 (blok 10) en L37–L60 (blok 11), zichtbaar onder de aparte categorie 'Overig — ongedocumenteerd' in de functionele weergave."
