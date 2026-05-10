@@ -660,6 +660,54 @@ function buildRegisterBlocks(tempScale: TemperatureRegisterScale = 'x1'): Regist
         pollGroups: _pollGroupsForAddress((def as { address: number }).address),
       })),
     },
+    {
+      id: 'blok10_p_uncharted',
+      label: 'Blok 10 — P-registers ongedocumenteerd (0x0206–0x0235)',
+      readOnly: true,
+      registers: Array.from({ length: 48 }, (_, i) => {
+        const addr = 0x0206 + i;
+        const label = `P${262 + i}`;
+        return {
+          key: `${label}_unknown`,
+          registerId: label,
+          address: addr,
+          name: `${label} (ongedocumenteerd)`,
+          unit: undefined as string | undefined,
+          multiply: undefined as number | undefined,
+          scaleMultiply: 1,
+          isTemperatureRegister: false,
+          min: undefined as number | undefined,
+          max: undefined as number | undefined,
+          default: undefined as number | undefined,
+          desc: undefined as string | undefined,
+          pollGroups: _pollGroupsForAddress(addr),
+        };
+      }),
+    },
+    {
+      id: 'blok11_l_uncharted',
+      label: 'Blok 11 — L-registers ongedocumenteerd (0x081A–0x0831)',
+      readOnly: true,
+      registers: Array.from({ length: 24 }, (_, i) => {
+        const addr = 0x081A + i;
+        const label = `L${37 + i}`;
+        return {
+          key: `${label}_unknown`,
+          registerId: label,
+          address: addr,
+          name: `${label} (ongedocumenteerd)`,
+          unit: undefined as string | undefined,
+          multiply: undefined as number | undefined,
+          scaleMultiply: 1,
+          isTemperatureRegister: false,
+          min: undefined as number | undefined,
+          max: undefined as number | undefined,
+          default: undefined as number | undefined,
+          desc: undefined as string | undefined,
+          pollGroups: _pollGroupsForAddress(addr),
+        };
+      }),
+    },
   ];
 }
 
