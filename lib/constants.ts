@@ -133,6 +133,10 @@ export class DeviceConstants {
   /** Maximum age of temperature data before considering it stale */
   static readonly ADAPTIVE_MAX_TEMP_AGE_MINUTES = 10; // minutes
 
+  /** TTL for external capability values (ambient, flow, power). After this period without a new
+   *  flow-card update the value is considered stale and Modbus takes over again. */
+  static readonly EXTERNAL_DATA_TTL_MS = 60 * 60 * 1000; // 1 hour
+
   /** PI controller default - proportional gain */
   static readonly ADAPTIVE_DEFAULT_KP = 3.0;
 

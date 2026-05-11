@@ -18,6 +18,7 @@ import {
 import { FAULT_DESCRIPTIONS } from '../../lib/modbus/adlar-fault-descriptions';
 import { ModbusCOPService } from '../../lib/services/modbus-cop-service';
 import { RollingCOPCalculator } from '../../lib/services/rolling-cop-calculator';
+import { DeviceConstants } from '../../lib/constants';
 
 // ============================================================================
 // CONSTANTS
@@ -64,6 +65,7 @@ class AdlarModbusDevice extends Homey.Device {
   get serviceCoordinator(): ServiceCoordinator | null { return this.coordinator; }
   private logger!: Logger;
   private copService: ModbusCOPService | null = null;
+  private readonly externalDataTimestamps = new Map<string, number>();
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
@@ -337,7 +339,14 @@ class AdlarModbusDevice extends Homey.Device {
     const setWithExternalPriority = (cap: string, externalCap: string, modbusVal: unknown) => {
       if (this.hasCapability(externalCap)) {
         const externalVal = this.getCapabilityValue(externalCap);
-        if (externalVal !== null && externalVal !== undefined) return;
+        if (externalVal !== null && externalVal !== undefined) {
+          const ts = this.externalDataTimestamps.get(externalCap) ?? 0;
+          const stale = Date.now() - ts > DeviceConstants.EXTERNAL_DATA_TTL_MS;
+          if (!stale) return;
+          this.setCapabilityValue(externalCap, null).catch(() => {});
+          this.externalDataTimestamps.delete(externalCap);
+          this.logger.info(`External value for ${externalCap} expired (TTL 1h), reverting to Modbus`);
+        }
       }
       set(cap, modbusVal);
     };
@@ -505,6 +514,10 @@ class AdlarModbusDevice extends Homey.Device {
 
   public getRollingCOPCalculator(): RollingCOPCalculator | null {
     return this.copService?.getRollingCOPCalculator() ?? null;
+  }
+
+  public registerExternalDataReceived(externalCap: string): void {
+    this.externalDataTimestamps.set(externalCap, Date.now());
   }
 
   // ── Capability listeners ───────────────────────────────────────────────────

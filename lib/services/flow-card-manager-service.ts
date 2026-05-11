@@ -1739,6 +1739,7 @@ export class FlowCardManagerService {
     try {
       if (this.device.hasCapability('adlar_external_ambient')) {
         await this.device.setCapabilityValue('adlar_external_ambient', args.temperature_value); // eslint-disable-line camelcase
+        (this.device as unknown as { registerExternalDataReceived(cap: string): void }).registerExternalDataReceived('adlar_external_ambient');
         this.logger(`FlowCardManagerService: External ambient temperature updated: ${args.temperature_value}°C`); // eslint-disable-line camelcase
 
         // Store for persistence across app updates
@@ -1768,6 +1769,7 @@ export class FlowCardManagerService {
     try {
       if (this.device.hasCapability('adlar_external_flow')) {
         await this.device.setCapabilityValue('adlar_external_flow', args.flow_value); // eslint-disable-line camelcase
+        (this.device as unknown as { registerExternalDataReceived(cap: string): void }).registerExternalDataReceived('adlar_external_flow');
         this.logger(`FlowCardManagerService: External flow data updated: ${args.flow_value} L/min`); // eslint-disable-line camelcase
 
         // Emit event for other services
@@ -1787,6 +1789,7 @@ export class FlowCardManagerService {
     try {
       if (this.device.hasCapability('adlar_external_power')) {
         await this.device.setCapabilityValue('adlar_external_power', args.power_value); // eslint-disable-line camelcase
+        (this.device as unknown as { registerExternalDataReceived(cap: string): void }).registerExternalDataReceived('adlar_external_power');
         this.logger(`FlowCardManagerService: External power data updated: ${args.power_value}W`); // eslint-disable-line camelcase
 
         // Update defrost active power if applicable
