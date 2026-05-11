@@ -59,5 +59,6 @@
       },
       "example": 0.12
     }
-  ]
+  ],
+  "highlight": true
 }

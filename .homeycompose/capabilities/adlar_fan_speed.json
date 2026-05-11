@@ -20,5 +20,12 @@
     "nl": "Ventilatorsnelheid buitenunit uit Modbus-sensorregister 0x0041 (fanRunningSpeed), in RPM.",
     "de": "Lüfterdrehzahl der Außeneinheit aus Modbus-Sensorregister 0x0041 (fanRunningSpeed), in U/min.",
     "fr": "Vitesse du ventilateur extérieur depuis le registre capteur Modbus 0x0041 (fanRunningSpeed), en tr/min."
+  },
+  "insights": true,
+  "insightsTitle": {
+    "en": "Heat Pump Fan Speed",
+    "nl": "Warmtepomp Ventilatorsnelheid",
+    "de": "Wärmepumpe Lüftergeschwindigkeit",
+    "fr": "Vitesse ventilateur pompe à chaleur"
   }
 }

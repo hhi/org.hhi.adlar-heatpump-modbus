@@ -10,5 +10,12 @@
   "getable": true,
   "setable": false,
   "uiComponent": null,
-  "icon": "/assets/heating-curve.svg"
+  "icon": "/assets/heating-curve.svg",
+  "insights": true,
+  "insightsTitle": {
+    "en": "Heating Curve Intercept (b)",
+    "nl": "Stooklijn Intercept (b)",
+    "de": "Heizkurve Achsenabschnitt (b)",
+    "fr": "Intercept courbe de chauffe (b)"
+  }
 }

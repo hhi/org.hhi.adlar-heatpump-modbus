@@ -20,5 +20,12 @@
     "nl": "Openingspositie van de EVI-klep (Enhanced Vapor Injection) uit Modbus-sensorregister 0x0043 (eviValveOpenStep), in stappenmotor-stappen.",
     "de": "Öffnungsposition des EVI-Ventils (Enhanced Vapor Injection) aus Modbus-Sensorregister 0x0043 (eviValveOpenStep), in Schrittmotorschritten.",
     "fr": "Position d'ouverture de la vanne EVI (Enhanced Vapor Injection) depuis le registre capteur Modbus 0x0043 (eviValveOpenStep), en pas moteur pas à pas."
+  },
+  "insights": true,
+  "insightsTitle": {
+    "en": "Heat Pump EVI Opening",
+    "nl": "Warmtepomp EVI-opening",
+    "de": "Wärmepumpe EVI-Öffnung",
+    "fr": "Ouverture EVI pompe à chaleur"
   }
 }

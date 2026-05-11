@@ -83,5 +83,6 @@
         "fr": "Température de l'eau chaude en °C"
       }
     }
-  ]
+  ],
+  "highlight": true
 }

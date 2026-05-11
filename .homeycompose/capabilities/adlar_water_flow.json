@@ -20,5 +20,12 @@
     "nl": "Waterdebiet uit Modbus-sensorregister 0x0058 (waterFlow), in L/min.",
     "de": "Wasserdurchfluss aus Modbus-Sensorregister 0x0058 (waterFlow), in L/min.",
     "fr": "Débit d'eau depuis le registre capteur Modbus 0x0058 (waterFlow), en L/min."
+  },
+  "insights": true,
+  "insightsTitle": {
+    "en": "Water Flow Rate",
+    "nl": "Waterdebiet",
+    "de": "Wasserdurchflussrate",
+    "fr": "Débit d'eau"
   }
 }

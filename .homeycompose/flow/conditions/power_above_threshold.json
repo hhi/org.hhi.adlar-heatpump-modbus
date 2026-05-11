@@ -44,5 +44,6 @@
         "fr": "Seuil de puissance en watts"
       }
     }
-  ]
+  ],
+  "highlight": true
 }

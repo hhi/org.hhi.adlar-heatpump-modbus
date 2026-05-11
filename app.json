@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "org.hhi.adlar-heatpump-modbus",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "compatibility": ">=12.2.0",
   "sdk": 3,
   "platforms": [
@@ -827,7 +827,8 @@
             },
             "example": 90
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "cop_efficiency_changed",
@@ -1211,7 +1212,8 @@
             },
             "example": 30
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "daily_cop_efficiency_changed",
@@ -1407,7 +1409,8 @@
             },
             "example": 0.203
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "discharge_temperature_alert",
@@ -2083,7 +2086,8 @@
             },
             "example": 80
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "fault_detected",
@@ -2376,7 +2380,8 @@
             },
             "example": 70
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "incoiler_temperature_alert",
@@ -2569,7 +2574,8 @@
             },
             "example": 45.5
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "learning_milestone_reached",
@@ -2746,7 +2752,8 @@
             },
             "example": 20
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "monthly_cop_efficiency_changed",
@@ -2951,7 +2958,8 @@
             },
             "example": 25.5
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "performance_report_ready",
@@ -3103,7 +3111,8 @@
             },
             "example": 3000
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "pre_heat_recommendation",
@@ -3246,7 +3255,8 @@
             },
             "example": 0.12
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "price_trend_changed",
@@ -3514,7 +3524,8 @@
             },
             "example": 60
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "temperature_adjustment_recommended",
@@ -4544,7 +4555,8 @@
               }
             ]
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "hotwater_temperature_is",
@@ -4631,7 +4643,8 @@
               "fr": "Température de l'eau chaude en °C"
             }
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "insight_is_active",
@@ -4804,7 +4817,8 @@
               "fr": "Seuil de puissance en watts"
             }
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "price_in_cheapest_hours",
@@ -5163,7 +5177,8 @@
               "fr": "Température cible en °C"
             }
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "temperature_above",
@@ -5308,7 +5323,8 @@
               "fr": "Seuil de consommation totale en kWh"
             }
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "water_flow_rate_check",
@@ -5356,7 +5372,8 @@
               "fr": "Seuil du débit d'eau"
             }
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "work_mode_is",
@@ -5423,7 +5440,8 @@
               }
             ]
           }
-        ]
+        ],
+        "highlight": true
       }
     ],
     "actions": [
@@ -6575,7 +6593,8 @@
               }
             ]
           }
-        ]
+        ],
+        "highlight": true
       },
       {
         "id": "set_desired_indoor_temperature",
@@ -9717,6 +9736,13 @@
         "nl": "Openingspositie van de elektronische expansieklep (EEV) uit Modbus-sensorregister 0x0042 (eevOpenStep), in stappenmotor-stappen.",
         "de": "Öffnungsposition des elektronischen Expansionsventils (EEV) aus Modbus-Sensorregister 0x0042 (eevOpenStep), in Schrittmotorschritten.",
         "fr": "Position d'ouverture du détendeur électronique (EEV) depuis le registre capteur Modbus 0x0042 (eevOpenStep), en pas moteur pas à pas."
+      },
+      "insights": true,
+      "insightsTitle": {
+        "en": "Heat Pump EEV Opening",
+        "nl": "Warmtepomp EEV-opening",
+        "de": "Wärmepumpe EEV-Öffnung",
+        "fr": "Ouverture EEV pompe à chaleur"
       }
     },
     "adlar_energy_cost_daily": {
@@ -10173,6 +10199,13 @@
         "nl": "Openingspositie van de EVI-klep (Enhanced Vapor Injection) uit Modbus-sensorregister 0x0043 (eviValveOpenStep), in stappenmotor-stappen.",
         "de": "Öffnungsposition des EVI-Ventils (Enhanced Vapor Injection) aus Modbus-Sensorregister 0x0043 (eviValveOpenStep), in Schrittmotorschritten.",
         "fr": "Position d'ouverture de la vanne EVI (Enhanced Vapor Injection) depuis le registre capteur Modbus 0x0043 (eviValveOpenStep), en pas moteur pas à pas."
+      },
+      "insights": true,
+      "insightsTitle": {
+        "en": "Heat Pump EVI Opening",
+        "nl": "Warmtepomp EVI-opening",
+        "de": "Wärmepumpe EVI-Öffnung",
+        "fr": "Ouverture EVI pompe à chaleur"
       }
     },
     "adlar_external_ambient": {
@@ -10494,6 +10527,13 @@
         "nl": "Ventilatorsnelheid buitenunit uit Modbus-sensorregister 0x0041 (fanRunningSpeed), in RPM.",
         "de": "Lüfterdrehzahl der Außeneinheit aus Modbus-Sensorregister 0x0041 (fanRunningSpeed), in U/min.",
         "fr": "Vitesse du ventilateur extérieur depuis le registre capteur Modbus 0x0041 (fanRunningSpeed), en tr/min."
+      },
+      "insights": true,
+      "insightsTitle": {
+        "en": "Heat Pump Fan Speed",
+        "nl": "Warmtepomp Ventilatorsnelheid",
+        "de": "Wärmepumpe Lüftergeschwindigkeit",
+        "fr": "Vitesse ventilateur pompe à chaleur"
       }
     },
     "adlar_fault": {
@@ -11163,6 +11203,13 @@
         "nl": "Snelheid van de circulatiepomp uit Modbus-sensorregister 0x0057 (waterPumpSpeedPWM), als PWM-vulgraad in procent.",
         "de": "Umwälzpumpendrehzahl aus Modbus-Sensorregister 0x0057 (waterPumpSpeedPWM), als PWM-Tastverhältnis in Prozent.",
         "fr": "Vitesse de la pompe de circulation depuis le registre capteur Modbus 0x0057 (waterPumpSpeedPWM), en pourcentage de rapport cyclique PWM."
+      },
+      "insights": true,
+      "insightsTitle": {
+        "en": "Water Pump PWM",
+        "nl": "Waterpomp PWM",
+        "de": "Wasserpumpe PWM",
+        "fr": "PWM pompe à eau"
       }
     },
     "adlar_running": {
@@ -11471,6 +11518,13 @@
         "nl": "Waterdebiet uit Modbus-sensorregister 0x0058 (waterFlow), in L/min.",
         "de": "Wasserdurchfluss aus Modbus-Sensorregister 0x0058 (waterFlow), in L/min.",
         "fr": "Débit d'eau depuis le registre capteur Modbus 0x0058 (waterFlow), en L/min."
+      },
+      "insights": true,
+      "insightsTitle": {
+        "en": "Water Flow Rate",
+        "nl": "Waterdebiet",
+        "de": "Wasserdurchflussrate",
+        "fr": "Débit d'eau"
       }
     },
     "building_insight_insulation": {
@@ -11712,7 +11766,14 @@
       "getable": true,
       "setable": false,
       "uiComponent": null,
-      "icon": "/assets/heating-curve.svg"
+      "icon": "/assets/heating-curve.svg",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Heating Curve Intercept (b)",
+        "nl": "Stooklijn Intercept (b)",
+        "de": "Heizkurve Achsenabschnitt (b)",
+        "fr": "Intercept courbe de chauffe (b)"
+      }
     },
     "heating_curve_ref_outdoor": {
       "id": "heating_curve_ref_outdoor",
@@ -11726,7 +11787,14 @@
       "getable": true,
       "setable": false,
       "uiComponent": null,
-      "icon": "/assets/heating-curve.svg"
+      "icon": "/assets/heating-curve.svg",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Heating Curve Reference Outdoor Temp",
+        "nl": "Stooklijn Referentie Buitentemperatuur",
+        "de": "Heizkurve Referenz-Außentemperatur",
+        "fr": "Température extérieure de référence stooklijn"
+      }
     },
     "heating_curve_ref_temp": {
       "id": "heating_curve_ref_temp",
@@ -11740,7 +11808,14 @@
       "getable": true,
       "setable": false,
       "uiComponent": null,
-      "icon": "/assets/heating-curve.svg"
+      "icon": "/assets/heating-curve.svg",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Heating Curve Reference Water Temp",
+        "nl": "Stooklijn Referentie Watertemperatuur",
+        "de": "Heizkurve Referenz-Wassertemperatur",
+        "fr": "Température eau de référence courbe de chauffe"
+      }
     },
     "heating_curve_slope": {
       "id": "heating_curve_slope",
@@ -11754,7 +11829,14 @@
       "getable": true,
       "setable": false,
       "uiComponent": null,
-      "icon": "/assets/heating-curve.svg"
+      "icon": "/assets/heating-curve.svg",
+      "insights": true,
+      "insightsTitle": {
+        "en": "Heating Curve Slope (k)",
+        "nl": "Stooklijn Helling (k)",
+        "de": "Heizkurve Steigung (k)",
+        "fr": "Pente courbe de chauffe (k)"
+      }
     }
   }
 }

@@ -10,5 +10,12 @@
   "getable": true,
   "setable": false,
   "uiComponent": null,
-  "icon": "/assets/heating-curve.svg"
+  "icon": "/assets/heating-curve.svg",
+  "insights": true,
+  "insightsTitle": {
+    "en": "Heating Curve Reference Water Temp",
+    "nl": "Stooklijn Referentie Watertemperatuur",
+    "de": "Heizkurve Referenz-Wassertemperatur",
+    "fr": "Température eau de référence courbe de chauffe"
+  }
 }
