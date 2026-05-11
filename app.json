@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "org.hhi.adlar-heatpump-modbus",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "compatibility": ">=12.2.0",
   "sdk": 3,
   "platforms": [
@@ -3717,6 +3717,7 @@
           "de": "Wird ausgelöst, wenn der Wasserdurchfluss einen angegebenen Schwellenwert über- oder unterschreitet.",
           "fr": "Se déclenche lorsque le débit d'eau dépasse ou descend en dessous d'un niveau spécifié."
         },
+        "highlight": true,
         "args": [
           {
             "type": "device",

@@ -1,4 +1,8 @@
 {
+  "2.5.1": {
+    "en": "Expert dashboard: live register reads now show progress for read versus total registers. Registers with a value outside their documented range are marked with an exclamation mark, and the dashboard can filter to only show out-of-range registers. The range check summary now clearly states how many registers with a documented range have been checked and is shown next to the filter controls. A Markdown report can now be generated after at least one register has been read.",
+    "nl": "Expertdashboard: live registerlezingen tonen nu voortgang voor gelezen versus totaal aantal registers. Registers met een waarde buiten het gedocumenteerde bereik krijgen een uitroepteken, en het dashboard kan filteren op alleen registers buiten bereik. De bereikcontrole vermeldt nu duidelijk hoeveel registers met een gedocumenteerd bereik zijn gecontroleerd en staat bij de filterbediening. Na het lezen van minimaal één register kan nu een Markdown-rapport worden gemaakt."
+  },
   "2.5.0": {
     "en": "Flow trigger cards for temperature alerts, pulse steps, compressor and fan frequency, and water flow now use their intended change thresholds. Threshold checks now include exact matches, and expert trigger card descriptions no longer refer to the removed expert-mode setting.",
     "nl": "Flow-triggerkaarten voor temperatuuralarmen, puls-stappen, compressor- en ventilatorfrequentie en waterdebiet gebruiken nu hun bedoelde wijzigingsdrempels. Drempelcontroles nemen exacte matches nu mee, en beschrijvingen van expert-triggerkaarten verwijzen niet meer naar de verwijderde expertmodus-instelling."

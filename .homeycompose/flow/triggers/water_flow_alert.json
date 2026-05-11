@@ -18,6 +18,7 @@
     "de": "Wird ausgelöst, wenn der Wasserdurchfluss einen angegebenen Schwellenwert über- oder unterschreitet.",
     "fr": "Se déclenche lorsque le débit d'eau dépasse ou descend en dessous d'un niveau spécifié."
   },
+  "highlight": true,
   "args": [
     {
       "type": "device",
