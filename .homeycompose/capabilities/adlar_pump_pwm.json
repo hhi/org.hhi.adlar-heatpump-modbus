@@ -20,5 +20,12 @@
     "nl": "Snelheid van de circulatiepomp uit Modbus-sensorregister 0x0057 (waterPumpSpeedPWM), als PWM-vulgraad in procent.",
     "de": "Umwälzpumpendrehzahl aus Modbus-Sensorregister 0x0057 (waterPumpSpeedPWM), als PWM-Tastverhältnis in Prozent.",
     "fr": "Vitesse de la pompe de circulation depuis le registre capteur Modbus 0x0057 (waterPumpSpeedPWM), en pourcentage de rapport cyclique PWM."
+  },
+  "insights": true,
+  "insightsTitle": {
+    "en": "Water Pump PWM",
+    "nl": "Waterpomp PWM",
+    "de": "Wasserpumpe PWM",
+    "fr": "PWM pompe à eau"
   }
 }

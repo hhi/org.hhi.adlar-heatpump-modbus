@@ -44,5 +44,6 @@
         "fr": "Seuil du débit d'eau"
       }
     }
-  ]
+  ],
+  "highlight": true
 }

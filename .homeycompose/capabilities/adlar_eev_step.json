@@ -20,5 +20,12 @@
     "nl": "Openingspositie van de elektronische expansieklep (EEV) uit Modbus-sensorregister 0x0042 (eevOpenStep), in stappenmotor-stappen.",
     "de": "Öffnungsposition des elektronischen Expansionsventils (EEV) aus Modbus-Sensorregister 0x0042 (eevOpenStep), in Schrittmotorschritten.",
     "fr": "Position d'ouverture du détendeur électronique (EEV) depuis le registre capteur Modbus 0x0042 (eevOpenStep), en pas moteur pas à pas."
+  },
+  "insights": true,
+  "insightsTitle": {
+    "en": "Heat Pump EEV Opening",
+    "nl": "Warmtepomp EEV-opening",
+    "de": "Wärmepumpe EEV-Öffnung",
+    "fr": "Ouverture EEV pompe à chaleur"
   }
 }

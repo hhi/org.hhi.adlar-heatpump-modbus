@@ -54,7 +54,7 @@
         "de": "Gesamtkosten Heute (€)",
         "fr": "Coût Total Aujourd'hui (€)"
       },
-      "example": 5.80
+      "example": 5.8
     },
     {
       "name": "daily_consumption",
@@ -78,5 +78,6 @@
       },
       "example": 0.203
     }
-  ]
+  ],
+  "highlight": true
 }

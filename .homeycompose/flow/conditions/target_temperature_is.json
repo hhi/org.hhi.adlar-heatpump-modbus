@@ -83,5 +83,6 @@
         "fr": "Température cible en °C"
       }
     }
-  ]
+  ],
+  "highlight": true
 }

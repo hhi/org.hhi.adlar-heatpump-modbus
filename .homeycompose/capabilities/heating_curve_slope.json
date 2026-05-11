@@ -10,5 +10,12 @@
   "getable": true,
   "setable": false,
   "uiComponent": null,
-  "icon": "/assets/heating-curve.svg"
+  "icon": "/assets/heating-curve.svg",
+  "insights": true,
+  "insightsTitle": {
+    "en": "Heating Curve Slope (k)",
+    "nl": "Stooklijn Helling (k)",
+    "de": "Heizkurve Steigung (k)",
+    "fr": "Pente courbe de chauffe (k)"
+  }
 }

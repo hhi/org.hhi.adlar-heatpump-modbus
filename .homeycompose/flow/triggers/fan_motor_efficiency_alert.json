@@ -98,5 +98,6 @@
       },
       "example": 80
     }
-  ]
+  ],
+  "highlight": true
 }

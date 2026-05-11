@@ -44,5 +44,6 @@
         "fr": "Seuil de consommation totale en kWh"
       }
     }
-  ]
+  ],
+  "highlight": true
 }

@@ -68,5 +68,6 @@
       },
       "example": 3000
     }
-  ]
+  ],
+  "highlight": true
 }
