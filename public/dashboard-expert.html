@@ -16,6 +16,7 @@
   .status-bar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; font-size: 0.85rem; color: #94a3b8; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0; }
   .dot.ok { background: #22c55e; }
+  .read-progress { margin-left: auto; font-size: 0.78rem; color: #38bdf8; }
   .view-toggle { display: inline-flex; gap: 2px; padding: 3px; margin: 0 0 1rem; background: #111827; border: 1px solid #334155; border-radius: 7px; }
   .view-toggle button { border: 0; background: transparent; color: #94a3b8; padding: 0.35rem 0.75rem; border-radius: 5px; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
   .view-toggle button:hover { color: #f8fafc; background: #1e293b; }
@@ -42,6 +43,7 @@
   tr:hover td { background: #1a1f2e; }
   .addr { font-family: monospace; color: #818cf8; }
   .reg-id { font-family: monospace; color: #38bdf8; font-weight: 600; white-space: nowrap; }
+  .range-warning { display: none; margin-left: 0.35rem; color: #f59e0b; font-weight: 800; }
   .val-raw { font-family: monospace; color: #f1f5f9; }
   .val-scaled { color: #94a3b8; font-size: 0.78rem; }
   .unit { color: #475569; font-size: 0.75rem; }
@@ -67,6 +69,8 @@
   /* Acties */
   .btn-read { padding: 0.25rem 0.6rem; border-radius: 5px; border: 1px solid #334155; background: transparent; color: #94a3b8; font-size: 0.75rem; cursor: pointer; }
   .btn-read:hover { background: #1e2433; color: #f1f5f9; }
+  .btn-read:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-read:disabled:hover { background: transparent; color: #94a3b8; }
   .btn-write { padding: 0.25rem 0.6rem; border-radius: 5px; border: none; background: #1d4ed8; color: #fff; font-size: 0.75rem; cursor: pointer; }
   .btn-write:hover { background: #2563eb; }
   .actions-cell { white-space: nowrap; }
@@ -81,7 +85,11 @@
   dialog .dlg-warning { background: #7c2d12; color: #fca5a5; border-radius: 6px; padding: 0.6rem 0.75rem; font-size: 0.8rem; margin-bottom: 1rem; }
   dialog label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.4rem; }
   dialog input[type=number], dialog select { width: 100%; background: #0f1117; border: 1px solid #374151; border-radius: 6px; color: #f1f5f9; padding: 0.5rem 0.75rem; font-size: 0.9rem; margin-bottom: 0.5rem; }
+  dialog textarea { width: 100%; min-height: 55vh; resize: vertical; background: #0f1117; border: 1px solid #374151; border-radius: 6px; color: #dbeafe; padding: 0.75rem; font: 0.78rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin: 0.75rem 0; }
   dialog input:focus, dialog select:focus { outline: none; border-color: #3b82f6; }
+  dialog textarea:focus { outline: none; border-color: #3b82f6; }
+  .report-dialog { max-width: 960px; }
+  .report-meta { font-size: 0.78rem; color: #94a3b8; margin-top: 0.35rem; }
   .dlg-raw-preview { font-size: 0.78rem; color: #64748b; margin-bottom: 0.75rem; }
   .dlg-range { font-size: 0.75rem; color: #475569; margin-bottom: 1rem; }
   .dlg-buttons { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.25rem; }
@@ -113,7 +121,11 @@
   .poll-filters button.f-manual { background: #1f2937; color: #64748b; border-color: #374151; }
   .filter-writable { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: #94a3b8; cursor: pointer; white-space: nowrap; }
   .filter-writable input { accent-color: #3b82f6; cursor: pointer; }
+  .filter-out-of-range { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: #f59e0b; cursor: pointer; white-space: nowrap; }
+  .filter-out-of-range input { accent-color: #f59e0b; cursor: pointer; }
   .filter-count { font-size: 0.75rem; color: #475569; white-space: nowrap; margin-left: auto; }
+  .range-summary { min-height: 1rem; margin: -0.55rem 0 1rem; font-size: 0.75rem; color: #64748b; text-align: right; }
+  .range-summary strong { color: #f59e0b; font-weight: 700; }
   .toolbar { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
   .toolbar .view-toggle { margin: 0; }
   .btn-expand { font-size: 0.75rem; }
@@ -156,6 +168,7 @@
 <div class="status-bar">
   <span class="dot" id="dot"></span>
   <span id="status-text">Laden&hellip;</span>
+  <span class="read-progress" id="read-progress"></span>
 </div>
 
 <div class="toolbar">
@@ -165,6 +178,7 @@
   </div>
   <button type="button" class="btn-read btn-expand" onclick="expandAll()">&#9660; Alles uitklappen</button>
   <button type="button" class="btn-read btn-expand" onclick="collapseAll()">&#9650; Alles inklappen</button>
+  <button type="button" class="btn-read btn-expand" id="report-btn" onclick="openReportDialog()" disabled title="Lees eerst een blok of gebruik Alles uitklappen">Markdown rapport</button>
 </div>
 
 <div class="filter-bar">
@@ -178,8 +192,10 @@
     <button type="button" class="f-manual" data-group="manual" onclick="togglePollFilter('manual',this)">manual</button>
   </div>
   <label class="filter-writable"><input type="checkbox" id="filter-writable" onchange="onFilterChange()"> Alleen schrijfbaar</label>
+  <label class="filter-out-of-range"><input type="checkbox" id="filter-out-of-range" onchange="onFilterChange()"> Alleen buiten bereik</label>
   <span class="filter-count" id="filter-count"></span>
 </div>
+<div class="range-summary" id="range-summary"></div>
 
 <div id="blocks-container"></div>
 
@@ -201,6 +217,19 @@
   <div class="dlg-feedback" id="dlg-feedback"></div>
 </dialog>
 
+<!-- Markdown report popup -->
+<dialog id="report-dialog" class="report-dialog">
+  <h2>Markdown rapport</h2>
+  <div class="report-meta" id="report-meta"></div>
+  <textarea id="report-output" readonly spellcheck="false"></textarea>
+  <div class="dlg-buttons">
+    <button type="button" class="btn-cancel" onclick="copyReport()">Kopiëren</button>
+    <button type="button" class="btn-cancel" onclick="downloadReport()">Download .md</button>
+    <button type="button" class="btn-ok" onclick="closeReportDialog()">Sluiten</button>
+  </div>
+  <div class="dlg-feedback" id="report-feedback"></div>
+</dialog>
+
 <script>
 // ── State ──────────────────────────────────────────────────────────────────────
 let blocks = [];
@@ -211,6 +240,14 @@ let pendingWrite = null; // { reg, rowEl }
 let filterText = '';
 let filterPollGroups = new Set();
 let filterWritable = false;
+let filterOutOfRange = false;
+const outOfRangeRegisters = new Set();
+const rangeCheckedRegisters = new Set();
+const rangeWarningTips = new Map();
+const readRegisters = new Map();
+const readErrors = new Map();
+let readProgressRun = 0;
+let readProgressClearTimer = null;
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 async function init() {
@@ -221,6 +258,8 @@ async function init() {
     functionalBlocks = buildFunctionalBlocks(blocks);
     visibleBlocks = blocks;
     renderBlocks();
+    updateRangeSummary();
+    updateReportButton();
     document.getElementById('dot').className = 'dot ok';
     document.getElementById('status-text').textContent = 'Registermetadata geladen';
   } catch (e) {
@@ -232,6 +271,7 @@ async function init() {
 function onFilterChange() {
   filterText = document.getElementById('filter-search').value.trim().toLowerCase();
   filterWritable = document.getElementById('filter-writable').checked;
+  filterOutOfRange = document.getElementById('filter-out-of-range').checked;
   renderBlocks();
 }
 
@@ -261,14 +301,16 @@ function applyFilters(sourceBlocks) {
         if (!groups.some(g => filterPollGroups.has(g))) return false;
       }
       if (filterWritable && (reg.readOnly || block.readOnly)) return false;
+      if (filterOutOfRange && !outOfRangeRegisters.has(reg.address)) return false;
       shown++;
       return true;
     });
     return { ...block, registers: regs };
   }).filter(b => b.registers.length > 0);
 
-  const isFiltered = filterText || filterPollGroups.size > 0 || filterWritable;
+  const isFiltered = filterText || filterPollGroups.size > 0 || filterWritable || filterOutOfRange;
   document.getElementById('filter-count').textContent = isFiltered ? `${shown} van ${total} registers` : '';
+  updateRangeSummary();
   return filtered;
 }
 
@@ -278,7 +320,7 @@ function renderBlocks() {
   container.innerHTML = '';
   const source = viewMode === 'functional' ? functionalBlocks : blocks;
   visibleBlocks = applyFilters(source);
-  const isFiltered = filterText || filterPollGroups.size > 0 || filterWritable;
+  const isFiltered = filterText || filterPollGroups.size > 0 || filterWritable || filterOutOfRange;
   for (const block of visibleBlocks) {
     const el = document.createElement('div');
     el.className = 'block' + (isFiltered ? ' open' : '');
@@ -391,6 +433,10 @@ function inAddress(reg, start, end) {
 function renderRow(block, reg) {
   const addrHex = '0x' + reg.address.toString(16).toUpperCase().padStart(4, '0');
   const range = rangeStr(reg);
+  const rangeWarningTip = rangeWarningTips.get(reg.address);
+  const rangeWarningAttrs = outOfRangeRegisters.has(reg.address)
+    ? ` style="display:inline-block"${rangeWarningTip ? ` data-tip="${esc(rangeWarningTip)}"` : ''}`
+    : '';
   const nameHtml = `${esc(reg.name || reg.key)}${reg.serviceOnly ? '<span class="svc-badge">service</span>' : ''}${reg.desc ? `<div class="desc-text">${esc(reg.desc)}</div>` : ''}`;
   const hasBits = reg.bits && Object.keys(reg.bits).length > 0;
   const bitsBtn = hasBits ? `<span class="bits-toggle" data-tip="Toon/verberg afzonderlijke bits" onclick="toggleBits('${reg.address}')">bits</span>` : '';
@@ -407,7 +453,7 @@ function renderRow(block, reg) {
   return `
     <tr id="row-${reg.address}" data-addr="${reg.address}" data-multiply="${reg.multiply||1}" data-iscoil="${!!reg.isCoil}">
       <td class="addr">${addrHex}${bitsBtn}</td>
-      <td class="reg-id">${esc(reg.registerId || '')}</td>
+      <td class="reg-id">${esc(reg.registerId || '')}<span class="range-warning" id="range-warn-${reg.address}" aria-label="Waarde buiten gedocumenteerd bereik"${rangeWarningAttrs}>!</span></td>
       <td class="name-cell">${nameHtml}</td>
       <td class="poll-cell">${renderPollGroups(reg.pollGroups)}</td>
       <td class="val-raw" id="raw-${reg.address}">—</td>
@@ -470,14 +516,24 @@ function toggleBlock(id) {
   if (!wasOpen) readBlock(id);
 }
 
-function expandAll() {
+async function expandAll() {
+  const blocksToRead = [];
   visibleBlocks.forEach(block => {
     const el = document.getElementById('block-' + block.id);
     if (el && !el.classList.contains('open')) {
       el.classList.add('open');
-      readBlock(block.id);
+      blocksToRead.push(block);
     }
   });
+
+  const total = blocksToRead.reduce((sum, block) => sum + block.registers.length, 0);
+  if (total === 0) return;
+
+  const progress = startReadProgress(total, 'Alles lezen');
+  for (const block of blocksToRead) {
+    await readBlock(block.id, progress);
+  }
+  finishReadProgress(progress);
 }
 
 function collapseAll() {
@@ -509,6 +565,8 @@ async function readRow(addr, isCoil, multiply) {
       if (j.ok) {
         rawEl.textContent = isCoil ? (j.rawValue ? '1 (aan)' : '0 (uit)') : String(j.rawValue);
         scEl.textContent  = isCoil ? '' : String(j.scaledValue);
+        recordRegisterRead(addr, j.rawValue, isCoil ? null : j.scaledValue, isCoil);
+        updateRangeWarning(addr, isCoil ? null : j.scaledValue);
         updateBits(addr, j.rawValue);
         flashRow(addr);
         return;
@@ -516,25 +574,361 @@ async function readRow(addr, isCoil, multiply) {
       if (attempt < 2) { await sleep(r.status === 503 ? 4000 : 600); continue; }
       rawEl.textContent = '⚠ ' + (j.error || 'fout');
       scEl.textContent = '';
+      recordRegisterError(addr, j.error || 'fout');
+      updateRangeWarning(addr, null);
     } catch (e) {
       if (attempt < 2) { await sleep(600); continue; }
       rawEl.textContent = '⚠ ' + e.message;
       scEl.textContent = '';
+      recordRegisterError(addr, e.message);
+      updateRangeWarning(addr, null);
     }
   }
 }
 
-async function readBlock(blockId) {
+function recordRegisterRead(addr, rawValue, scaledValue, isCoil) {
+  readErrors.delete(addr);
+  readRegisters.set(addr, {
+    rawValue,
+    scaledValue,
+    isCoil,
+    readAt: new Date(),
+  });
+  updateReportButton();
+}
+
+function recordRegisterError(addr, message) {
+  readRegisters.delete(addr);
+  readErrors.set(addr, {
+    message,
+    readAt: new Date(),
+  });
+  updateReportButton();
+}
+
+function updateReportButton() {
+  const btn = document.getElementById('report-btn');
+  if (!btn) return;
+  const disabled = readRegisters.size === 0;
+  btn.disabled = disabled;
+  const tip = disabled
+    ? 'Lees eerst een blok of gebruik Alles uitklappen'
+    : 'Maak een Markdown rapport van de gelezen registers';
+  btn.title = tip;
+  btn.setAttribute('data-tip', tip);
+}
+
+async function readBlock(blockId, progress = null) {
   const block = visibleBlocks.find(b => b.id === blockId);
   if (!block) return;
+  const ownProgress = progress === null;
+  const activeProgress = progress || startReadProgress(block.registers.length, 'Blok lezen');
+
   // Lees registers met korte pauze om Modbus niet te overbelasten
   for (const reg of block.registers) {
     await readRow(reg.address, !!reg.isCoil, reg.multiply || 1);
+    incrementReadProgress(activeProgress);
     await sleep(120);
   }
+
+  if (ownProgress) finishReadProgress(activeProgress);
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function startReadProgress(total, label) {
+  const progress = { token: ++readProgressRun, done: 0, total, label };
+  if (readProgressClearTimer) clearTimeout(readProgressClearTimer);
+  renderReadProgress(progress);
+  return progress;
+}
+
+function incrementReadProgress(progress) {
+  if (!progress || progress.token !== readProgressRun) return;
+  progress.done += 1;
+  renderReadProgress(progress);
+}
+
+function finishReadProgress(progress) {
+  if (!progress || progress.token !== readProgressRun) return;
+  progress.done = progress.total;
+  renderReadProgress(progress, true);
+  readProgressClearTimer = setTimeout(() => {
+    if (progress.token === readProgressRun) {
+      document.getElementById('read-progress').textContent = '';
+    }
+  }, 4000);
+}
+
+function renderReadProgress(progress, finished = false) {
+  const el = document.getElementById('read-progress');
+  if (!el || !progress) return;
+  const prefix = finished ? 'Gereed' : progress.label;
+  el.textContent = `${prefix}: ${progress.done}/${progress.total} registers`;
+}
+
+function getRangeEligibleRegisterCount() {
+  const seen = new Set();
+  const source = viewMode === 'functional' ? functionalBlocks : blocks;
+  source.forEach(block => {
+    block.registers.forEach(reg => {
+      if (!reg.isCoil && (reg.min != null || reg.max != null)) seen.add(reg.address);
+    });
+  });
+  return seen.size;
+}
+
+function updateRangeSummary() {
+  const el = document.getElementById('range-summary');
+  if (!el) return;
+  const total = getRangeEligibleRegisterCount();
+  if (total === 0) {
+    el.textContent = '';
+    return;
+  }
+  const checked = rangeCheckedRegisters.size;
+  const out = outOfRangeRegisters.size;
+  const hint = filterOutOfRange && checked === 0
+    ? ' Nog geen bereikcontrole uitgevoerd. Lees eerst een blok of gebruik Alles uitklappen.'
+    : '';
+  el.innerHTML = `Bereikcontrole: ${checked} van ${total} registers met gedocumenteerd bereik gecontroleerd. <strong>${out}</strong> buiten bereik.${hint}`;
+}
+
+function findVisibleRegister(addr) {
+  const block = visibleBlocks.find(b => b.registers.some(r => r.address === addr));
+  return block ? block.registers.find(r => r.address === addr) : null;
+}
+
+function updateRangeWarning(addr, scaledValue) {
+  const warn = document.getElementById('range-warn-' + addr);
+  if (!warn) return;
+
+  const reg = findVisibleRegister(addr);
+  const value = Number(scaledValue);
+  if (!reg || reg.isCoil || !Number.isFinite(value) || (reg.min == null && reg.max == null)) {
+    rangeCheckedRegisters.delete(addr);
+    outOfRangeRegisters.delete(addr);
+    rangeWarningTips.delete(addr);
+    warn.style.display = 'none';
+    warn.removeAttribute('data-tip');
+    updateRangeSummary();
+    return;
+  }
+
+  rangeCheckedRegisters.add(addr);
+  const mul = scaleMultiply(reg);
+  const min = reg.min == null ? null : reg.min * mul;
+  const max = reg.max == null ? null : reg.max * mul;
+  const below = min != null && value < min;
+  const above = max != null && value > max;
+
+  if (!below && !above) {
+    outOfRangeRegisters.delete(addr);
+    rangeWarningTips.delete(addr);
+    warn.style.display = 'none';
+    warn.removeAttribute('data-tip');
+    updateRangeSummary();
+    return;
+  }
+
+  outOfRangeRegisters.add(addr);
+  const expected = min != null && max != null
+    ? `${formatRangeNumber(min, mul)}–${formatRangeNumber(max, mul)}`
+    : (min != null ? `minimaal ${formatRangeNumber(min, mul)}` : `maximaal ${formatRangeNumber(max, mul)}`);
+  const unit = reg.unit ? ` ${reg.unit}` : '';
+  const tip = `Waarde buiten gedocumenteerd bereik: ${value}${unit}, verwacht ${expected}${unit}`;
+  rangeWarningTips.set(addr, tip);
+  warn.style.display = 'inline-block';
+  warn.setAttribute('data-tip', tip);
+  updateRangeSummary();
+}
+
+function formatRangeNumber(value, mul) {
+  return Number(value).toFixed(mul < 1 ? 1 : 0);
+}
+
+// ── Markdown rapport ─────────────────────────────────────────────────────────
+function openReportDialog() {
+  if (readRegisters.size === 0) return;
+
+  const report = buildMarkdownReport();
+  const output = document.getElementById('report-output');
+  output.value = report;
+  document.getElementById('report-meta').textContent = `${readRegisters.size} gelezen registers, ${readErrors.size} leesfouten`;
+  document.getElementById('report-feedback').textContent = '';
+  document.getElementById('report-feedback').className = 'dlg-feedback';
+  document.getElementById('report-dialog').showModal();
+  output.focus();
+  output.select();
+}
+
+function closeReportDialog() {
+  document.getElementById('report-dialog').close();
+}
+
+async function copyReport() {
+  const output = document.getElementById('report-output');
+  const fb = document.getElementById('report-feedback');
+  try {
+    await navigator.clipboard.writeText(output.value);
+    fb.textContent = 'Gekopieerd';
+    fb.className = 'dlg-feedback ok';
+  } catch (e) {
+    output.focus();
+    output.select();
+    document.execCommand('copy');
+    fb.textContent = 'Gekopieerd';
+    fb.className = 'dlg-feedback ok';
+  }
+}
+
+function downloadReport() {
+  const output = document.getElementById('report-output');
+  const stamp = compactDateStamp(new Date());
+  const blob = new Blob([output.value], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `modbus-expert-rapport-${stamp}.md`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function buildMarkdownReport() {
+  const now = new Date();
+  const totalRegisters = getAllRegisterCount();
+  const totalRange = getRangeEligibleRegisterCount();
+  const visibleReadRows = getVisibleReadRows();
+  const visibleErrorRows = getVisibleErrorRows();
+  const outOfRangeRows = visibleReadRows.filter(row => outOfRangeRegisters.has(row.reg.address));
+  const lines = [];
+
+  lines.push('# Modbus Expert Dashboard Rapport');
+  lines.push('');
+  lines.push(`Datum: ${formatDateTime(now)}`);
+  lines.push(`Weergave: ${viewMode === 'functional' ? 'Functioneel' : 'Adresweergave'}`);
+  lines.push(`Filters: ${activeFilterDescription()}`);
+  lines.push('');
+  lines.push('## Samenvatting');
+  lines.push('');
+  lines.push(`- Gelezen registers: ${readRegisters.size} van ${totalRegisters} totaal`);
+  lines.push(`- Registers met gedocumenteerd bereik gecontroleerd: ${rangeCheckedRegisters.size} van ${totalRange}`);
+  lines.push(`- Buiten bereik: ${outOfRangeRegisters.size}`);
+  lines.push(`- Leesfouten: ${readErrors.size}`);
+  lines.push(`- Registers in huidige weergave opgenomen in rapport: ${visibleReadRows.length}`);
+  lines.push('');
+
+  lines.push('## Registers buiten bereik');
+  lines.push('');
+  if (outOfRangeRows.length === 0) {
+    lines.push('Geen registers buiten bereik gevonden in de gecontroleerde registers van de huidige weergave.');
+  } else {
+    lines.push('| Register | Adres | Naam | Waarde | Bereik | Eenheid |');
+    lines.push('|---|---:|---|---:|---:|---|');
+    outOfRangeRows.forEach(row => {
+      lines.push(`| ${md(row.reg.registerId || row.reg.key)} | ${formatAddress(row.reg.address)} | ${md(row.reg.name || row.reg.key)} | ${md(reportValue(row))} | ${md(rangeStr(row.reg))} | ${md(row.reg.unit || '')} |`);
+    });
+  }
+  lines.push('');
+
+  lines.push('## Leesfouten');
+  lines.push('');
+  if (visibleErrorRows.length === 0) {
+    lines.push('Geen leesfouten in de huidige weergave.');
+  } else {
+    lines.push('| Register | Adres | Naam | Fout | Tijd |');
+    lines.push('|---|---:|---|---|---|');
+    visibleErrorRows.forEach(row => {
+      lines.push(`| ${md(row.reg.registerId || row.reg.key)} | ${formatAddress(row.reg.address)} | ${md(row.reg.name || row.reg.key)} | ${md(row.error.message)} | ${formatDateTime(row.error.readAt)} |`);
+    });
+  }
+  lines.push('');
+
+  lines.push('## Gelezen registers');
+  lines.push('');
+  if (visibleReadRows.length === 0) {
+    lines.push('Geen gelezen registers in de huidige gefilterde weergave.');
+  } else {
+    lines.push('| Register | Adres | Naam | Raw | Geschaald | Bereik | Status | Tijd |');
+    lines.push('|---|---:|---|---:|---:|---|---|---|');
+    visibleReadRows.forEach(row => {
+      lines.push(`| ${md(row.reg.registerId || row.reg.key)} | ${formatAddress(row.reg.address)} | ${md(row.reg.name || row.reg.key)} | ${md(String(row.read.rawValue))} | ${md(reportValue(row))} | ${md(rangeStr(row.reg))} | ${md(reportStatus(row.reg))} | ${formatDateTime(row.read.readAt)} |`);
+    });
+  }
+
+  return lines.join('\n');
+}
+
+function getVisibleReadRows() {
+  const rows = [];
+  visibleBlocks.forEach(block => {
+    block.registers.forEach(reg => {
+      const read = readRegisters.get(reg.address);
+      if (read) rows.push({ block, reg, read });
+    });
+  });
+  return rows;
+}
+
+function getVisibleErrorRows() {
+  const rows = [];
+  visibleBlocks.forEach(block => {
+    block.registers.forEach(reg => {
+      const error = readErrors.get(reg.address);
+      if (error) rows.push({ block, reg, error });
+    });
+  });
+  return rows;
+}
+
+function getAllRegisterCount() {
+  const seen = new Set();
+  blocks.forEach(block => {
+    block.registers.forEach(reg => seen.add(reg.address));
+  });
+  return seen.size;
+}
+
+function activeFilterDescription() {
+  const filters = [];
+  if (filterText) filters.push(`zoekterm "${filterText}"`);
+  if (filterPollGroups.size > 0) filters.push(`pollgroep ${Array.from(filterPollGroups).join(', ')}`);
+  if (filterWritable) filters.push('alleen schrijfbaar');
+  if (filterOutOfRange) filters.push('alleen buiten bereik');
+  return filters.length > 0 ? filters.join('; ') : 'geen';
+}
+
+function reportValue(row) {
+  if (row.read.isCoil) return row.read.rawValue ? 'aan' : 'uit';
+  return String(row.read.scaledValue);
+}
+
+function reportStatus(reg) {
+  if (outOfRangeRegisters.has(reg.address)) return 'buiten bereik';
+  if (rangeCheckedRegisters.has(reg.address)) return 'binnen bereik';
+  return 'gelezen';
+}
+
+function formatAddress(addr) {
+  return '0x' + addr.toString(16).toUpperCase().padStart(4, '0');
+}
+
+function formatDateTime(date) {
+  const d = date instanceof Date ? date : new Date(date);
+  const pad = value => String(value).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+function compactDateStamp(date) {
+  const pad = value => String(value).padStart(2, '0');
+  return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+}
+
+function md(value) {
+  return String(value == null ? '' : value).replace(/\|/g, '\\|').replace(/\n/g, ' ');
+}
 
 function updateBits(addr, rawValue) {
   const bitsRow = document.getElementById('bits-' + addr);
