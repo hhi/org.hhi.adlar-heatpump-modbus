@@ -126,14 +126,7 @@ export class EnergyTrackingService {
       // Store measurement internally (robustness against capability changes)
       this.lastPowerMeasurement = measurement;
 
-      // Update measure_power capability with the selected power source
-      // Only update if power measurements are enabled in settings
-      const enablePowerMeasurements = this.device.getSetting('enable_power_measurements') ?? true;
-
-      if (powerValue !== null && enablePowerMeasurements && this.device.hasCapability('measure_power')) {
-        await this.device.setCapabilityValue('measure_power', Math.round(powerValue));
-        this.logger(`EnergyTrackingService: Power updated: ${Math.round(powerValue)}W (source: ${powerSource}, confidence: ${confidence})`);
-      }
+      this.logger(`EnergyTrackingService: Power measurement: ${Math.round(powerValue ?? 0)}W (source: ${powerSource}, confidence: ${confidence})`);
 
       // Check power threshold for trigger (v1.0.7 - power_threshold_exceeded)
       if (powerValue !== null) {
@@ -141,7 +134,6 @@ export class EnergyTrackingService {
       }
 
       // Update cumulative energy based on the new power measurement
-      // Moved outside capability check to ensure tracking works even if measure_power is disabled (v1.1.0)
       if (powerValue !== null) {
         await this.updateCumulativeEnergy();
       }
