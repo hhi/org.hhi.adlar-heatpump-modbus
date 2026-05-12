@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "org.hhi.adlar-heatpump-modbus",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "compatibility": ">=12.2.0",
   "sdk": 3,
   "platforms": [
@@ -7293,7 +7293,7 @@
         "adlar_eev_step",
         "adlar_evi_step",
         "adlar_pump_pwm",
-        "adlar_water_flow",
+        "measure_water",
         "adlar_defrosting",
         "adlar_defrost_count_24h",
         "adlar_defrost_minutes_24h",
@@ -11494,37 +11494,6 @@
         "nl": "Status van de sterilisatiecyclus uit Modbus-statusregister 0x0001, bit 0 (HIGH_TEMP_STERILIZATION). Waar tijdens een actieve legionellapreventiecyclus.",
         "de": "Status des Sterilisierungszyklus aus Modbus-Statusregister 0x0001, Bit 0 (HIGH_TEMP_STERILIZATION). Wahr während eines aktiven Legionellen-Präventionszyklus.",
         "fr": "État du cycle de stérilisation depuis le registre de statut Modbus 0x0001, bit 0 (HIGH_TEMP_STERILIZATION). Vrai pendant un cycle actif de prévention de la légionellose."
-      }
-    },
-    "adlar_water_flow": {
-      "id": "adlar_water_flow",
-      "type": "number",
-      "title": {
-        "en": "Water flow",
-        "nl": "Waterdebiet",
-        "de": "Wasserdurchfluss",
-        "fr": "Débit d'eau"
-      },
-      "icon": "/assets/water-flow.svg",
-      "uiComponent": "sensor",
-      "getable": true,
-      "setable": false,
-      "units": "L/min",
-      "decimals": 1,
-      "min": 0,
-      "max": 60,
-      "description": {
-        "en": "Water flow rate from Modbus sensor register 0x0058 (waterFlow), in L/min.",
-        "nl": "Waterdebiet uit Modbus-sensorregister 0x0058 (waterFlow), in L/min.",
-        "de": "Wasserdurchfluss aus Modbus-Sensorregister 0x0058 (waterFlow), in L/min.",
-        "fr": "Débit d'eau depuis le registre capteur Modbus 0x0058 (waterFlow), en L/min."
-      },
-      "insights": true,
-      "insightsTitle": {
-        "en": "Water Flow Rate",
-        "nl": "Waterdebiet",
-        "de": "Wasserdurchflussrate",
-        "fr": "Débit d'eau"
       }
     },
     "building_insight_insulation": {

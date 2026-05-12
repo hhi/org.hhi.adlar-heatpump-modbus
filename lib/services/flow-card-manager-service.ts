@@ -1014,7 +1014,7 @@ export class FlowCardManagerService {
       const waterFlowRateListener = waterFlowRateCard.registerRunListener(async (args) => {
         this.logger('FlowCardManagerService: Water flow rate check triggered', { args });
 
-        const waterFlow = this.device.getCapabilityValue('adlar_water_flow') as number | null;
+        const waterFlow = this.device.getCapabilityValue('measure_water') as number | null;
 
         if (waterFlow === null) {
           this.logger('FlowCardManagerService: Water flow rate check skipped — capability unavailable');
