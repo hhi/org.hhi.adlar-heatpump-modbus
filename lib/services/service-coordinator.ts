@@ -49,6 +49,7 @@ export class ServiceCoordinator {
   // Service state
   private serviceHealth = new Map<string, boolean>();
   private _lastDisconnectCountMs = 0;
+  private _visibleConnectionConnected = true;
   private healthCheckInterval: NodeJS.Timeout | null = null;
   private _disconnectStatusTimer: NodeJS.Timeout | null = null;
   private _disconnectDailyResetTimer: NodeJS.Timeout | null = null;
@@ -133,7 +134,7 @@ export class ServiceCoordinator {
           host: config.host,
           port: config.port ?? 502,
           unitId: config.unitId ?? 1,
-          timeoutMs: 5_000,
+          timeoutMs: 10_000,
           batchDelayMs: 90,
           maxReconnects: 0,
         },
@@ -494,14 +495,19 @@ export class ServiceCoordinator {
     this._disconnectStatusTimer = this.device.homey.setTimeout(() => {
       this._disconnectStatusTimer = null;
       this.logger('ServiceCoordinator: Disconnect grace period elapsed, updating status');
+      const wasVisibleConnected = this._visibleConnectionConnected;
       this._setConnectionCapabilities(false, reason);
-      this._incrementDailyDisconnectCount();
+      if (wasVisibleConnected) {
+        this._incrementDailyDisconnectCount();
+      }
       // ADR-042: pas na grace period setUnavailable()
       this.device.setUnavailable('Modbus-verbinding verbroken').catch(() => {});
     }, 60_000);
   }
 
   private _setConnectionCapabilities(connected: boolean, reason: string | null): void {
+    this._visibleConnectionConnected = connected;
+
     const now = new Date();
     const day = now.getDate();
     const month = now.toLocaleString('en-US', { month: 'short' });

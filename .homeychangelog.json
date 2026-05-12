@@ -1,4 +1,10 @@
 {
+  "2.5.5": {
+    "en": "Daily disconnects are now counted only when the connection visibly changes from connected to disconnected. Modbus communication now waits longer for slow responses, and performance reports no longer mark timestamped connected statuses such as 'Connected: 13-May 14:25' as disconnected.",
+    "nl": "Dagelijkse disconnects worden nu alleen geteld wanneer de verbinding zichtbaar verandert van verbonden naar verbroken. Modbus-communicatie wacht nu langer op trage reacties, en prestatierapporten markeren verbonden statussen met tijdstempel zoals 'Connected: 13-May 14:25' niet langer als verbroken.",
+    "de": "Taegliche Verbindungsabbrueche werden jetzt nur gezaehlt, wenn sich die Verbindung sichtbar von verbunden zu getrennt aendert. Die Modbus-Kommunikation wartet jetzt laenger auf langsame Antworten, und Leistungsberichte markieren verbundene Statusmeldungen mit Zeitstempel wie 'Connected: 13-May 14:25' nicht mehr als getrennt.",
+    "fr": "Les deconnexions quotidiennes ne sont maintenant comptees que lorsque la connexion passe visiblement de connectee a deconnectee. La communication Modbus attend maintenant plus longtemps les reponses lentes, et les rapports de performance ne marquent plus les statuts connectes horodates comme 'Connected: 13-May 14:25' comme deconnectes."
+  },
   "2.5.4": {
     "en": "measure_power is now exclusively updated via the Modbus register. The EnergyTrackingService no longer writes to this capability.",
     "nl": "measure_power wordt nu uitsluitend bijgewerkt via het Modbus-register. De EnergyTrackingService schrijft niet meer naar deze capability.",
