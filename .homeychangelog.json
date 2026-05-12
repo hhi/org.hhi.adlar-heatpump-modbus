@@ -1,7 +1,9 @@
 {
   "2.5.4": {
     "en": "measure_power is now exclusively updated via the Modbus register. The EnergyTrackingService no longer writes to this capability.",
-    "nl": "measure_power wordt nu uitsluitend bijgewerkt via het Modbus-register. De EnergyTrackingService schrijft niet meer naar deze capability."
+    "nl": "measure_power wordt nu uitsluitend bijgewerkt via het Modbus-register. De EnergyTrackingService schrijft niet meer naar deze capability.",
+    "de": "measure_power wird jetzt ausschließlich über das Modbus-Register aktualisiert. Der EnergyTrackingService schreibt nicht mehr in diese Capability.",
+    "fr": "measure_power est désormais mis à jour exclusivement via le registre Modbus. L'EnergyTrackingService n'écrit plus dans cette capacité."
   },
   "2.5.3": {
     "en": "Fixed: external ambient temperature, water flow, and power values sent via flow cards now expire after 1 hour without a new update. After expiry the device automatically falls back to the Modbus sensor reading (T1, internal flow meter, or internal power measurement). Water flow is now shown as the system capability 'Water Flow' (measure_water), always reflecting the Modbus sensor value. External flow via flow card remains separate and is used exclusively for COP calculations.",
