@@ -248,6 +248,24 @@ class AdlarModbusDevice extends Homey.Device {
         this.logger.warn('Failed to remove legacy capability measure_temperature:', error);
       }
     }
+
+    // adlar_water_flow replaced by system capability measure_water.
+    if (this.hasCapability('adlar_water_flow') && !this.hasCapability('measure_water')) {
+      try {
+        await this.addCapability('measure_water');
+        this.logger.info('Migration: added measure_water');
+      } catch (error) {
+        this.logger.warn('Migration: failed to add measure_water:', error);
+      }
+    }
+    if (this.hasCapability('adlar_water_flow')) {
+      try {
+        await this.removeCapability('adlar_water_flow');
+        this.logger.info('Migration: removed legacy adlar_water_flow');
+      } catch (error) {
+        this.logger.warn('Migration: failed to remove adlar_water_flow:', error);
+      }
+    }
   }
 
   // ── Coordinator lifecycle ──────────────────────────────────────────────────
@@ -421,7 +439,19 @@ class AdlarModbusDevice extends Homey.Device {
     set('adlar_eev_step', s.eevStep?.value);
     set('adlar_evi_step', s.eviStep?.value);
     set('adlar_pump_pwm', s.pumpPwm?.value);
-    setWithExternalPriority('adlar_water_flow', 'adlar_external_flow', s.waterFlow?.value);
+    set('measure_water', s.waterFlow?.value);
+    // TTL-bewaking voor adlar_external_flow (gebruikt door COP-berekening, niet door measure_water)
+    if (this.hasCapability('adlar_external_flow')) {
+      const extFlow = this.getCapabilityValue('adlar_external_flow');
+      if (extFlow !== null && extFlow !== undefined) {
+        const ts = this.externalDataTimestamps.get('adlar_external_flow') ?? 0;
+        if (Date.now() - ts > DeviceConstants.EXTERNAL_DATA_TTL_MS) {
+          this.setCapabilityValue('adlar_external_flow', null).catch(() => {});
+          this.externalDataTimestamps.delete('adlar_external_flow');
+          this.logger.info('External flow expired (TTL 1h), COP reverts to Modbus flow sensor');
+        }
+      }
+    }
 
     // Additional currents
     set('measure_current.comp_phase', s.compPhaseI?.value);

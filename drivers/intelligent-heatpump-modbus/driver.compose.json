@@ -42,7 +42,7 @@
     "adlar_eev_step",
     "adlar_evi_step",
     "adlar_pump_pwm",
-    "adlar_water_flow",
+    "measure_water",
     "adlar_defrosting",
     "adlar_defrost_count_24h",
     "adlar_defrost_minutes_24h",
