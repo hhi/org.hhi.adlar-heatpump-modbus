@@ -225,6 +225,7 @@ class AdlarModbusDevice extends Homey.Device {
       'adlar_firmware_mcu',
       'adlar_protocol_version',
       'measure_temperature.outlet',
+      'measure_water',
     ];
 
     for (const capability of requiredCapabilities) {
@@ -250,14 +251,6 @@ class AdlarModbusDevice extends Homey.Device {
     }
 
     // adlar_water_flow replaced by system capability measure_water.
-    if (this.hasCapability('adlar_water_flow') && !this.hasCapability('measure_water')) {
-      try {
-        await this.addCapability('measure_water');
-        this.logger.info('Migration: added measure_water');
-      } catch (error) {
-        this.logger.warn('Migration: failed to add measure_water:', error);
-      }
-    }
     if (this.hasCapability('adlar_water_flow')) {
       try {
         await this.removeCapability('adlar_water_flow');
@@ -423,7 +416,7 @@ class AdlarModbusDevice extends Homey.Device {
     set('measure_temperature.zone2', s.zone2Temp?.value);
 
     // Power
-    setWithExternalPriority('measure_power', 'adlar_external_power', snap.power.inputPowerKw * 1000);
+    set('measure_power', snap.power.inputPowerKw * 1000);
     // meter_power is written exclusively by EnergyTrackingService (ETS).
     // ETS abstracts internal/external power sources and handles hardware that lacks register 0x005D.
     set('measure_voltage', snap.power.inputVoltageV);

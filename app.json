@@ -7610,6 +7610,29 @@
         "measure_power": {
           "min": 0,
           "max": 20000
+        },
+        "measure_water": {
+          "title": {
+            "en": "Water flow",
+            "nl": "Waterdebiet",
+            "de": "Wasserdurchfluss",
+            "fr": "Débit d'eau"
+          },
+          "units": {
+            "en": "L/min",
+            "nl": "L/min",
+            "de": "L/min",
+            "fr": "L/min"
+          },
+          "insights": true,
+          "insightsTitle": {
+            "en": "Water Flow Rate",
+            "nl": "Waterdebiet",
+            "de": "Wasserdurchflussrate",
+            "fr": "Débit d'eau"
+          },
+          "min": 0,
+          "max": 100
         }
       },
       "images": {
