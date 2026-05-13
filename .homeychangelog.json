@@ -1,4 +1,8 @@
 {
+  "2.5.6": {
+    "en": "Internal power, voltage, and current measurements now keep showing values on heat pumps where the unit-level power registers report 0. Energy tracking and COP calculations now continue to use the available internal electrical measurements on those devices.",
+    "nl": "Interne vermogens-, spannings- en stroommetingen blijven nu waarden tonen op warmtepompen waar de unit-vermogensregisters 0 rapporteren. Energieverbruik en COP-berekeningen gebruiken op die apparaten nu de beschikbare interne elektrische metingen."
+  },
   "2.5.5": {
     "en": "Daily disconnects are now counted only when the connection visibly changes from connected to disconnected. Modbus communication now waits longer for slow responses, and performance reports no longer mark timestamped connected statuses such as 'Connected: 13-May 14:25' as disconnected.",
     "nl": "Dagelijkse disconnects worden nu alleen geteld wanneer de verbinding zichtbaar verandert van verbonden naar verbroken. Modbus-communicatie wacht nu langer op trage reacties, en prestatierapporten markeren verbonden statussen met tijdstempel zoals 'Connected: 13-May 14:25' niet langer als verbroken.",

@@ -10,14 +10,14 @@ Schakel de warmtepomp spanningsloos voordat je de RS485-draden aansluit.
 
 Gebruik de aansluitbeelden:
 
-- [Elfin EW11 aansluiting zijkant](<Elfin EW11 - Adlar Aurora 2/Elfin EW11 aansluiting zijkant.pdf>)
-- [Elfin EW11 aansluiting boven](<Elfin EW11 - Adlar Aurora 2/Elfin EW11 aansluting boven.pdf>)
+- [Elfin EW11 overzicht](<Elfin EW11 - Adlar Aurora 2/elfin-ew11a-485-rs485-naar-ethernet-wifi.jpg>)
 - [USB 5V voeding rood/zwart](<Elfin EW11 - Adlar Aurora 2/usb2-5v-rood-zwart.pdf>)
+- [Elfin EW11 aansluiting zijkant](<Elfin EW11 - Adlar Aurora 2/Elfin EW11 aansluiting zijkant.pdf>)
 
 Algemene RS485-regel:
 
-- RS485 `A/+` van de warmtepomp naar `A/+` op de EW11A
-- RS485 `B/-` van de warmtepomp naar `B/-` op de EW11A
+- RS485 `A/+` van de warmtepomp naar `A/+` op de EW11A (linker connector op afbeelding)
+- RS485 `B/-` van de warmtepomp naar `B/-` op de EW11A (rechter connector op afbeelding)
 - gebruik bij voorkeur een getwist aderpaar
 - houd de RS485-kabel weg van 230V-bekabeling
 - sluit `GND` alleen aan als de warmtepompdocumentatie of gateway dit voorschrijft
