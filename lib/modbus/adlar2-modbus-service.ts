@@ -646,16 +646,27 @@ export class Adlar2ModbusService extends EventEmitter {
   }
 
   private buildPower(): PowerSnapshot {
-    const inputVoltageV = this.readScaledValue(SENSOR_REGISTERS.deviceInputVoltage);
-    const inputCurrentA = this.readScaledValue(SENSOR_REGISTERS.deviceInputCurrent);
+    const unitVoltageV = this.readScaledValue(SENSOR_REGISTERS.deviceInputVoltage);
+    const unitCurrentA = this.readScaledValue(SENSOR_REGISTERS.deviceInputCurrent);
+    const unitPowerKw = this.readScaledValue(SENSOR_REGISTERS.deviceInputPower);
+    const acVoltageV = this.readScaledValue(SENSOR_REGISTERS.acInputVoltage);
+    const acCurrentA = this.readScaledValue(SENSOR_REGISTERS.acInputCurrent);
+
+    const inputVoltageV = this.firstPositive(unitVoltageV, acVoltageV);
+    const inputCurrentA = this.firstPositive(unitCurrentA, acCurrentA);
+    const derivedPowerKw = (inputVoltageV * inputCurrentA) / 1000;
 
     return {
-      inputPowerKw: this.readScaledValue(SENSOR_REGISTERS.deviceInputPower),
+      inputPowerKw: this.firstPositive(unitPowerKw, derivedPowerKw),
       inputCurrentA,
       inputVoltageV,
       totalEnergyKwh: this.tcp.u16(SENSOR_REGISTERS.totalEnergyConsumption.address),
-      derivedPowerKw: (inputVoltageV * inputCurrentA) / 1000,
+      derivedPowerKw,
     };
+  }
+
+  private firstPositive(...values: number[]): number {
+    return values.find((value) => Number.isFinite(value) && value > 0) ?? 0;
   }
 
   private buildCop(): CopSnapshot {
