@@ -120,6 +120,10 @@ export interface DashboardServiceOptions {
  *   GET /heating-curve         → public/heating_curve_line.html (ADR-049)
  *   GET /heating-curve.html    → zelfde
  *   POST /api/set-diy-curve    → schrijf L27/L28/L29           (ADR-049)
+ *   GET /live                  → public/dashboard-live.html    (ADR-051)
+ *   GET /live.html             → zelfde
+ *   GET /api/capabilities      → alle capability waarden + metadata als JSON
+ *   GET /assets/*              → SVG-iconen uit de assets/ directory
  *   *                          → 404
  */
 export class DashboardService {
@@ -137,8 +141,13 @@ export class DashboardService {
   private getTemperatureScale: (() => TemperatureRegisterScale) | null = null;
   private getChangeLog: (() => Map<number, RegisterChangeEntry>) | null = null;
 
+  private readonly appDir: string;
+  private capabilityMeta: Map<string, { title: string; unit: string; icon: string; type: string }> | null = null;
+  private getCapabilityValues: (() => Record<string, unknown>) | null = null;
+
   constructor(options: DashboardServiceOptions) {
     this.port = options.port ?? 8090;
+    this.appDir = options.appDir;
     this.publicDir = path.join(options.appDir, 'public');
     this.logger = options.logger;
   }
@@ -167,6 +176,10 @@ export class DashboardService {
 
   setGetChangeLogCallback(fn: () => Map<number, RegisterChangeEntry>): void {
     this.getChangeLog = fn;
+  }
+
+  setGetCapabilityValuesCallback(fn: () => Record<string, unknown>): void {
+    this.getCapabilityValues = fn;
   }
 
   /** Sla de meest recente snapshot op (overschrijft de vorige). */
@@ -269,6 +282,22 @@ export class DashboardService {
       return;
     }
 
+    // ADR-051: visueel live dashboard
+    if (method === 'GET' && (url === '/live' || url === '/live.html')) {
+      await this._serveFile(res, 'dashboard-live.html');
+      return;
+    }
+
+    // Capabilities API + assets
+    if (method === 'GET' && url === '/api/capabilities') {
+      this._serveCapabilities(res);
+      return;
+    }
+    if (method === 'GET' && url.startsWith('/assets/')) {
+      this._serveAsset(res, url.slice('/assets/'.length));
+      return;
+    }
+
     // Register change log
     if (method === 'GET' && (url === '/changelog' || url === '/changelog.html')) {
       await this._serveFile(res, 'dashboard-changelog.html');
@@ -336,6 +365,117 @@ export class DashboardService {
 
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(entries));
+  }
+
+  // ── Capabilities API ──────────────────────────────────────────────────────────
+
+  private _serveCapabilities(res: http.ServerResponse): void {
+    if (!this.getCapabilityValues) {
+      res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ error: 'Not connected' }));
+      return;
+    }
+
+    const meta = this._getCapabilityMeta();
+    const values = this.getCapabilityValues();
+    const entries: object[] = [];
+
+    for (const [id, value] of Object.entries(values)) {
+      if (value === null || value === undefined) continue;
+      const m = meta.get(id) ?? { title: id, unit: '', icon: '', type: 'string' };
+      entries.push({ id, title: m.title, unit: m.unit, icon: m.icon, type: m.type, value });
+    }
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(entries));
+  }
+
+  private _serveAsset(res: http.ServerResponse, filename: string): void {
+    // Saniteer bestandsnaam — geen padtraversal
+    const safe = path.basename(filename);
+    const filePath = path.join(this.appDir, 'assets', safe);
+    fs.readFile(filePath, (err, content) => {
+      if (err) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('Not found');
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'image/svg+xml; charset=utf-8' });
+      res.end(content);
+    });
+  }
+
+  private _getCapabilityMeta(): Map<string, { title: string; unit: string; icon: string; type: string }> {
+    if (this.capabilityMeta) return this.capabilityMeta;
+
+    const map = new Map<string, { title: string; unit: string; icon: string; type: string }>();
+
+    // Lees uit app.json — aanwezig in zowel development (.homeybuild/) als productie
+    const appJsonPath = path.join(this.appDir, 'app.json');
+    try {
+      const appJson = JSON.parse(fs.readFileSync(appJsonPath, 'utf-8')) as Record<string, unknown>;
+      const caps = (appJson.capabilities ?? {}) as Record<string, Record<string, unknown>>;
+      for (const [id, def] of Object.entries(caps)) {
+        const title = (def.title as Record<string, string>)?.en
+          || (def.title as Record<string, string>)?.nl
+          || id;
+        const unit = (def.units as Record<string, string>)?.en
+          || (def.units as Record<string, string>)?.nl
+          || '';
+        const icon = (def.icon as string) || '';
+        const type = (def.type as string) || 'string';
+        map.set(id, { title, unit, icon, type });
+      }
+
+      // Verrijk met capabilitiesOptions uit de driverdefinitie (titel/eenheid-overrides)
+      const drivers = (appJson.drivers ?? []) as Array<Record<string, unknown>>;
+      for (const driver of drivers) {
+        const opts = (driver.capabilitiesOptions ?? {}) as Record<string, Record<string, unknown>>;
+        for (const [id, opt] of Object.entries(opts)) {
+          const existing = map.get(id) ?? { title: id, unit: '', icon: '', type: 'number' };
+          const title = (opt.title as Record<string, string>)?.en
+            || (opt.title as Record<string, string>)?.nl
+            || existing.title;
+          const unit = (opt.units as Record<string, string>)?.en
+            || (opt.units as Record<string, string>)?.nl
+            || existing.unit;
+          map.set(id, { ...existing, title, unit });
+        }
+      }
+    } catch { /* app.json niet beschikbaar */ }
+
+    // Standaard Homey-capabilities zonder eigen compose-bestand
+    const HOMEY_DEFAULTS: Record<string, { title: string; unit: string; type: string }> = {
+      'onoff':                       { title: 'On/Off',                  unit: '',    type: 'boolean' },
+      'alarm_generic':               { title: 'Alarm',                   unit: '',    type: 'boolean' },
+      'measure_power':               { title: 'Power',                   unit: 'W',   type: 'number'  },
+      'measure_voltage':             { title: 'Voltage',                 unit: 'V',   type: 'number'  },
+      'measure_current':             { title: 'Current',                 unit: 'A',   type: 'number'  },
+      'meter_power':                 { title: 'Energy',                  unit: 'kWh', type: 'number'  },
+      'measure_water':               { title: 'Water Flow',              unit: 'L/min',type:'number'  },
+      'target_temperature':          { title: 'Heating Setpoint',        unit: '°C',  type: 'number'  },
+      'target_temperature.cooling':  { title: 'Cooling Setpoint',        unit: '°C',  type: 'number'  },
+      'target_temperature.dhw':      { title: 'DHW Setpoint',            unit: '°C',  type: 'number'  },
+      'target_temperature.floor':    { title: 'Floor Heating Setpoint',  unit: '°C',  type: 'number'  },
+      'target_temperature.indoor':   { title: 'Desired Indoor Temp',     unit: '°C',  type: 'number'  },
+      'measure_temperature.outlet':  { title: 'Water Outlet Temp (T7)',  unit: '°C',  type: 'number'  },
+      'measure_temperature.inlet':   { title: 'Water Inlet Temp (T6)',   unit: '°C',  type: 'number'  },
+      'measure_temperature.ambient': { title: 'Ambient Temp (T1)',       unit: '°C',  type: 'number'  },
+    };
+    for (const [id, def] of Object.entries(HOMEY_DEFAULTS)) {
+      if (!map.has(id)) map.set(id, { icon: '', ...def });
+    }
+
+    // Vervang resterende ID-fallbacks door leesbare tekst
+    for (const [id, meta] of map.entries()) {
+      if (meta.title === id) {
+        const readable = id.replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        map.set(id, { ...meta, title: readable });
+      }
+    }
+
+    this.capabilityMeta = map;
+    return map;
   }
 
   private _buildNameMap(): Map<number, string> {

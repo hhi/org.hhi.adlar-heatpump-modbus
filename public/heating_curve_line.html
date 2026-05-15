@@ -168,6 +168,34 @@
             font-size: 0.9rem;
         }
         .formula small { color: #64748b; }
+        .load-status { margin-top: -12px; font-style: italic; }
+        @media (prefers-color-scheme: light) {
+          body { background: #f8fafc; color: #0f172a; }
+          nav { background: #ffffff; border-bottom-color: #e2e8f0; }
+          nav a { color: #475569; border-color: #e2e8f0; }
+          nav a:hover { background: #e2e8f0; color: #0f172a; }
+          nav a.active { background: #e0f2fe; color: #0284c7; border-color: #0284c7; }
+          h2 { color: #0f172a; }
+          .subtitle { color: #475569; }
+          canvas { border-color: #e2e8f0; }
+          .controls { background: #f0fdf4; border-left-color: #16a34a; }
+          .controls h3 { color: #475569; }
+          .slider-container label { color: #1e293b; }
+          .slider { background: #e2e8f0; }
+          .value-display { color: #16a34a; }
+          .apply-section { background: #fff7ed; border-left-color: #ea580c; }
+          .apply-section strong { color: #0f172a; }
+          .apply-desc { color: #475569; }
+          .apply-btn:disabled { background: #e2e8f0; color: #94a3b8; }
+          .feedback.ok    { background: #dcfce7; color: #166534; }
+          .feedback.error { background: #fee2e2; color: #991b1b; }
+          .info { background: #eff6ff; border-left-color: #0284c7; }
+          .info h3 { color: #475569; }
+          .info p { color: #1e293b; }
+          .info em { color: #94a3b8; }
+          .formula { background: #f1f5f9; color: #0369a1; border: 1px solid #e2e8f0; }
+          .formula small { color: #94a3b8; }
+        }
     </style>
 </head>
 <body>
@@ -177,10 +205,12 @@
   <a href="/expert">Expert</a>
   <a href="/heating-curve" class="active">Stooklijn</a>
   <a href="/changelog">Change Log</a>
+  <a href="/live">Live</a>
 </nav>
     <div class="container">
         <h2>Custom stooklijn (L28/L29)</h2>
         <p class="subtitle">Adlar Castra / Aurora II &mdash; interactieve stooklijn instelling</p>
+        <p id="load-status" class="subtitle load-status"></p>
 
         <div class="controls">
             <h3>Stooklijn instellingen</h3>
@@ -247,15 +277,39 @@
             ];
         }
 
+        function getTheme() {
+            const light = window.matchMedia('(prefers-color-scheme: light)').matches;
+            return light ? {
+                bg:       '#ffffff',
+                grid:     '#e2e8f0',
+                axis:     '#94a3b8',
+                curve:    '#0284c7',
+                refDot:   '#ea580c',
+                dot:      '#16a34a',
+                label:    '#475569',
+                axisLabel:'#64748b',
+            } : {
+                bg:       '#1a2535',
+                grid:     '#334155',
+                axis:     '#64748b',
+                curve:    '#38bdf8',
+                refDot:   '#f97316',
+                dot:      '#22c55e',
+                label:    '#94a3b8',
+                axisLabel:'#64748b',
+            };
+        }
+
         function drawGraph(l28, l29) {
+            const t = getTheme();
             ctx.clearRect(0, 0, width, height);
 
             // Achtergrond
-            ctx.fillStyle = '#1a2535';
+            ctx.fillStyle = t.bg;
             ctx.fillRect(0, 0, width, height);
 
             // Grid
-            ctx.strokeStyle = '#334155';
+            ctx.strokeStyle = t.grid;
             ctx.lineWidth = 1;
             for (let x = xMin; x <= xMax; x += 5) {
                 const [cx] = toCanvas(x, 0);
@@ -267,7 +321,7 @@
             }
 
             // Assen
-            ctx.strokeStyle = '#64748b';
+            ctx.strokeStyle = t.axis;
             ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(margin, height - margin); ctx.lineTo(width - margin, height - margin); ctx.stroke();
             const [zeroX] = toCanvas(0, 0);
@@ -276,7 +330,7 @@
             // Stooklijn
             const slope = l28 / 10;
             const intercept = l29 - slope * (-15);
-            ctx.strokeStyle = '#38bdf8';
+            ctx.strokeStyle = t.curve;
             ctx.lineWidth = 3;
             ctx.beginPath();
             let first = true;
@@ -291,30 +345,30 @@
 
             // Referentiepunt
             const [rx, ry] = toCanvas(-15, l29);
-            ctx.fillStyle = '#f97316';
+            ctx.fillStyle = t.refDot;
             ctx.beginPath(); ctx.arc(rx, ry, 6, 0, 2 * Math.PI); ctx.fill();
-            ctx.fillStyle = '#94a3b8';
+            ctx.fillStyle = t.label;
             ctx.font = '12px system-ui, sans-serif';
             ctx.textAlign = 'left';
             ctx.fillText(`(-15°C, ${l29}°C)`, rx + 10, ry - 10);
 
             // Datapunten
             const pts = [-10, -5, 0, 5, 10, 15];
-            ctx.fillStyle = '#22c55e';
+            ctx.fillStyle = t.dot;
             pts.forEach(px => {
                 const py = slope * px + intercept;
                 if (py >= yMin && py <= yMax) {
                     const [cx, cy] = toCanvas(px, py);
                     ctx.beginPath(); ctx.arc(cx, cy, 4, 0, 2 * Math.PI); ctx.fill();
-                    ctx.fillStyle = '#94a3b8';
+                    ctx.fillStyle = t.label;
                     ctx.font = '10px system-ui, sans-serif';
                     ctx.fillText(`(${px}°C, ${py.toFixed(1)}°C)`, cx + 8, cy - 8);
-                    ctx.fillStyle = '#22c55e';
+                    ctx.fillStyle = t.dot;
                 }
             });
 
             // Aslabels
-            ctx.fillStyle = '#64748b';
+            ctx.fillStyle = t.axisLabel;
             ctx.font = '13px system-ui, sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText('Buitentemperatuur (°C)', width / 2, height - 10);
@@ -325,6 +379,7 @@
             ctx.restore();
 
             // X-aslabels
+            ctx.fillStyle = t.axisLabel;
             ctx.font = '11px system-ui, sans-serif';
             ctx.textAlign = 'center';
             for (let x = xMin; x <= xMax; x += 5) {
@@ -364,6 +419,38 @@
         l29Slider.addEventListener('input', updateGraph);
         updateDisplay(-5, 55);
         drawGraph(-5, 55);
+
+        // Laad actuele L28/L29 waarden van het apparaat
+        const loadStatus = document.getElementById('load-status');
+        (async () => {
+            try {
+                const [r28, r29] = await Promise.all([
+                    fetch('/api/expert/read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ address: 0x0811, isCoil: false, multiply: 0.1 }) }),
+                    fetch('/api/expert/read', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ address: 0x0812, isCoil: false, multiply: 1 }) }),
+                ]);
+                if (!r28.ok || !r29.ok) throw new Error('Verbinding mislukt');
+                const d28 = await r28.json();
+                const d29 = await r29.json();
+                if (!d28.ok || !d29.ok) throw new Error('Register niet beschikbaar');
+
+                // rawValue voor L28 is k×10 (bijv. −15 = helling −1.5)
+                const l28Raw = d28.rawValue > 0x7FFF ? d28.rawValue - 0x10000 : d28.rawValue;
+                const l29Val = d29.rawValue;
+
+                l28Slider.value = l28Raw;
+                l29Slider.value = l29Val;
+                updateDisplay(l28Raw, l29Val);
+                drawGraph(l28Raw, l29Val);
+                loadStatus.textContent = `Waarden geladen van apparaat: L28 = ${l28Raw} (helling ${(l28Raw/10).toFixed(1)}), L29 = ${l29Val}°C`;
+            } catch (e) {
+                loadStatus.textContent = `Kon huidige waarden niet ophalen (${e.message}) — standaardwaarden getoond`;
+            }
+        })();
+
+        // Herteken canvas bij wisselen van systeem-thema
+        window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+            drawGraph(parseInt(l28Slider.value), parseInt(l29Slider.value));
+        });
 
         // Toepassen op warmtepomp
         const applyBtn = document.getElementById('apply-btn');

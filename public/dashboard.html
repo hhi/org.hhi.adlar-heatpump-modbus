@@ -187,6 +187,49 @@
 
     nav a:hover { background: #334155; color: #f8fafc; }
     nav a.active { background: #0f172a; color: #38bdf8; border-color: #38bdf8; }
+
+    @media (prefers-color-scheme: light) {
+      body    { background: #f8fafc; color: #0f172a; }
+      header  { background: #ffffff; border-bottom-color: #e2e8f0; }
+      h1      { color: #0f172a; }
+      #indicator { color: #475569; }
+      #indicator-dot { background: #94a3b8; }
+      #no-data { color: #94a3b8; }
+      .section-header { color: #94a3b8; }
+      .section-header::after { background: #e2e8f0; }
+      thead th { color: #64748b; border-bottom-color: #e2e8f0; }
+      tbody tr { border-bottom-color: #f1f5f9; }
+      tbody tr:hover { background: #f1f5f9; }
+      tbody tr.fault-row { background: #fee2e2; }
+      tbody tr.fault-row:hover { background: #fecaca; }
+      td.addr  { color: #94a3b8; }
+      td.name  { color: #1e293b; }
+      td.value { color: #0369a1; }
+      td.raw   { color: #94a3b8; }
+      .badge-SUPERFAST { background: #fee2e2; color: #991b1b; }
+      .badge-FAST      { background: #e0f2fe; color: #0369a1; }
+      .badge-MEDIUM    { background: #dbeafe; color: #1d4ed8; }
+      .badge-SLOW      { background: #ede9fe; color: #6d28d9; }
+      .badge-ONCE      { background: #dcfce7; color: #166534; }
+      .badge-Afl       { background: #f1f5f9; color: #475569; }
+      .badge-Sensors   { background: #e0f2fe; color: #0369a1; }
+      .badge-Status    { background: #dbeafe; color: #1d4ed8; }
+      .badge-Control   { background: #ede9fe; color: #6d28d9; }
+      .badge-Power     { background: #dcfce7; color: #166534; }
+      .badge-COP       { background: #fef9c3; color: #854d0e; }
+      .badge-Version   { background: #e0e7ff; color: #4338ca; }
+      .badge-Faults    { background: #fee2e2; color: #991b1b; }
+      .badge-Diag      { background: #f1f5f9; color: #475569; }
+      .badge-Internal\ COP { background: #fef9c3; color: #854d0e; }
+      #quality-badge           { background: #e2e8f0; color: #475569; }
+      #quality-badge.q-online  { background: #dcfce7; color: #166534; }
+      #quality-badge.q-degraded{ background: #ffedd5; color: #9a3412; }
+      #quality-badge.q-offline { background: #fee2e2; color: #991b1b; }
+      nav { background: #ffffff; border-bottom-color: #e2e8f0; }
+      nav a { color: #475569; border-color: #e2e8f0; }
+      nav a:hover { background: #e2e8f0; color: #0f172a; }
+      nav a.active { background: #e0f2fe; color: #0284c7; border-color: #0284c7; }
+    }
   </style>
 </head>
 <body>
@@ -206,6 +249,7 @@
   <a href="/expert">Expert</a>
   <a href="/heating-curve">Stooklijn</a>
   <a href="/changelog">Change Log</a>
+  <a href="/live">Live</a>
 </nav>
 
 <main>
@@ -365,29 +409,38 @@ function buildRows(snap) {
   sections.push({ label: 'Control', rows: controlRows });
 
   // Power
+  const powerSourceLabel = {
+    'unit-direct':  'Modbus 0x005C (direct)',
+    'unit-derived': 'Modbus 0x005A × 0x005B (afgeleid)',
+    'ac-derived':   'Backup AC 0x0044 × 0x0045',
+    'none':         'Geen data',
+  }[snap.power.powerSource] ?? snap.power.powerSource;
+
   const powerRows = [
-    { address: hex(0x005C), name: 'Unit input power',   value: `${snap.power.inputPowerKw} kW`,    raw: '—', category: 'Power', pollGroup: 'SUPERFAST', fault: false },
-    { address: hex(0x005B), name: 'Unit input current',  value: `${snap.power.inputCurrentA} A`,    raw: '—', category: 'Power', pollGroup: 'FAST', fault: false },
-    { address: hex(0x005A), name: 'Unit input voltage',  value: `${snap.power.inputVoltageV} V`,    raw: '—', category: 'Power', pollGroup: 'FAST', fault: false },
-    { address: hex(0x0045), name: 'AC current (backup)', value: `${snap.power.acCurrentA} A`,       raw: '—', category: 'Power', pollGroup: 'SUPERFAST', fault: false },
-    { address: hex(0x0044), name: 'AC voltage (backup)', value: `${snap.power.acVoltageV} V`,       raw: '—', category: 'Power', pollGroup: 'SUPERFAST', fault: false },
-    { address: hex(0x005D), name: 'Total energy',        value: `${snap.power.totalEnergyKwh} kWh`, raw: '—', category: 'Power', pollGroup: 'FAST', fault: false },
-    { address: '—',         name: 'Derived power',       value: `${snap.power.derivedPowerKw} kW`,  raw: '—', category: 'Power', pollGroup: 'Afgeleid', fault: false },
-    { address: '—',         name: 'Power source',        value: snap.power.powerSource,              raw: '—', category: 'Power', pollGroup: 'Afgeleid', fault: false },
+    { address: hex(0x005C), name: 'Unit input power',              value: `${snap.power.inputPowerKw} kW`,    raw: '—', category: 'Power', pollGroup: 'SUPERFAST', fault: false },
+    { address: hex(0x005B), name: 'Unit input current',            value: `${snap.power.inputCurrentA} A`,    raw: '—', category: 'Power', pollGroup: 'FAST',      fault: false },
+    { address: hex(0x005A), name: 'Unit input voltage',            value: `${snap.power.inputVoltageV} V`,    raw: '—', category: 'Power', pollGroup: 'FAST',      fault: false },
+    { address: hex(0x0045), name: 'AC current (backup)',           value: `${snap.power.acCurrentA} A`,       raw: '—', category: 'Power', pollGroup: 'SUPERFAST', fault: false },
+    { address: hex(0x0044), name: 'AC voltage (backup)',           value: `${snap.power.acVoltageV} V`,       raw: '—', category: 'Power', pollGroup: 'SUPERFAST', fault: false },
+    { address: hex(0x005D), name: 'Total energy',                  value: `${snap.power.totalEnergyKwh} kWh`, raw: '—', category: 'Power', pollGroup: 'FAST',      fault: false },
+    { address: '—',         name: 'Derived power',                 value: `${snap.power.derivedPowerKw} kW`,  raw: '—', category: 'Power', pollGroup: 'Afgeleid',  fault: false },
+    { address: '—',         name: 'Internal COP power source',     value: powerSourceLabel,                    raw: '—', category: 'Power', pollGroup: 'Afgeleid',  fault: false },
+    { address: '—',         name: 'adlar_cop power source',        value: 'External meter (adlar_external_power) indien actief, anders Modbus',  raw: '—', category: 'Power', pollGroup: 'Afgeleid', fault: false },
   ];
   sections.push({ label: 'Power', rows: powerRows });
 
   // COP
   if (snap.cop.valid) {
     const copRows = [
-      { address: '—', name: 'COP',                value: snap.cop.cop.toFixed(2),                 raw: '—', category: 'COP', pollGroup: 'Afgeleid', fault: false },
-      { address: '—', name: 'Thermal power',      value: `${snap.cop.thermalPowerKw.toFixed(2)} kW`, raw: '—', category: 'COP', pollGroup: 'Afgeleid', fault: false },
-      { address: '—', name: 'Electrical power',   value: `${snap.cop.electricalPowerKw.toFixed(2)} kW`, raw: '—', category: 'COP', pollGroup: 'Afgeleid', fault: false },
-      { address: '—', name: 'ΔT water',           value: `${snap.cop.deltaTc.toFixed(1)} °C`,     raw: '—', category: 'COP', pollGroup: 'Afgeleid', fault: false },
-      { address: '—', name: 'Flow rate',          value: `${snap.cop.flowLpm} L/min`,             raw: '—', category: 'COP', pollGroup: 'Afgeleid', fault: false },
-      { address: '—', name: 'Ambient (COP ref)',  value: `${snap.cop.ambientTempC} °C`,           raw: '—', category: 'COP', pollGroup: 'Afgeleid', fault: false },
+      { address: '—', name: 'Internal COP (realtime)', value: snap.cop.cop.toFixed(2),                        raw: '—', category: 'COP', pollGroup: 'Afgeleid', fault: false },
+      { address: '—', name: '↳ power used',            value: `${snap.cop.electricalPowerKw.toFixed(2)} kW — ${powerSourceLabel}`, raw: '—', category: 'COP', pollGroup: 'Afgeleid', fault: false },
+      { address: '—', name: 'adlar_cop power used',    value: 'adlar_external_power (W) indien gezet, anders bovenstaande bron',   raw: '—', category: 'COP', pollGroup: 'Afgeleid', fault: false },
+      { address: '—', name: 'Thermal power',           value: `${snap.cop.thermalPowerKw.toFixed(2)} kW`,     raw: '—', category: 'COP', pollGroup: 'Afgeleid', fault: false },
+      { address: '—', name: 'ΔT water',                value: `${snap.cop.deltaTc.toFixed(1)} °C`,            raw: '—', category: 'COP', pollGroup: 'Afgeleid', fault: false },
+      { address: '—', name: 'Flow rate',               value: `${snap.cop.flowLpm} L/min`,                    raw: '—', category: 'COP', pollGroup: 'Afgeleid', fault: false },
+      { address: '—', name: 'Ambient (COP ref)',        value: `${snap.cop.ambientTempC} °C`,                  raw: '—', category: 'COP', pollGroup: 'Afgeleid', fault: false },
     ];
-    sections.push({ label: 'COP', rows: copRows });
+    sections.push({ label: 'Internal COP', rows: copRows });
   }
 
   // Version
