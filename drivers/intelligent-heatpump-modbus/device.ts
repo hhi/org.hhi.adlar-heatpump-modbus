@@ -310,6 +310,7 @@ class AdlarModbusDevice extends Homey.Device {
         setDiyHeatingCurveCallback(fn: (k: number, b: number) => Promise<void>): void;
         setGetTemperatureScaleCallback(fn: () => import('../../lib/modbus/adlar-modbus-registers').TemperatureRegisterScale): void;
         setGetChangeLogCallback(fn: () => Map<number, RegisterChangeEntry>): void;
+        setGetCapabilityValuesCallback(fn: () => Record<string, unknown>): void;
       } | null;
     };
     const app = this.homey.app as unknown as DashboardApp;
@@ -334,6 +335,13 @@ class AdlarModbusDevice extends Homey.Device {
 
     app.dashboard.setGetTemperatureScaleCallback(() => this.coordinator!.getTemperatureScale());
     app.dashboard.setGetChangeLogCallback(() => this.coordinator!.getChangeLog());
+    app.dashboard.setGetCapabilityValuesCallback(() => {
+      const result: Record<string, unknown> = {};
+      for (const id of this.getCapabilities()) {
+        result[id] = this.getCapabilityValue(id);
+      }
+      return result;
+    });
   }
 
   // ── Snapshot → Capabilities (called by ServiceCoordinator) ────────────────

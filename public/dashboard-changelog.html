@@ -30,6 +30,9 @@
   .pill.manual    { background: #1c1917; border-color: #78716c; color: #d6d3d1; }
   .pill.inactive  { opacity: 0.35; }
   .stats { font-size: 0.75rem; color: #64748b; margin-left: auto; }
+  .last-load { font-size: 0.72rem; color: #475569; }
+  @keyframes tbl-flash { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+  .flash { animation: tbl-flash 0.4s ease; }
   .filter-label { font-size: 0.75rem; color: #64748b; display: flex; align-items: center; gap: 0.4rem; }
   .filter-label input { accent-color: #3b82f6; }
   table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
@@ -48,6 +51,41 @@
   .unknown { color: #64748b; }
   .no-data { color: #64748b; font-style: italic; }
   .empty { text-align: center; padding: 3rem; color: #475569; }
+  @media (prefers-color-scheme: light) {
+    body { background: #f8fafc; color: #0f172a; }
+    h1 { color: #0f172a; }
+    .subtitle { color: #475569; }
+    .btn { background: #f1f5f9; border-color: #e2e8f0; color: #1e293b; }
+    .btn:hover { background: #e2e8f0; color: #0f172a; }
+    input[type=search] { background: #f8fafc; border-color: #e2e8f0; color: #0f172a; }
+    input[type=search]::placeholder { color: #94a3b8; }
+    .filter-label { color: #475569; }
+    .stats { color: #475569; }
+    .pill.superfast { background: #ede9fe; border-color: #7c3aed; color: #5b21b6; }
+    .pill.fast      { background: #e0f2fe; border-color: #3b82f6; color: #1d4ed8; }
+    .pill.medium    { background: #dcfce7; border-color: #22c55e; color: #166534; }
+    .pill.slow      { background: #ffedd5; border-color: #f97316; color: #9a3412; }
+    .pill.once      { background: #e0e7ff; border-color: #818cf8; color: #4338ca; }
+    .pill.manual    { background: #f1f5f9; border-color: #94a3b8; color: #475569; }
+    thead th { background: #f1f5f9; color: #475569; border-bottom-color: #e2e8f0; }
+    thead th:hover { color: #0f172a; }
+    thead th.sorted .sort-icon { color: #0284c7; }
+    tbody tr { border-bottom-color: #f1f5f9; }
+    tbody tr:hover { background: #f1f5f9; }
+    td { color: #0f172a; }
+    .addr { color: #0369a1; }
+    .name { color: #1e293b; }
+    .zero { color: #cbd5e1; }
+    .match { color: #166534; }
+    .mismatch { color: #9a3412; }
+    .unknown { color: #94a3b8; }
+    .no-data { color: #94a3b8; }
+    .empty { color: #94a3b8; }
+    nav { background: #ffffff; border-bottom-color: #e2e8f0; }
+    nav a { color: #475569; border-color: #e2e8f0; }
+    nav a:hover { background: #e2e8f0; color: #0f172a; }
+    nav a.active { background: #e0f2fe; color: #0284c7; border-color: #0284c7; }
+  }
 </style>
 </head>
 <body>
@@ -57,6 +95,7 @@
   <a href="/expert">Expert</a>
   <a href="/heating-curve">Stooklijn</a>
   <a href="/changelog" class="active">Change Log</a>
+  <a href="/live">Live</a>
 </nav>
 <h1>Register Change Log</h1>
 <p class="subtitle">Statistieken per register — helpt bij het bepalen van de optimale pollgroep. Reset bij herstart van de app.</p>
@@ -66,8 +105,9 @@
   <input type="search" id="search" placeholder="Zoek op adres of naam…" oninput="render()">
   <div class="filter-group" id="group-filters"></div>
   <label class="filter-label">
-    <input type="checkbox" id="only-changed" onchange="render()"> Alleen gewijzigd
+    <input type="checkbox" id="only-changed" onchange="render()" checked> Alleen gewijzigd
   </label>
+  <span class="last-load" id="last-load"></span>
   <span class="stats" id="stats"></span>
 </div>
 
@@ -98,10 +138,26 @@
   let activeGroups = new Set(GROUPS);
 
   function load() {
+    const btn = document.querySelector('button.btn-primary');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Laden…'; }
+
     fetch('/api/register-changelog')
       .then(r => r.json())
-      .then(d => { data = d; render(); })
-      .catch(e => { document.getElementById('tbody').innerHTML = `<tr><td colspan="10" class="empty">Fout: ${e.message}</td></tr>`; });
+      .then(d => {
+        data = d;
+        render();
+        const tbl = document.getElementById('tbl');
+        if (tbl) { tbl.classList.add('flash'); setTimeout(() => tbl.classList.remove('flash'), 400); }
+        const ts = new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        document.getElementById('last-load').textContent = `Bijgewerkt om ${ts}`;
+      })
+      .catch(e => {
+        document.getElementById('tbody').innerHTML = `<tr><td colspan="11" class="empty">Fout: ${e.message}</td></tr>`;
+        document.getElementById('last-load').textContent = 'Laden mislukt';
+      })
+      .finally(() => {
+        if (btn) { btn.disabled = false; btn.innerHTML = '&#8635; Vernieuwen'; }
+      });
   }
 
   function buildGroupFilters() {
@@ -202,6 +258,7 @@
 
   buildGroupFilters();
   load();
+  setInterval(load, 60_000);
 </script>
 </body>
 </html>

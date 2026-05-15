@@ -37,6 +37,26 @@
   nav a { font-size: 12px; font-weight: 600; color: #94a3b8; text-decoration: none; padding: 4px 12px; border-radius: 9999px; border: 1px solid #334155; transition: background 0.15s, color 0.15s; }
   nav a:hover { background: #334155; color: #f8fafc; }
   nav a.active { background: #0f172a; color: #38bdf8; border-color: #38bdf8; }
+  @media (prefers-color-scheme: light) {
+    body { background: #f8fafc; color: #0f172a; }
+    h1 { color: #0f172a; }
+    .subtitle { color: #475569; }
+    .status-bar { color: #475569; }
+    .grid .card { background: #ffffff; border-color: #e2e8f0; }
+    .card-label { color: #94a3b8; }
+    .card-value { color: #0f172a; }
+    .card-unit  { color: #475569; }
+    .section-title { color: #1e293b; border-bottom-color: #e2e8f0; }
+    .write-card, .write-grid .write-card { background: #ffffff; border-color: #e2e8f0; }
+    .write-card label { color: #475569; }
+    .write-row input { background: #f8fafc; border-color: #e2e8f0; color: #0f172a; }
+    .write-row .unit { color: #94a3b8; }
+    .range-hint { color: #94a3b8; }
+    nav { background: #ffffff; border-bottom-color: #e2e8f0; }
+    nav a { color: #475569; border-color: #e2e8f0; }
+    nav a:hover { background: #e2e8f0; color: #0f172a; }
+    nav a.active { background: #e0f2fe; color: #0284c7; border-color: #0284c7; }
+  }
 </style>
 </head>
 <body>
@@ -47,6 +67,7 @@
   <a href="/expert">Expert</a>
   <a href="/heating-curve">Stooklijn</a>
   <a href="/changelog">Change Log</a>
+  <a href="/live">Live</a>
 </nav>
 <h1>Interactief Dashboard</h1>
 <p class="subtitle">Adlar Castra / Aurora II &mdash; lees &amp; schrijf gebruikerssetpoints</p>
