@@ -6,7 +6,7 @@ import { EventEmitter } from 'events';
 import Homey from 'homey';
 import { DataSnapshot } from '../modbus/adlar2-modbus-service';
 import { TemperatureRegisterScale } from '../modbus/adlar-modbus-registers';
-import { TimerProvider } from '../modbus/modbus-tcp-service';
+import { RegisterChangeEntry, TimerProvider } from '../modbus/modbus-tcp-service';
 import { ModbusRuntimeService } from '../modbus/modbus-runtime-service';
 
 export interface ModbusConnectionConfig {
@@ -218,6 +218,10 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
 
   getTemperatureScale(): TemperatureRegisterScale {
     return (this.service as unknown as { activeTemperatureScale: TemperatureRegisterScale } | null)?.activeTemperatureScale ?? 'x1';
+  }
+
+  getChangeLog(): Map<number, RegisterChangeEntry> {
+    return (this.service as unknown as { getChangeLog(): Map<number, RegisterChangeEntry> } | null)?.getChangeLog() ?? new Map();
   }
 
   /** FC03 — lees één holding register; retourneert de ruwe unsigned waarde. */

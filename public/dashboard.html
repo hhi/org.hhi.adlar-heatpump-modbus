@@ -205,6 +205,7 @@
   <a href="/interactive">Interactief</a>
   <a href="/expert">Expert</a>
   <a href="/heating-curve">Stooklijn</a>
+  <a href="/changelog">Change Log</a>
 </nav>
 
 <main>
@@ -365,11 +366,14 @@ function buildRows(snap) {
 
   // Power
   const powerRows = [
-    { address: hex(0x005C), name: 'Input power',        value: `${snap.power.inputPowerKw} kW`,    raw: '—', category: 'Power', pollGroup: 'FAST', fault: false },
-    { address: hex(0x005B), name: 'Input current',      value: `${snap.power.inputCurrentA} A`,    raw: '—', category: 'Power', pollGroup: 'FAST', fault: false },
-    { address: hex(0x005A), name: 'Input voltage',      value: `${snap.power.inputVoltageV} V`,    raw: '—', category: 'Power', pollGroup: 'FAST', fault: false },
-    { address: hex(0x005D), name: 'Total energy',       value: `${snap.power.totalEnergyKwh} kWh`, raw: '—', category: 'Power', pollGroup: 'FAST', fault: false },
-    { address: '—',         name: 'Derived power',      value: `${snap.power.derivedPowerKw} kW`,  raw: '—', category: 'Power', pollGroup: 'Afgeleid', fault: false },
+    { address: hex(0x005C), name: 'Unit input power',   value: `${snap.power.inputPowerKw} kW`,    raw: '—', category: 'Power', pollGroup: 'SUPERFAST', fault: false },
+    { address: hex(0x005B), name: 'Unit input current',  value: `${snap.power.inputCurrentA} A`,    raw: '—', category: 'Power', pollGroup: 'FAST', fault: false },
+    { address: hex(0x005A), name: 'Unit input voltage',  value: `${snap.power.inputVoltageV} V`,    raw: '—', category: 'Power', pollGroup: 'FAST', fault: false },
+    { address: hex(0x0045), name: 'AC current (backup)', value: `${snap.power.acCurrentA} A`,       raw: '—', category: 'Power', pollGroup: 'SUPERFAST', fault: false },
+    { address: hex(0x0044), name: 'AC voltage (backup)', value: `${snap.power.acVoltageV} V`,       raw: '—', category: 'Power', pollGroup: 'SUPERFAST', fault: false },
+    { address: hex(0x005D), name: 'Total energy',        value: `${snap.power.totalEnergyKwh} kWh`, raw: '—', category: 'Power', pollGroup: 'FAST', fault: false },
+    { address: '—',         name: 'Derived power',       value: `${snap.power.derivedPowerKw} kW`,  raw: '—', category: 'Power', pollGroup: 'Afgeleid', fault: false },
+    { address: '—',         name: 'Power source',        value: snap.power.powerSource,              raw: '—', category: 'Power', pollGroup: 'Afgeleid', fault: false },
   ];
   sections.push({ label: 'Power', rows: powerRows });
 
