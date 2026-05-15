@@ -6,6 +6,7 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { DataSnapshot } from '../modbus/adlar2-modbus-service';
+import { RegisterChangeEntry } from '../modbus/modbus-tcp-service';
 import {
   STATUS_REGISTER_MAP,
   SENSOR_REGISTERS,
@@ -134,6 +135,7 @@ export class DashboardService {
   private onWriteExpert: ((address: number, rawValue: number, isCoil: boolean) => Promise<void>) | null = null;
   private onSetDiyHeatingCurve: ((k: number, b: number) => Promise<void>) | null = null;
   private getTemperatureScale: (() => TemperatureRegisterScale) | null = null;
+  private getChangeLog: (() => Map<number, RegisterChangeEntry>) | null = null;
 
   constructor(options: DashboardServiceOptions) {
     this.port = options.port ?? 8090;
@@ -161,6 +163,10 @@ export class DashboardService {
 
   setGetTemperatureScaleCallback(fn: () => TemperatureRegisterScale): void {
     this.getTemperatureScale = fn;
+  }
+
+  setGetChangeLogCallback(fn: () => Map<number, RegisterChangeEntry>): void {
+    this.getChangeLog = fn;
   }
 
   /** Sla de meest recente snapshot op (overschrijft de vorige). */
@@ -263,6 +269,16 @@ export class DashboardService {
       return;
     }
 
+    // Register change log
+    if (method === 'GET' && (url === '/changelog' || url === '/changelog.html')) {
+      await this._serveFile(res, 'dashboard-changelog.html');
+      return;
+    }
+    if (method === 'GET' && url === '/api/register-changelog') {
+      this._serveChangeLog(res);
+      return;
+    }
+
     // ADR-049: DIY stooklijn
     if (method === 'GET' && (url === '/heating-curve' || url === '/heating-curve.html')) {
       await this._serveFile(res, 'heating_curve_line.html');
@@ -275,6 +291,105 @@ export class DashboardService {
 
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     res.end('Not Found');
+  }
+
+  // ── Register change log ───────────────────────────────────────────────────────
+
+  private _serveChangeLog(res: http.ServerResponse): void {
+    if (!this.getChangeLog) {
+      res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ error: 'Not connected' }));
+      return;
+    }
+
+    const pollGroupMap = this._buildPollGroupMap();
+    const nameMap = this._buildNameMap();
+    const log = this.getChangeLog();
+    const entries: object[] = [];
+
+    for (const [addr, entry] of log) {
+      const intervals = entry.intervals;
+      const avgInterval = intervals.length > 0
+        ? Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length)
+        : null;
+      const minInterval = intervals.length > 0 ? Math.min(...intervals) : null;
+      const maxInterval = intervals.length > 0 ? Math.max(...intervals) : null;
+
+      entries.push({
+        address: addr,
+        addressHex: `0x${addr.toString(16).toUpperCase().padStart(4, '0')}`,
+        name: nameMap.get(addr) ?? '',
+        pollGroup: pollGroupMap.get(addr) ?? 'manual',
+        firstSeen: entry.firstSeen,
+        lastChanged: entry.lastChanged,
+        changeCount: entry.changeCount,
+        avgInterval,
+        minInterval,
+        maxInterval,
+        recommendedGroup: this._recommendPollGroup(avgInterval),
+        lastValue: entry.lastValue,
+        previousValue: entry.previousValue,
+      });
+    }
+
+    entries.sort((a, b) => (a as { address: number }).address - (b as { address: number }).address);
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(entries));
+  }
+
+  private _buildNameMap(): Map<number, string> {
+    const map = new Map<number, string>();
+    type WithAddress = { address: number };
+    type WithName = { name: string };
+
+    for (const [key, def] of Object.entries(STATUS_REGISTER_MAP)) {
+      map.set((def as WithAddress).address, key);
+    }
+    const named = [
+      ...Object.values(SENSOR_REGISTERS),
+      ...Object.values(CONTROL_REGISTERS),
+      ...Object.values(P_PARAMETERS),
+      ...Object.values(P_PARAMETERS_EXTRA),
+      ...Object.values(P_WORKING_CONDITIONS),
+      ...Object.values(L_PARAMETERS),
+      ...Object.values(USER_COMMANDS_REGISTERS),
+      ...Object.values(VERSION_REGISTERS),
+    ];
+    for (const def of named) {
+      const d = def as WithAddress & Partial<WithName>;
+      if (d.address !== undefined && d.name) map.set(d.address, d.name);
+    }
+    return map;
+  }
+
+  private _buildPollGroupMap(): Map<number, string> {
+    const map = new Map<number, string>();
+    const groups = [
+      { name: 'superfast', reads: POLL_GROUP_SUPERFAST.reads },
+      { name: 'fast',      reads: POLL_GROUP_FAST.reads },
+      { name: 'medium',    reads: POLL_GROUP_MEDIUM.reads },
+      { name: 'slow',      reads: POLL_GROUP_SLOW.reads },
+      { name: 'once',      reads: POLL_GROUP_ONCE.reads },
+    ];
+    for (const group of groups) {
+      for (const block of group.reads) {
+        for (let i = 0; i < block.count; i++) {
+          const addr = block.start + i;
+          if (!map.has(addr)) map.set(addr, group.name);
+        }
+      }
+    }
+    return map;
+  }
+
+  private _recommendPollGroup(avgMs: number | null): string {
+    if (avgMs === null) return '?';
+    if (avgMs < 10_000)  return 'superfast';
+    if (avgMs < 30_000)  return 'fast';
+    if (avgMs < 300_000) return 'medium';
+    if (avgMs < 1_800_000) return 'slow';
+    return 'once';
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────────

@@ -15,6 +15,7 @@ import {
   enumIdToHotWaterCurve,
   backwaterModeToEnumId,
 } from '../../lib/modbus/adlar-enum-mappers';
+import { RegisterChangeEntry } from '../../lib/modbus/modbus-tcp-service';
 import { FAULT_DESCRIPTIONS } from '../../lib/modbus/adlar-fault-descriptions';
 import { ModbusCOPService } from '../../lib/services/modbus-cop-service';
 import { RollingCOPCalculator } from '../../lib/services/rolling-cop-calculator';
@@ -308,6 +309,7 @@ class AdlarModbusDevice extends Homey.Device {
         setWriteExpertCallback(fn: (addr: number, rawValue: number, isCoil: boolean) => Promise<void>): void;
         setDiyHeatingCurveCallback(fn: (k: number, b: number) => Promise<void>): void;
         setGetTemperatureScaleCallback(fn: () => import('../../lib/modbus/adlar-modbus-registers').TemperatureRegisterScale): void;
+        setGetChangeLogCallback(fn: () => Map<number, RegisterChangeEntry>): void;
       } | null;
     };
     const app = this.homey.app as unknown as DashboardApp;
@@ -331,6 +333,7 @@ class AdlarModbusDevice extends Homey.Device {
     });
 
     app.dashboard.setGetTemperatureScaleCallback(() => this.coordinator!.getTemperatureScale());
+    app.dashboard.setGetChangeLogCallback(() => this.coordinator!.getChangeLog());
   }
 
   // ── Snapshot → Capabilities (called by ServiceCoordinator) ────────────────

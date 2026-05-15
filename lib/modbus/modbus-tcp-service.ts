@@ -152,6 +152,16 @@ const BACKOFF_MAX = 60_000;
 // MODBUS TCP SERVICE
 // ============================================================================
 
+export interface RegisterChangeEntry {
+  firstSeen: number;
+  lastChanged: number;
+  changeCount: number;
+  /** Laatste 50 tussenpozen tussen wijzigingen in ms */
+  intervals: number[];
+  lastValue: number;
+  previousValue: number | null;
+}
+
 /**
  * Events:
  *   'connected'                     — TCP verbinding succesvol
@@ -172,6 +182,9 @@ export class ModbusTcpService extends EventEmitter {
 
   /** Holding register cache: adres → unsigned 16-bit */
   private readonly cache = new Map<number, number>();
+
+  /** Per-register wijzigingsstatistieken (in-memory, reset bij herstart) */
+  private readonly changeLog = new Map<number, RegisterChangeEntry>();
 
   private _connected = false;
   private _destroyed = false;
@@ -419,7 +432,38 @@ export class ModbusTcpService extends EventEmitter {
     const before = Array.from({ length: count }, (_, i) => this.cache.get(startAddr + i));
     await this.readHoldingRegisters(startAddr, count);
 
-    return before.some((value, i) => value !== this.cache.get(startAddr + i));
+    const now = Date.now();
+    let anyChanged = false;
+
+    for (let i = 0; i < count; i++) {
+      const addr = startAddr + i;
+      const oldVal = before[i];
+      const newVal = this.cache.get(addr)!;
+
+      let entry = this.changeLog.get(addr);
+      if (!entry) {
+        entry = { firstSeen: now, lastChanged: now, changeCount: 0, intervals: [], lastValue: newVal, previousValue: null };
+        this.changeLog.set(addr, entry);
+      }
+
+      if (oldVal !== undefined && oldVal !== newVal) {
+        const interval = now - entry.lastChanged;
+        entry.intervals.push(interval);
+        if (entry.intervals.length > 50) entry.intervals.shift();
+        entry.previousValue = entry.lastValue;
+        entry.changeCount++;
+        entry.lastChanged = now;
+        anyChanged = true;
+      }
+
+      entry.lastValue = newVal;
+    }
+
+    return anyChanged;
+  }
+
+  getChangeLog(): Map<number, RegisterChangeEntry> {
+    return this.changeLog;
   }
 
   /**
