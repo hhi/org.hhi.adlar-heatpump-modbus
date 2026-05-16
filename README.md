@@ -66,10 +66,11 @@ For the full setup procedure for connecting the heat pump via a Modbus TCP gatew
 Open the dashboards from a browser on the same local network as Homey:
 
 - `http://<homey-ip>:8090/` — live read-only dashboard with current heat pump values
-- `http://<homey-ip>:8090/interactive` — interactive dashboard for common controls
+- `http://<homey-ip>:8090/interactive` — interactive dashboard: live sensor overview with COP, temperatures, compressor and flow; write setpoints directly from the browser
+- `http://<homey-ip>:8090/live` — live capability dashboard: all device capabilities grouped by category (Status, Temperatures, Power, COP, Mechanical, etc.) with icons and a separate Diagnostics section
 - `http://<homey-ip>:8090/expert` — expert register dashboard with Modbus addresses, P/L parameter IDs and live read/write tools
-- `http://<homey-ip>:8090/heating-curve` — DIY heating curve editor
 - `http://<homey-ip>:8090/changelog` — per-register change log: change count, average interval and recommended poll group for every observed Modbus register
+- `http://<homey-ip>:8090/heating-curve` — DIY heating curve editor
 
 Replace `<homey-ip>` with the IP address of your Homey Pro. Use the expert dashboard with care: writable Modbus registers can change heat pump behaviour.
 The default dashboard port is `8090`; if you changed the Dashboard port setting, use that port in the URL instead.

@@ -9,11 +9,12 @@
 <style>
 :root {
   --bg: #07090f;
-  --surface: #0e1320;
-  --surface2: #141c2e;
-  --border: #1a2540;
+  --surface: #0d1624;
+  --surface2: #162032;
+  --border: #22334f;
   --text: #dde8f8;
-  --muted: #3d5070;
+  --muted: #5a7a9a;
+  --accent: #5cb3e8;
   --blue: #38bdf8;
   --green: #22c55e;
   --orange: #f97316;
@@ -134,11 +135,11 @@ nav a.active { background: #07090f; color: var(--blue); border-color: var(--blue
   min-width: 0;
 }
 .rubric-header {
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  font-weight: 600;
+  letter-spacing: 0.09em;
+  color: var(--accent);
+  font-weight: 700;
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
@@ -215,18 +216,21 @@ nav a.active { background: #07090f; color: var(--blue); border-color: var(--blue
 /* ── Light mode ── */
 @media (prefers-color-scheme: light) {
   :root {
-    --bg: #f8fafc;
+    --bg: #f1f5f9;
     --surface: #ffffff;
-    --surface2: #f1f5f9;
-    --border: #e2e8f0;
+    --surface2: #f8fafc;
+    --border: #cbd5e1;
     --text: #0f172a;
-    --muted: #94a3b8;
+    --muted: #64748b;
+    --accent: #1d4ed8;
     --blue: #0284c7;
     --green: #16a34a;
     --orange: #ea580c;
     --red: #dc2626;
     --amber: #d97706;
   }
+  .rubric-card { box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+  .cap-card { box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
   .cap-icon { filter: none; opacity: 0.55; }
   .cap-icon-wrap { background: rgba(0,0,0,0.03); }
   .alarm-chip { background: #fee2e2; border-color: var(--red); color: var(--red); }

@@ -63,10 +63,11 @@ Lokale Dashboards
 Oeffnen Sie die Dashboards mit einem Browser im selben lokalen Netzwerk wie Homey:
 
 - http://<homey-ip>:8090/ - Live-Dashboard nur zum Lesen mit aktuellen Waermepumpenwerten
-- http://<homey-ip>:8090/interactive - interaktives Dashboard fuer haeufige Bedienung
+- http://<homey-ip>:8090/interactive - interaktives Dashboard: Live-Sensoruebersicht mit COP, Temperaturen, Kompressor und Durchfluss; Sollwerte direkt im Browser anpassen
+- http://<homey-ip>:8090/live - Live-Capability-Dashboard: alle Geraete-Capabilities nach Kategorie gruppiert mit Icons und separatem Diagnosebereich
 - http://<homey-ip>:8090/expert - Experten-Dashboard mit Modbus-Adressen, P/L-Parameter-IDs und Live-Lese-/Schreibwerkzeugen
-- http://<homey-ip>:8090/heating-curve - Editor fuer die DIY-Heizkurve
 - http://<homey-ip>:8090/changelog - Register-Aenderungsprotokoll: Anzahl der Aenderungen, Durchschnittsintervall und empfohlene Polling-Gruppe fuer jedes beobachtete Modbus-Register
+- http://<homey-ip>:8090/heating-curve - Editor fuer die DIY-Heizkurve
 
 Ersetzen Sie <homey-ip> durch die IP-Adresse Ihres Homey Pro. Verwenden Sie das Experten-Dashboard vorsichtig: schreibbare Modbus-Register koennen das Verhalten der Waermepumpe aendern.
 Der Standard-Dashboard-Port ist 8090; wenn Sie die Einstellung Dashboard-Port geaendert haben, verwenden Sie diesen Port in der URL.
