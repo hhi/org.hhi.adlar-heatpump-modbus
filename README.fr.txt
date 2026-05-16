@@ -63,10 +63,11 @@ Tableaux de bord locaux
 Ouvrez les tableaux de bord avec un navigateur sur le meme reseau local que Homey :
 
 - http://<homey-ip>:8090/ - tableau live en lecture seule avec les valeurs actuelles de la pompe a chaleur
-- http://<homey-ip>:8090/interactive - tableau interactif pour les commandes courantes
+- http://<homey-ip>:8090/interactive - tableau interactif : apercu des capteurs en direct avec COP, temperatures, compresseur et debit ; modifier les consignes directement depuis le navigateur
+- http://<homey-ip>:8090/live - tableau de bord live : toutes les capacites de l'appareil groupees par categorie avec icones et section Diagnostics separee
 - http://<homey-ip>:8090/expert - tableau expert avec adresses Modbus, identifiants de parametres P/L et outils de lecture/ecriture live
-- http://<homey-ip>:8090/heating-curve - editeur de courbe de chauffe DIY
 - http://<homey-ip>:8090/changelog - journal de modifications par registre : nombre de changements, intervalle moyen et groupe de polling recommande pour chaque registre Modbus observe
+- http://<homey-ip>:8090/heating-curve - editeur de courbe de chauffe DIY
 
 Remplacez <homey-ip> par l'adresse IP de votre Homey Pro. Utilisez le tableau expert avec prudence : les registres Modbus modifiables peuvent changer le comportement de la pompe a chaleur.
 Le port par defaut des tableaux de bord est 8090 ; si vous avez modifie le parametre Port des tableaux de bord, utilisez ce port dans l'URL.
