@@ -21,15 +21,13 @@
   --amber: #fbbf24;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { height: 100%; }
-body { min-height: 100%; }
 body {
   font-family: system-ui, -apple-system, sans-serif;
   background: var(--bg);
   color: var(--text);
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
 }
 
 /* ── Nav ── */
@@ -54,8 +52,20 @@ nav a {
 }
 nav a:hover { background: #334155; color: #f8fafc; }
 nav a.active { background: #07090f; color: var(--blue); border-color: var(--blue); }
+.nav-conn { margin-left: auto; display: flex; align-items: center; }
+#conn-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--muted);
+  display: inline-block;
+  margin-right: 6px;
+  transition: background 0.3s;
+}
+#conn-dot.online  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+#conn-dot.degraded{ background: var(--orange); }
+#conn-dot.offline { background: var(--red); }
+#conn-label { font-size: 11px; color: var(--muted); }
 
-/* ── Waiting / Error ── */
+/* ── Waiting ── */
 #waiting {
   flex: 1;
   display: flex;
@@ -66,233 +76,15 @@ nav a.active { background: #07090f; color: var(--blue); border-color: var(--blue
   letter-spacing: 0.05em;
 }
 
-/* ── Main layout ── */
+/* ── Main ── */
 #main {
   flex: 1;
   display: none;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px 16px 32px;
+  gap: 14px;
+  padding: 14px 16px 32px;
 }
 #main.visible { display: flex; }
-
-/* ── Hero ── */
-#hero {
-  display: grid;
-  grid-template-columns: 200px 1fr 1fr;
-  gap: 12px;
-  align-items: center;
-}
-@media (max-width: 640px) {
-  #hero { grid-template-columns: 1fr 1fr; }
-  #cop-wrap { grid-column: 1 / -1; display: flex; justify-content: center; }
-}
-
-/* COP gauge */
-#cop-wrap { position: relative; width: 200px; }
-#cop-wrap svg { width: 100%; height: auto; display: block; }
-#gauge-bg {
-  fill: none;
-  stroke: var(--surface2);
-  stroke-width: 14;
-  stroke-linecap: round;
-}
-#gauge-fill {
-  fill: none;
-  stroke-width: 14;
-  stroke-linecap: round;
-  will-change: transform;
-  transition: stroke-dashoffset 0.9s cubic-bezier(0.4, 0, 0.2, 1),
-              stroke 0.9s ease;
-}
-#gauge-value {
-  font-size: 28px;
-  font-weight: 700;
-  fill: var(--text);
-  text-anchor: middle;
-  dominant-baseline: auto;
-}
-#gauge-sub {
-  font-size: 11px;
-  fill: var(--muted);
-  text-anchor: middle;
-}
-
-/* Power hero card */
-.hero-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.hero-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
-.hero-value {
-  font-size: 2.4rem;
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1;
-  transition: color 0.3s;
-}
-.hero-unit { font-size: 0.9rem; color: var(--muted); }
-.hero-sub { font-size: 0.72rem; color: var(--muted); margin-top: 4px; }
-
-@keyframes value-pulse {
-  0%   { transform: scale(1); }
-  35%  { transform: scale(1.07); color: var(--blue); }
-  100% { transform: scale(1); }
-}
-.pulse { animation: value-pulse 0.6s ease-out; }
-
-/* Mode badge */
-#mode-badge {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-#mode-icon { font-size: 2rem; line-height: 1; }
-#mode-name { font-size: 1.1rem; font-weight: 600; }
-#mode-setpoint { font-size: 0.75rem; color: var(--muted); }
-
-/* ── Temp grid ── */
-#temp-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
-@media (max-width: 700px) { #temp-grid { grid-template-columns: repeat(2, 1fr); } }
-
-.temp-card {
-  background: var(--surface);
-  border-radius: 12px;
-  padding: 14px 16px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--muted);
-  transition: border-left-color 1s ease;
-}
-.temp-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-.temp-value { font-size: 1.8rem; font-weight: 700; line-height: 1.1; color: var(--text); }
-.temp-unit { font-size: 0.75rem; color: var(--muted); }
-.temp-sparkline { margin-top: 6px; width: 100%; height: 28px; display: block; }
-
-/* ── Machine strip ── */
-#machine-strip {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 10px;
-}
-@media (max-width: 640px) { #machine-strip { grid-template-columns: 1fr 1fr; } }
-
-.machine-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.machine-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-.machine-value { font-size: 1.1rem; font-weight: 600; }
-
-/* Compressor bar */
-.bar-track {
-  height: 10px;
-  background: var(--surface2);
-  border-radius: 99px;
-  overflow: hidden;
-}
-.bar-fill {
-  height: 100%;
-  border-radius: 99px;
-  transition: width 1s ease, background-color 0.6s ease;
-  width: 0%;
-}
-
-/* Flow drop */
-#flow-svg { width: 52px; height: 68px; display: block; margin: 0 auto; }
-
-/* Fan wheel */
-#fan-svg {
-  width: 52px;
-  height: 52px;
-  display: block;
-  margin: 0 auto;
-  will-change: transform;
-}
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-#fan-rotor { transform-origin: 26px 26px; }
-
-/* ── Delta strip ── */
-#delta-strip {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.delta-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 16px;
-}
-.delta-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; }
-#dt-svg { width: 100%; height: 52px; }
-
-.power-pair { display: flex; gap: 20px; align-items: flex-end; }
-.power-item { display: flex; flex-direction: column; gap: 2px; }
-.power-item-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-.power-item-value { font-size: 1.4rem; font-weight: 700; }
-.power-item-unit { font-size: 0.7rem; color: var(--muted); }
-
-/* ── Capabilities ── */
-#cap-section { display: flex; flex-direction: column; gap: 10px; }
-.cap-group-label {
-  font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em;
-  color: var(--muted); padding: 0 2px;
-}
-.cap-group {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 6px;
-}
-.cap-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0;
-  display: flex;
-  flex-direction: row;
-  min-width: 0;
-  overflow: hidden;
-}
-.cap-icon-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 56px;
-  min-height: 72px;
-  background: rgba(255,255,255,0.04);
-  border-right: 1px solid var(--border);
-}
-.cap-icon { width: 22px; height: 22px; opacity: 0.7; flex-shrink: 0; filter: invert(1); }
-.cap-body { display: flex; flex-direction: column; gap: 4px; padding: 14px 14px 12px; min-width: 0; flex: 1; justify-content: center; }
-.cap-title { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cap-value { font-size: 1rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cap-value.bool-true  { color: var(--green); }
-.cap-value.bool-false { color: var(--muted); }
-.cap-value.bool-alarm { color: var(--red); }
-.cap-unit  { font-size: 0.65rem; color: var(--muted); }
 
 /* ── Alarm bar ── */
 #alarm-bar {
@@ -325,17 +117,102 @@ nav a.active { background: #07090f; color: var(--blue); border-color: var(--blue
   font-size: 0.75rem;
 }
 
-/* ── Connection dot ── */
-#conn-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--muted);
-  display: inline-block;
-  margin-right: 6px;
-  transition: background 0.3s;
+/* ── Rubrics ── */
+.rubric-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
 }
-#conn-dot.online  { background: var(--green); box-shadow: 0 0 6px var(--green); }
-#conn-dot.degraded{ background: var(--orange); }
-#conn-dot.offline { background: var(--red); }
+@media (max-width: 900px) { .rubric-section { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .rubric-section { grid-template-columns: 1fr; } }
+
+.rubric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  min-width: 0;
+}
+.rubric-header {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.rubric-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 6px;
+}
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.section-divider::before, .section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Capability tiles ── */
+.cap-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+  min-width: 0;
+  overflow: hidden;
+}
+.cap-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  min-height: 64px;
+  background: rgba(255,255,255,0.03);
+  border-right: 1px solid var(--border);
+}
+.cap-icon { width: 20px; height: 20px; opacity: 0.7; flex-shrink: 0; filter: invert(1); }
+.cap-body { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px 8px; min-width: 0; flex: 1; justify-content: center; }
+.cap-title { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cap-value { font-size: 0.95rem; font-weight: 700; color: var(--text); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.cap-value.bool-true  { color: var(--green); }
+.cap-value.bool-false { color: var(--muted); }
+.cap-value.bool-alarm { color: var(--red); }
+.cap-unit  { font-size: 0.62rem; color: var(--muted); }
+
+/* ── Diagnostiek tiles ── */
+.diag-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  min-width: 0;
+}
+.diag-tile .rubric-header { margin-bottom: 8px; }
+.diag-value {
+  font-size: 0.72rem;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+/* ── Light mode ── */
 @media (prefers-color-scheme: light) {
   :root {
     --bg: #f8fafc;
@@ -350,9 +227,8 @@ nav a.active { background: #07090f; color: var(--blue); border-color: var(--blue
     --red: #dc2626;
     --amber: #d97706;
   }
-  .hero-value { color: #0f172a; }
-  .bar-track { background: #e2e8f0; }
-  #fan-svg ellipse { fill: #0284c7; }
+  .cap-icon { filter: none; opacity: 0.55; }
+  .cap-icon-wrap { background: rgba(0,0,0,0.03); }
   .alarm-chip { background: #fee2e2; border-color: var(--red); color: var(--red); }
   .status-chip { background: #fef9c3; border-color: var(--amber); color: var(--amber); }
   #alarm-bar { background: #fff7ed; border-color: #fed7aa; }
@@ -360,8 +236,6 @@ nav a.active { background: #07090f; color: var(--blue); border-color: var(--blue
   nav a { color: #475569; border-color: #e2e8f0; }
   nav a:hover { background: #e2e8f0; color: #0f172a; }
   nav a.active { background: #e0f2fe; color: #0284c7; border-color: #0284c7; }
-  .cap-icon { filter: none; opacity: 0.55; }
-  .cap-icon-wrap { background: rgba(0,0,0,0.03); }
 }
 </style>
 </head>
@@ -370,11 +244,11 @@ nav a.active { background: #07090f; color: var(--blue); border-color: var(--blue
 <nav>
   <a href="/">Dashboard</a>
   <a href="/interactive">Interactief</a>
-  <a href="/expert">Expert</a>
-  <a href="/heating-curve">Stooklijn</a>
-  <a href="/changelog">Change Log</a>
   <a href="/live" class="active">Live</a>
-  <span style="margin-left:auto;display:flex;align-items:center;font-size:11px;color:#3d5070">
+  <a href="/expert">Expert</a>
+  <a href="/changelog">Change Log</a>
+  <a href="/heating-curve">Stooklijn</a>
+  <span class="nav-conn">
     <span id="conn-dot"></span><span id="conn-label">—</span>
   </span>
 </nav>
@@ -382,522 +256,94 @@ nav a.active { background: #07090f; color: var(--blue); border-color: var(--blue
 <div id="waiting">Wachten op eerste Modbus-poll…</div>
 
 <div id="main">
-
-  <!-- Hero -->
-  <div id="hero">
-    <div id="cop-wrap">
-      <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
-        <!-- half-circle arc: centre (100,105), radius 85, van 180° naar 0° -->
-        <path id="gauge-bg"
-          d="M 15,105 A 85,85 0 0 1 185,105"
-          fill="none" stroke="#141c2e" stroke-width="14" stroke-linecap="round"/>
-        <path id="gauge-fill"
-          d="M 15,105 A 85,85 0 0 1 185,105"
-          fill="none" stroke="#22c55e" stroke-width="14" stroke-linecap="round"
-          stroke-dasharray="267" stroke-dashoffset="267"/>
-        <text id="gauge-value" x="100" y="96" font-size="28" font-weight="700"
-          fill="#dde8f8" text-anchor="middle">—</text>
-        <text id="gauge-sub" x="100" y="112" font-size="11"
-          fill="#3d5070" text-anchor="middle">COP</text>
-      </svg>
-    </div>
-
-    <div class="hero-card">
-      <div class="hero-label">Elektrisch vermogen</div>
-      <div style="display:flex;align-items:baseline;gap:6px">
-        <div class="hero-value" id="power-val">—</div>
-        <div class="hero-unit">kW</div>
-      </div>
-      <div class="hero-sub" id="power-source-label">—</div>
-      <div class="hero-sub" id="total-energy-label">—</div>
-    </div>
-
-    <div id="mode-badge">
-      <div class="hero-label">Status</div>
-      <div id="mode-icon">○</div>
-      <div id="mode-name" style="font-size:1.1rem;font-weight:600">—</div>
-      <div id="mode-setpoint" style="font-size:0.75rem;color:var(--muted)">—</div>
-    </div>
-  </div>
-
-  <!-- Temperatuurkaarten -->
-  <div id="temp-grid">
-    <div class="temp-card" id="card-ambient">
-      <div class="temp-label">Buiten (T1)</div>
-      <div style="display:flex;align-items:baseline;gap:4px">
-        <div class="temp-value" id="t-ambient">—</div>
-        <div class="temp-unit">°C</div>
-      </div>
-      <svg class="temp-sparkline" id="sp-ambient" viewBox="0 0 120 28" preserveAspectRatio="none"></svg>
-    </div>
-    <div class="temp-card" id="card-inlet">
-      <div class="temp-label">Aanvoer (T6)</div>
-      <div style="display:flex;align-items:baseline;gap:4px">
-        <div class="temp-value" id="t-inlet">—</div>
-        <div class="temp-unit">°C</div>
-      </div>
-      <svg class="temp-sparkline" id="sp-inlet" viewBox="0 0 120 28" preserveAspectRatio="none"></svg>
-    </div>
-    <div class="temp-card" id="card-outlet">
-      <div class="temp-label">Retour (T7)</div>
-      <div style="display:flex;align-items:baseline;gap:4px">
-        <div class="temp-value" id="t-outlet">—</div>
-        <div class="temp-unit">°C</div>
-      </div>
-      <svg class="temp-sparkline" id="sp-outlet" viewBox="0 0 120 28" preserveAspectRatio="none"></svg>
-    </div>
-    <div class="temp-card" id="card-dhw">
-      <div class="temp-label">Tapwater</div>
-      <div style="display:flex;align-items:baseline;gap:4px">
-        <div class="temp-value" id="t-dhw">—</div>
-        <div class="temp-unit">°C</div>
-      </div>
-      <svg class="temp-sparkline" id="sp-dhw" viewBox="0 0 120 28" preserveAspectRatio="none"></svg>
-    </div>
-  </div>
-
-  <!-- Machine strip -->
-  <div id="machine-strip">
-    <div class="machine-card">
-      <div class="machine-label">Compressor</div>
-      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px">
-        <div class="machine-value" id="comp-freq-val">—</div>
-        <span style="font-size:0.75rem;color:var(--muted)">Hz</span>
-      </div>
-      <div class="bar-track">
-        <div class="bar-fill" id="comp-bar"></div>
-      </div>
-    </div>
-
-    <div class="machine-card" style="align-items:center">
-      <div class="machine-label" style="text-align:center">Debiet</div>
-      <svg id="flow-svg" viewBox="0 0 52 68" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <clipPath id="flow-clip">
-            <rect id="flow-clip-rect" x="0" y="68" width="52" height="68"/>
-          </clipPath>
-        </defs>
-        <!-- druppel omtrek -->
-        <path d="M26 4 C26 4 6 30 6 44 A20 20 0 0 0 46 44 C46 30 26 4 26 4Z"
-          fill="none" stroke="#1a2540" stroke-width="2"/>
-        <!-- druppel vulling -->
-        <path d="M26 4 C26 4 6 30 6 44 A20 20 0 0 0 46 44 C46 30 26 4 26 4Z"
-          fill="#38bdf8" opacity="0.7" clip-path="url(#flow-clip)"
-          style="transition: all 0.8s ease"/>
-      </svg>
-      <div style="display:flex;align-items:baseline;gap:4px;margin-top:4px">
-        <div class="machine-value" id="flow-val">—</div>
-        <span style="font-size:0.7rem;color:var(--muted)">L/min</span>
-      </div>
-    </div>
-
-    <div class="machine-card" style="align-items:center">
-      <div class="machine-label" style="text-align:center">Ventilator</div>
-      <svg id="fan-svg" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
-        <g id="fan-rotor">
-          <!-- 3 bladen op 0°, 120°, 240° -->
-          <ellipse cx="26" cy="14" rx="5" ry="12"
-            fill="#38bdf8" opacity="0.75" transform="rotate(0 26 26)"/>
-          <ellipse cx="26" cy="14" rx="5" ry="12"
-            fill="#38bdf8" opacity="0.75" transform="rotate(120 26 26)"/>
-          <ellipse cx="26" cy="14" rx="5" ry="12"
-            fill="#38bdf8" opacity="0.75" transform="rotate(240 26 26)"/>
-          <circle cx="26" cy="26" r="5" fill="#1a2540"/>
-        </g>
-      </svg>
-      <div style="display:flex;align-items:baseline;gap:4px;margin-top:4px">
-        <div class="machine-value" id="fan-val">—</div>
-        <span style="font-size:0.7rem;color:var(--muted)">%</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Delta strip -->
-  <div id="delta-strip">
-    <div class="delta-card">
-      <div class="delta-label">Water ΔT — aanvoer → retour</div>
-      <svg id="dt-svg" viewBox="0 0 280 52" xmlns="http://www.w3.org/2000/svg">
-        <circle id="dt-circle-out" cx="26" cy="26" r="22" fill="#1a2540"/>
-        <text id="dt-text-out" x="26" y="31" text-anchor="middle"
-          font-size="11" font-weight="700" fill="#dde8f8">—</text>
-        <line x1="50" y1="26" x2="226" y2="26" stroke="#1a2540" stroke-width="2"/>
-        <polygon id="dt-arrow" points="222,20 232,26 222,32" fill="#1a2540"/>
-        <text id="dt-delta" x="140" y="18" text-anchor="middle"
-          font-size="11" fill="#3d5070">ΔT —</text>
-        <circle id="dt-circle-in" cx="254" cy="26" r="22" fill="#1a2540"/>
-        <text id="dt-text-in" x="254" y="31" text-anchor="middle"
-          font-size="11" font-weight="700" fill="#dde8f8">—</text>
-      </svg>
-    </div>
-
-    <div class="delta-card">
-      <div class="delta-label">Vermogen</div>
-      <div class="power-pair">
-        <div class="power-item">
-          <div class="power-item-label">Thermisch</div>
-          <div class="power-item-value" id="thermal-val" style="color:var(--orange)">—</div>
-          <div class="power-item-unit">kW</div>
-        </div>
-        <div class="power-item">
-          <div class="power-item-label">Elektrisch</div>
-          <div class="power-item-value" id="elec-val" style="color:var(--blue)">—</div>
-          <div class="power-item-unit">kW</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Capabilities -->
-  <div id="cap-section"></div>
-
-  <!-- Alarm bar -->
   <div id="alarm-bar" hidden></div>
-
-</div><!-- #main -->
+  <div id="cap-section"></div>
+</div>
 
 <script>
-// ── Sparkline storage ──────────────────────────────────────────────────────
-const MAX_PTS = 20;
-const sparkData = { ambient: [], inlet: [], outlet: [], dhw: [] };
-
-// Vaste Y-as per sensor — stabiele temperatuur geeft horizontale lijn
-const SPARK_RANGE = {
-  ambient: { min: -25, max:  45 },
-  inlet:   { min:  10, max:  65 },
-  outlet:  { min:  10, max:  65 },
-  dhw:     { min:  20, max:  70 },
-};
-
-function pushSpark(key, val) {
-  if (val === null || val === undefined || !Number.isFinite(val)) return;
-  sparkData[key].push(val);
-  if (sparkData[key].length > MAX_PTS) sparkData[key].shift();
-}
-
-function renderSpark(svgEl, values, key, strokeColor) {
-  if (!svgEl || values.length < 2) return;
-  const { min, max } = SPARK_RANGE[key] || { min: -25, max: 75 };
-  const range = max - min;
-  const pts = values.map((v, i) => {
-    const x = (i / (values.length - 1)) * 120;
-    const y = 26 - (Math.max(min, Math.min(max, v)) - min) / range * 22;
-    return x.toFixed(1) + ',' + y.toFixed(1);
-  }).join(' ');
-  svgEl.innerHTML =
-    '<polyline points="' + pts + '" fill="none" stroke="' + (strokeColor || 'currentColor') + '"' +
-    ' stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>';
-}
-
-// ── Kleurinterpolatie ──────────────────────────────────────────────────────
-// Stops met leesbare kleuren op zowel donkere als lichte achtergrond (border-left gebruik)
-const TEMP_COLOR_STOPS = [
-  { t: -20, hex: '#60a5fa' },  // helder blauw
-  { t:   5, hex: '#38bdf8' },  // licht blauw
-  { t:  25, hex: '#34d399' },  // groen
-  { t:  40, hex: '#fb923c' },  // oranje
-  { t:  60, hex: '#f87171' },  // rood
-];
-
-function lerpHex(h1, h2, f) {
-  const parse = h => [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
-  const [r1,g1,b1] = parse(h1), [r2,g2,b2] = parse(h2);
-  const r = Math.round(r1 + f*(r2-r1));
-  const g = Math.round(g1 + f*(g2-g1));
-  const b = Math.round(b1 + f*(b2-b1));
-  return '#' + [r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
-}
-
-function tempToHex(c) {
-  const s = TEMP_COLOR_STOPS;
-  if (c <= s[0].t) return s[0].hex;
-  if (c >= s[s.length-1].t) return s[s.length-1].hex;
-  for (let i = 0; i < s.length-1; i++) {
-    if (c >= s[i].t && c <= s[i+1].t) {
-      return lerpHex(s[i].hex, s[i+1].hex, (c - s[i].t) / (s[i+1].t - s[i].t));
-    }
-  }
-  return s[s.length-1].hex;
-}
-
-function applyTempCard(cardId, valueId, sparkId, sparkKey, val) {
-  const card = document.getElementById(cardId);
-  const el = document.getElementById(valueId);
-  if (!card || !el) return;
-  if (val === null || val === undefined) { el.textContent = '—'; return; }
-  el.textContent = val.toFixed(1);
-  const hex = tempToHex(val);
-  card.style.borderLeftColor = hex;
-  pushSpark(sparkKey, val);
-  renderSpark(document.getElementById(sparkId), sparkData[sparkKey], sparkKey, hex);
-}
-
-// ── COP gauge ──────────────────────────────────────────────────────────────
-const GAUGE_LEN = 267; // lengte van de halve cirkel arc (π × 85)
-
-function copToColor(cop) {
-  if (cop >= 4)   return '#22c55e'; // groen
-  if (cop >= 2.5) return '#fbbf24'; // amber
-  return '#ef4444';                 // rood
-}
-
-function updateGauge(cop, valid) {
-  const fill = document.getElementById('gauge-fill');
-  const val  = document.getElementById('gauge-value');
-  const sub  = document.getElementById('gauge-sub');
-  if (!fill || !val) return;
-  if (!valid || cop <= 0) {
-    fill.setAttribute('stroke-dashoffset', String(GAUGE_LEN));
-    val.textContent = '—';
-    sub.textContent = 'Internal COP';
-    fill.setAttribute('stroke', '#3d5070');
-    return;
-  }
-  const offset = GAUGE_LEN * (1 - Math.min(cop, 6) / 6);
-  fill.setAttribute('stroke-dashoffset', offset.toFixed(1));
-  fill.setAttribute('stroke', copToColor(cop));
-  val.textContent = cop.toFixed(2);
-  sub.textContent = 'Internal COP';
-}
-
-// ── Power hero ─────────────────────────────────────────────────────────────
-let prevPowerKw = null;
-
-const SOURCE_LABELS = {
-  'unit-direct':  'Directe meting (0x005C)',
-  'unit-derived': 'Afgeleid (0x005A × 0x005B)',
-  'ac-derived':   'Backup AC (0x0044 × 0x0045)',
-  'none':         'Geen data',
-};
-
-function updatePower(snap) {
-  const p = snap.power;
-  const el = document.getElementById('power-val');
-  if (!el) return;
-  const kw = p.inputPowerKw;
-  el.textContent = kw > 0 ? kw.toFixed(2) : '0';
-
-  if (prevPowerKw !== null && Math.abs(kw - prevPowerKw) > 0.1) {
-    el.classList.remove('pulse');
-    void el.offsetWidth; // reflow
-    el.classList.add('pulse');
-    setTimeout(() => el.classList.remove('pulse'), 650);
-  }
-  prevPowerKw = kw;
-
-  const srcEl = document.getElementById('power-source-label');
-  if (srcEl) srcEl.textContent = SOURCE_LABELS[p.powerSource] || p.powerSource;
-
-  const totEl = document.getElementById('total-energy-label');
-  if (totEl) totEl.textContent = 'Totaal: ' + p.totalEnergyKwh + ' kWh';
-}
-
-// ── Mode badge ─────────────────────────────────────────────────────────────
-const MODE_CFG = {
-  heating: { icon: '🔥', color: '#f97316' },
-  cooling: { icon: '❄️', color: '#38bdf8' },
-  dhw:     { icon: '💧', color: '#22c55e' },
-  off:     { icon: '○',  color: '#3d5070' },
-};
-
-function updateMode(snap) {
-  const on = snap.control.on;
-  const name = (snap.control.modeName || '').toLowerCase();
-  let key = 'off';
-  if (on) {
-    if (name.includes('heat') || name.includes('verwarming')) key = 'heating';
-    else if (name.includes('cool') || name.includes('koel'))  key = 'cooling';
-    else if (name.includes('dhw') || name.includes('water'))  key = 'dhw';
-    else key = 'heating';
-  }
-  const cfg = MODE_CFG[key];
-  const iconEl = document.getElementById('mode-icon');
-  const nameEl = document.getElementById('mode-name');
-  const spEl   = document.getElementById('mode-setpoint');
-  if (iconEl) iconEl.textContent = cfg.icon;
-  if (nameEl) { nameEl.textContent = on ? (snap.control.modeName || 'Aan') : 'Uitgeschakeld'; nameEl.style.color = cfg.color; }
-
-  let sp = '';
-  if (on && key === 'heating') sp = 'Setpoint: ' + snap.control.heatingSetpointC + ' °C';
-  else if (on && key === 'dhw') sp = 'Setpoint: ' + snap.control.dhwSetpointC + ' °C';
-  else if (on && key === 'cooling') sp = 'Setpoint: ' + snap.control.coolingSetpointC + ' °C';
-  if (spEl) spEl.textContent = sp;
-}
-
-// ── Compressor bar ─────────────────────────────────────────────────────────
-function updateCompressor(freq) {
-  const bar = document.getElementById('comp-bar');
-  const val = document.getElementById('comp-freq-val');
-  if (!bar || !val) return;
-  val.textContent = freq !== null ? Math.round(freq) : '—';
-  const pct = freq !== null ? Math.min(100, (freq / 120) * 100) : 0;
-  bar.style.width = pct + '%';
-  if (pct > 75)      bar.style.backgroundColor = '#f97316';
-  else if (pct > 40) bar.style.backgroundColor = '#22c55e';
-  else               bar.style.backgroundColor = '#38bdf8';
-}
-
-// ── Flow drop ──────────────────────────────────────────────────────────────
-function updateFlow(lpm) {
-  const val = document.getElementById('flow-val');
-  const clip = document.getElementById('flow-clip-rect');
-  if (!val || !clip) return;
-  val.textContent = lpm !== null ? lpm.toFixed(1) : '—';
-  const pct = lpm !== null ? Math.min(1, lpm / 15) : 0;
-  // druppel is ~64px hoog (y 4 t/m 68), vulling groeit van onder
-  const clipY = 68 - pct * 64;
-  clip.setAttribute('y', clipY.toFixed(0));
-}
-
-// ── Fan wheel ──────────────────────────────────────────────────────────────
-function updateFan(pct) {
-  const val = document.getElementById('fan-val');
-  const rotor = document.getElementById('fan-rotor');
-  if (!val || !rotor) return;
-  val.textContent = pct !== null ? Math.round(pct) : '—';
-  if (pct && pct > 0) {
-    const dur = Math.max(0.4, 3.5 - (pct / 100) * 3).toFixed(2);
-    rotor.style.animation = 'spin ' + dur + 's linear infinite';
-  } else {
-    rotor.style.animation = 'none';
-  }
-}
-
-// ── ΔT diagram ────────────────────────────────────────────────────────────
-function updateDelta(inletC, outletC) {
-  const cOut = document.getElementById('dt-circle-out');
-  const cIn  = document.getElementById('dt-circle-in');
-  const tOut = document.getElementById('dt-text-out');
-  const tIn  = document.getElementById('dt-text-in');
-  const dTxt = document.getElementById('dt-delta');
-  const arr  = document.getElementById('dt-arrow');
-  if (!cOut) return;
-
-  const outVal = outletC !== null ? outletC : 0;
-  const inVal  = inletC  !== null ? inletC  : 0;
-  const delta  = outVal - inVal;
-
-  cOut.setAttribute('fill', tempToHex(outVal));
-  cIn.setAttribute('fill',  tempToHex(inVal));
-  tOut.textContent = outletC !== null ? outVal.toFixed(1) : '—';
-  tIn.textContent  = inletC  !== null ? inVal.toFixed(1)  : '—';
-  dTxt.textContent = 'ΔT ' + (outletC !== null && inletC !== null ? delta.toFixed(1) + ' °C' : '—');
-
-  const arrowColor = delta > 0 ? '#fb923c' : delta < 0 ? '#38bdf8' : '#475569';
-  if (arr) arr.setAttribute('fill', arrowColor);
-  const line = document.querySelector('#dt-svg line');
-  if (line) line.setAttribute('stroke', arrowColor);
-}
-
-// ── Alarm bar ─────────────────────────────────────────────────────────────
-function updateAlarmBar(snap) {
-  const bar = document.getElementById('alarm-bar');
-  if (!bar) return;
-  const faults = snap.status.activeFaults || [];
-  const defrost = snap.status.defrosting;
-  const antifreeze = snap.status.antifreeze;
-
-  if (faults.length === 0 && !defrost && !antifreeze) {
-    bar.hidden = true;
-    return;
-  }
-  bar.hidden = false;
-  let html = '';
-  faults.forEach(f => { html += '<span class="alarm-chip">' + f + '</span> '; });
-  if (defrost)    html += '<span class="status-chip">Ontdooien actief</span> ';
-  if (antifreeze) html += '<span class="status-chip">Antivries actief</span> ';
-  bar.innerHTML = html;
-}
-
-// ── Connection indicator ───────────────────────────────────────────────────
-function updateConn(snap) {
-  const dot = document.getElementById('conn-dot');
-  const lbl = document.getElementById('conn-label');
-  if (!dot || !lbl) return;
-  const q = snap.diagnostics?.connectionQuality || 'online';
-  dot.className = q;
-  lbl.textContent = q === 'online' ? 'Verbonden' : q === 'degraded' ? 'Degraded' : 'Offline';
-}
-
-// ── Helper: sensorwaarde ophalen ───────────────────────────────────────────
-function sv(snap, key) {
-  return snap.sensors?.[key]?.value ?? null;
-}
-
-// ── Render all ────────────────────────────────────────────────────────────
-function renderAll(snap) {
-  document.getElementById('waiting').style.display = 'none';
-  const main = document.getElementById('main');
-  main.classList.add('visible');
-
-  updateConn(snap);
-  updateGauge(snap.cop.cop, snap.cop.valid);
-  updatePower(snap);
-  updateMode(snap);
-
-  const ambientC = sv(snap, 'ambientT1');
-  const inletC   = sv(snap, 'inletT6');
-  const outletC  = sv(snap, 'outletT7');
-  const dhwC     = sv(snap, 'dhwTankTemp');
-
-  applyTempCard('card-ambient', 't-ambient', 'sp-ambient', 'ambient', ambientC);
-  applyTempCard('card-inlet',   't-inlet',   'sp-inlet',   'inlet',   inletC);
-  applyTempCard('card-outlet',  't-outlet',  'sp-outlet',  'outlet',  outletC);
-  applyTempCard('card-dhw',     't-dhw',     'sp-dhw',     'dhw',     dhwC);
-
-  const freq = sv(snap, 'compRunningFreq');
-  const lpm  = sv(snap, 'waterFlow');
-  const fan  = sv(snap, 'fanSpeed');
-  updateCompressor(freq);
-  updateFlow(lpm);
-  updateFan(fan);
-
-  updateDelta(inletC, outletC);
-
-  const copEl = document.getElementById('thermal-val');
-  const eEl   = document.getElementById('elec-val');
-  if (copEl) copEl.textContent = snap.cop.thermalPowerKw?.toFixed(2) ?? '—';
-  if (eEl)   eEl.textContent   = snap.cop.electricalPowerKw?.toFixed(2) ?? '—';
-
-  updateAlarmBar(snap);
-}
-
-// ── Capability groepen ────────────────────────────────────────────────────
+// ── Capability groepen ─────────────────────────────────────────────────────
 const CAP_GROUPS = [
-  { label: 'Status',         match: id => ['onoff','adlar_running','adlar_mode','adlar_enum_work_mode','adlar_enum_countdown_set','adlar_enum_capacity_set','adlar_defrosting','adlar_antifreeze','adlar_sterilization','adlar_connection_active','adlar_connection_status'].includes(id) },
-  { label: 'Storingen',      match: id => id.startsWith('alarm') || id.startsWith('adlar_fault') },
-  { label: 'Setpoints',      match: id => id.startsWith('target_temperature') },
-  { label: 'Temperaturen',   match: id => id.startsWith('measure_temperature') },
-  { label: 'Vermogen',       match: id => ['measure_power','measure_voltage','measure_current','meter_power','adlar_external_power','defrost_active_power'].includes(id) || id.startsWith('measure_current.') },
-  { label: 'Mechanisch',     match: id => ['measure_water','adlar_pump_pwm','adlar_fan_speed','adlar_eev_step','adlar_evi_step'].includes(id) || id.startsWith('measure_frequency') },
-  { label: 'COP & SCOP',     match: id => id.startsWith('adlar_cop') || id.startsWith('adlar_scop') },
-  { label: 'Stooklijn',      match: id => id.startsWith('heating_curve') },
-  { label: 'Ontdooiing',     match: id => ['adlar_defrost_count_24h','adlar_defrost_minutes_24h','adlar_state_defrost_state','adlar_state_compressor_state','adlar_state_backwater'].includes(id) },
-  { label: 'Energie & Prijs',match: id => id.startsWith('adlar_energy') || id.startsWith('adlar_price') || id.startsWith('adlar_external_energy') || id.startsWith('energy_prices') || id.startsWith('adlar_cheapest') },
-  { label: 'Extern',         match: id => id.startsWith('adlar_external') && !['adlar_external_power','adlar_external_flow'].includes(id) },
-  { label: 'Gebouwmodel',    match: id => id.startsWith('building') || id.startsWith('adlar_building') || id.startsWith('adlar_forecast') || id.startsWith('adlar_optimal') || id.startsWith('adlar_simulated') },
-  { label: 'Prestaties',     match: id => id.startsWith('adlar_performance') || id.startsWith('adlar_scop') || id.startsWith('adaptive_control') || id.startsWith('cop_optimizer') },
-  { label: 'Verbinding',     match: id => id.startsWith('adlar_connection') || id.startsWith('adlar_firmware') || id.startsWith('adlar_protocol') || id.startsWith('adlar_daily_disconnect') },
-  { label: 'Overig',         match: () => true },
+  { label: 'Status',          match: id => ['onoff','adlar_running','adlar_mode','adlar_enum_work_mode','adlar_enum_countdown_set','adlar_enum_capacity_set','adlar_connection_active','adlar_connection_status'].includes(id) },
+  { label: 'Storingen',       match: id => id.startsWith('alarm') || id.startsWith('adlar_fault') },
+  { label: 'Setpoints',       match: id => id.startsWith('target_temperature') },
+  { label: 'Temperaturen',    match: id => id.startsWith('measure_temperature') },
+  { label: 'Vermogen',        match: id => ['measure_power','measure_voltage','measure_current','meter_power','adlar_external_power','defrost_active_power'].includes(id) || id.startsWith('measure_current.') },
+  { label: 'Mechanisch',      match: id => ['measure_water','adlar_pump_pwm','adlar_fan_speed','adlar_eev_step','adlar_evi_step'].includes(id) || id.startsWith('measure_frequency') },
+  { label: 'Prestaties',      match: id => (id.startsWith('adlar_cop') || id.startsWith('adlar_scop') || id === 'adlar_performance_score') && !id.includes('diagnostics') },
+  { label: 'Stooklijn',       match: id => id.startsWith('heating_curve') },
+  { label: 'Ontdooiing',      match: id => ['adlar_defrosting','adlar_defrost_count_24h','adlar_defrost_minutes_24h','adlar_state_defrost_state','adlar_state_compressor_state','adlar_state_backwater','adlar_antifreeze','adlar_sterilization'].includes(id) },
+  { label: 'Energie & Prijs', match: id => id.startsWith('adlar_energy') || id.startsWith('adlar_price') || id.startsWith('adlar_external_energy') || id.startsWith('adlar_cheapest') },
+  { label: 'Extern',          match: id => id.startsWith('adlar_external') && !['adlar_external_power','adlar_external_flow'].includes(id) },
+  { label: 'Gebouwmodel',     match: id => (id.startsWith('building') || id.startsWith('adlar_building') || id.startsWith('adlar_forecast') || id.startsWith('adlar_optimal') || id.startsWith('adlar_simulated')) && !id.includes('diagnostics') },
+  { label: 'Verbinding',      match: id => id.startsWith('adlar_connection') || id.startsWith('adlar_firmware') || id.startsWith('adlar_protocol') || id.startsWith('adlar_daily_disconnect') || id.startsWith('adlar_openmeteo') || id.startsWith('adlar_last_') },
+  { label: 'Diagnostiek',     match: id => id.includes('diagnostics') || id.endsWith('_data') || id === 'adlar_performance_report' },
+  { label: 'Overig',          match: () => true },
 ];
+
+const RELEVANT    = ['Status','Storingen','Setpoints','Temperaturen','Vermogen','Mechanisch','Prestaties','Stooklijn','Ontdooiing'];
+const OVERIGE     = ['Energie & Prijs','Extern','Gebouwmodel','Verbinding','Overig'];
+const DIAGNOSTIEK = ['Diagnostiek'];
 
 function capGroup(id) {
   for (const g of CAP_GROUPS) if (g.match(id)) return g.label;
   return 'Overig';
 }
 
-function formatCapValue(value, type, id) {
-  if (typeof value === 'boolean') return value;
-  if (type === 'boolean' || value === true || value === false) return value;
-  if (typeof value === 'number') return Number.isFinite(value) ? value : '—';
-  if (typeof value === 'string' && value.length > 28) return value.slice(0, 26) + '…';
-  return value;
+function renderCapTile(cap) {
+  const iconHtml = cap.icon
+    ? `<img class="cap-icon" src="${cap.icon}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'">`
+    : '';
+  const raw = cap.value;
+  const isBool = typeof raw === 'boolean' || cap.type === 'boolean';
+  let valClass = 'cap-value';
+  let valText = '';
+  if (isBool) {
+    const isAlarm = cap.id.startsWith('alarm') || cap.id.startsWith('adlar_fault');
+    valClass += raw ? (isAlarm ? ' bool-alarm' : ' bool-true') : ' bool-false';
+    valText = raw ? (isAlarm ? '⚠ Actief' : '✓ Actief') : '○ Inactief';
+  } else if (typeof raw === 'number') {
+    valText = raw.toFixed(raw % 1 === 0 ? 0 : 2);
+  } else {
+    valText = String(raw ?? '—');
+  }
+  return `<div class="cap-card">
+    <div class="cap-icon-wrap">${iconHtml}</div>
+    <div class="cap-body">
+      <div class="cap-title" title="${cap.title}">${cap.title}</div>
+      <div class="${valClass}">${valText}</div>
+      ${cap.unit ? `<div class="cap-unit">${cap.unit}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderRubricRow(labels, grouped) {
+  const active = labels.filter(l => grouped[l]?.length > 0);
+  if (!active.length) return '';
+  let html = '<div class="rubric-section">';
+  for (const label of active) {
+    html += `<div class="rubric-card">
+      <div class="rubric-header">${label}</div>
+      <div class="rubric-tiles">${grouped[label].map(renderCapTile).join('')}</div>
+    </div>`;
+  }
+  return html + '</div>';
+}
+
+function renderDiagSection(labels, grouped) {
+  const caps = labels.flatMap(l => grouped[l] ?? []);
+  if (!caps.length) return '';
+  let html = '<div class="rubric-section">';
+  for (const cap of caps) {
+    const val = cap.value != null ? String(cap.value) : '—';
+    html += `<div class="diag-tile">
+      <div class="rubric-header" title="${cap.title}">${cap.title}</div>
+      <div class="diag-value">${val}</div>
+    </div>`;
+  }
+  return html + '</div>';
 }
 
 function renderCapabilities(caps) {
-  const section = document.getElementById('cap-section');
-  if (!section) return;
-
-  // Groepeer
   const grouped = {};
   for (const cap of caps) {
     const g = capGroup(cap.id);
@@ -905,63 +351,64 @@ function renderCapabilities(caps) {
     grouped[g].push(cap);
   }
 
-  const groupOrder = CAP_GROUPS.map(g => g.label);
-  let html = '';
-  for (const label of groupOrder) {
-    const items = grouped[label];
-    if (!items || items.length === 0) continue;
-    html += `<div class="cap-group-label">${label}</div><div class="cap-group">`;
-    for (const cap of items) {
-      const iconHtml = cap.icon
-        ? `<img class="cap-icon" src="${cap.icon}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'">`
-        : '';
+  const section = document.getElementById('cap-section');
+  let html = renderRubricRow(RELEVANT, grouped);
 
-      const raw = cap.value;
-      const isBool = typeof raw === 'boolean' || cap.type === 'boolean';
-      let valClass = 'cap-value';
-      let valText = '';
+  const hasOverige = OVERIGE.some(g => grouped[g]?.length > 0);
+  if (hasOverige) {
+    html += '<div class="section-divider"><span>Overige</span></div>';
+    html += renderRubricRow(OVERIGE, grouped);
+  }
 
-      if (isBool) {
-        const isAlarm = cap.id.startsWith('alarm') || cap.id.startsWith('adlar_fault');
-        valClass += raw ? (isAlarm ? ' bool-alarm' : ' bool-true') : ' bool-false';
-        valText = raw ? (isAlarm ? '⚠ Actief' : '✓ Actief') : '○ Inactief';
-      } else if (typeof raw === 'number') {
-        valText = raw.toFixed(raw % 1 === 0 ? 0 : 2);
-      } else {
-        valText = String(raw ?? '—');
-        if (valText.length > 22) valText = valText.slice(0, 20) + '…';
-      }
-
-      html += `<div class="cap-card">
-        <div class="cap-icon-wrap">${iconHtml}</div>
-        <div class="cap-body">
-          <div class="cap-title" title="${cap.title}">${cap.title}</div>
-          <div class="${valClass}">${valText}</div>
-          ${cap.unit ? `<div class="cap-unit">${cap.unit}</div>` : ''}
-        </div>
-      </div>`;
-    }
-    html += '</div>';
+  const hasDiag = DIAGNOSTIEK.some(g => grouped[g]?.length > 0);
+  if (hasDiag) {
+    html += '<div class="section-divider"><span>Diagnostiek</span></div>';
+    html += renderDiagSection(DIAGNOSTIEK, grouped);
   }
   section.innerHTML = html;
 }
 
-// ── Poll loop ─────────────────────────────────────────────────────────────
+function updateAlarmBar(caps) {
+  const bar = document.getElementById('alarm-bar');
+  if (!bar) return;
+  const alarms = caps.filter(c => (c.id.startsWith('alarm') || c.id.startsWith('adlar_fault')) && c.value === true);
+  const defrost = caps.find(c => c.id === 'adlar_defrosting')?.value;
+  const antifreeze = caps.find(c => c.id === 'adlar_antifreeze')?.value;
+
+  if (!alarms.length && !defrost && !antifreeze) { bar.hidden = true; return; }
+  bar.hidden = false;
+  let html = '';
+  alarms.forEach(c => { html += `<span class="alarm-chip">${c.title}</span>`; });
+  if (defrost)    html += '<span class="status-chip">Ontdooien actief</span>';
+  if (antifreeze) html += '<span class="status-chip">Antivries actief</span>';
+  bar.innerHTML = html;
+}
+
+function updateConn(caps) {
+  const dot = document.getElementById('conn-dot');
+  const lbl = document.getElementById('conn-label');
+  const status = caps.find(c => c.id === 'adlar_connection_status')?.value;
+  const active = caps.find(c => c.id === 'adlar_connection_active')?.value;
+  if (!dot) return;
+  const q = active ? 'online' : (status ? 'degraded' : 'offline');
+  dot.className = q;
+  lbl.textContent = active ? 'Verbonden' : (status || 'Offline');
+}
+
+// ── Poll loop ──────────────────────────────────────────────────────────────
 async function refresh() {
   try {
-    const [snapRes, capRes] = await Promise.all([
-      fetch('/api/snapshot'),
-      fetch('/api/capabilities'),
-    ]);
-    if (snapRes.status !== 204) {
-      const snap = await snapRes.json();
-      renderAll(snap);
-    }
-    if (capRes.ok) {
-      const caps = await capRes.json();
-      renderCapabilities(caps);
-    }
-  } catch (_) { /* stille fout — volgende poll probeert het opnieuw */ }
+    const res = await fetch('/api/capabilities');
+    if (!res.ok) return;
+    const caps = await res.json();
+
+    document.getElementById('waiting').style.display = 'none';
+    document.getElementById('main').classList.add('visible');
+
+    updateConn(caps);
+    updateAlarmBar(caps);
+    renderCapabilities(caps);
+  } catch (_) { /* stille fout */ }
 }
 
 refresh();
