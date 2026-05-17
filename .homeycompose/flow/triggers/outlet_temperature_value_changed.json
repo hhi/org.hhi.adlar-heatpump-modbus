@@ -1,10 +1,10 @@
 {
   "id": "outlet_temperature_value_changed",
   "title": {
-    "en": "Outlet temperature changed",
-    "nl": "Water uittrede temperatuur gewijzigd",
-    "de": "Rücklauftemperatur geändert",
-    "fr": "Température de sortie changée"
+    "en": "Outlet temperature has changed",
+    "nl": "Water uittrede temperatuur is veranderd",
+    "de": "Rücklauftemperatur hat sich geändert",
+    "fr": "La température de sortie a changé"
   },
   "hint": {
     "en": "Triggers when water outlet temperature changes by at least 0.5°C",

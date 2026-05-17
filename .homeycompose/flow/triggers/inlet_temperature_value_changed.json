@@ -1,10 +1,10 @@
 {
   "id": "inlet_temperature_value_changed",
   "title": {
-    "en": "Inlet temperature changed",
-    "nl": "Water intrede temperatuur gewijzigd",
-    "de": "Vorlauftemperatur geändert",
-    "fr": "Température d'entrée changée"
+    "en": "Inlet temperature has changed",
+    "nl": "Water intrede temperatuur is veranderd",
+    "de": "Vorlauftemperatur hat sich geändert",
+    "fr": "La température d'entrée a changé"
   },
   "hint": {
     "en": "Triggers when water inlet temperature changes by at least 0.5°C",
