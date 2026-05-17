@@ -12,6 +12,7 @@
     "de": "Wird ausgelöst, wenn sich die Rücklauftemperatur um mindestens 0,5°C ändert",
     "fr": "Se déclenche lorsque la température de sortie d'eau change d'au moins 0,5°C"
   },
+  
   "args": [
     {
       "type": "device",
@@ -53,6 +54,5 @@
       },
       "example": 0.7
     }
-  ],
-  "highlight": true
+  ]
 }
