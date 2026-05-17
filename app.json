@@ -2591,6 +2591,7 @@
           "de": "Wird ausgelöst, wenn sich die Vorlauftemperatur um mindestens 0,5°C ändert",
           "fr": "Se déclenche lorsque la température d'entrée d'eau change d'au moins 0,5°C"
         },
+        "highlight": true,
         "args": [
           {
             "type": "device",
@@ -2632,8 +2633,7 @@
             },
             "example": 0.7
           }
-        ],
-        "highlight": true
+        ]
       },
       {
         "id": "learning_milestone_reached",
@@ -3074,8 +3074,7 @@
             },
             "example": 0.7
           }
-        ],
-        "highlight": true
+        ]
       },
       {
         "id": "performance_report_ready",
