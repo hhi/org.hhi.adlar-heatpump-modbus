@@ -19,7 +19,7 @@
   "dependencies": {
     "jsmodbus": "^4.0.10"
   },
-  "overrides": {
+    "overrides": {
     "minimatch": "^9.0.7"
   }
 }
