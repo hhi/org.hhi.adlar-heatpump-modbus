@@ -1,5 +1,5 @@
 {
-  "2.7.4": {
+  "2.7.5": {
     "en": "Trigger card titles corrected: 'Inlet temperature has changed' and 'Outlet temperature has changed' now end consistently with 'has changed', distinguishing them from the threshold-based cards.",
     "nl": "Titels van de triggerkaarten gecorrigeerd: 'Water intrede temperatuur is veranderd' en 'Water uittrede temperatuur is veranderd' eindigen nu consequent op 'is veranderd', zodat ze zich duidelijk onderscheiden van de drempelgebaseerde kaarten."
   },
