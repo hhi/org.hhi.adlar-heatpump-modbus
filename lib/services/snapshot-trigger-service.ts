@@ -56,12 +56,8 @@ export class SnapshotTriggerService {
     this._detectNumericChange('ambient', snap.sensors.ambientT1?.value, 'ambient_temperature_changed', trigger, (value) => ({
       current_temperature: this._round1(value),
     }));
-    this._detectNumericChange('inlet', snap.sensors.inletT6?.value, 'inlet_temperature_changed', trigger, (value) => ({
-      current_temperature: this._round1(value),
-    }));
-    this._detectNumericChange('outlet', snap.sensors.outletT7?.value, 'outlet_temperature_changed', trigger, (value) => ({
-      current_temperature: this._round1(value),
-    }));
+    this._detectInletOutletChange('inlet', snap.sensors.inletT6?.value, 'inlet_temperature_changed', 'inlet_temperature_value_changed', trigger);
+    this._detectInletOutletChange('outlet', snap.sensors.outletT7?.value, 'outlet_temperature_changed', 'outlet_temperature_value_changed', trigger);
 
     const mode = snap.control.mode;
     if (this._lastHeatingMode !== null && mode !== this._lastHeatingMode) {
@@ -126,6 +122,29 @@ export class SnapshotTriggerService {
       current_fan_frequency: this._round1(value),
       threshold_frequency: value,
     }));
+  }
+
+  private _detectInletOutletChange(
+    key: string,
+    value: number | undefined,
+    thresholdCardId: string,
+    pureChangeCardId: string,
+    trigger: TriggerFn,
+  ): void {
+    if (value === undefined) return;
+
+    const previousValue = this._lastValues.get(key);
+    if (previousValue !== undefined && Math.abs(value - previousValue) >= 0.5) {
+      const condition = value > previousValue ? 'above' : 'below';
+      trigger(thresholdCardId, { current_temperature: this._round1(value) }, { condition, temperature: value, currentValue: value });
+      trigger(pureChangeCardId, {
+        current_temperature: this._round1(value),
+        previous_temperature: this._round1(previousValue),
+        delta_temperature: this._round1(value - previousValue),
+      }, {});
+    }
+
+    this._lastValues.set(key, value);
   }
 
   private _detectTemperatureAlert(key: string, value: number | undefined, cardId: string, trigger: TriggerFn): void {

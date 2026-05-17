@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "org.hhi.adlar-heatpump-modbus",
-  "version": "2.7.2",
+  "version": "2.7.3",
   "compatibility": ">=12.2.0",
   "sdk": 3,
   "platforms": [
@@ -2578,6 +2578,64 @@
         "highlight": true
       },
       {
+        "id": "inlet_temperature_value_changed",
+        "title": {
+          "en": "Inlet temperature changed",
+          "nl": "Water intrede temperatuur gewijzigd",
+          "de": "Vorlauftemperatur geändert",
+          "fr": "Température d'entrée changée"
+        },
+        "hint": {
+          "en": "Triggers when water inlet temperature changes by at least 0.5°C",
+          "nl": "Wordt geactiveerd wanneer de water intrede temperatuur minimaal 0,5°C wijzigt",
+          "de": "Wird ausgelöst, wenn sich die Vorlauftemperatur um mindestens 0,5°C ändert",
+          "fr": "Se déclenche lorsque la température d'entrée d'eau change d'au moins 0,5°C"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=intelligent-heatpump-modbus"
+          }
+        ],
+        "tokens": [
+          {
+            "type": "number",
+            "name": "current_temperature",
+            "title": {
+              "en": "Current inlet temperature",
+              "nl": "Huidige water intrede temperatuur",
+              "de": "Aktuelle Vorlauftemperatur",
+              "fr": "Température d'entrée actuelle"
+            },
+            "example": 45.5
+          },
+          {
+            "type": "number",
+            "name": "previous_temperature",
+            "title": {
+              "en": "Previous inlet temperature",
+              "nl": "Vorige water intrede temperatuur",
+              "de": "Vorherige Vorlauftemperatur",
+              "fr": "Température d'entrée précédente"
+            },
+            "example": 44.8
+          },
+          {
+            "type": "number",
+            "name": "delta_temperature",
+            "title": {
+              "en": "Temperature change",
+              "nl": "Temperatuurverschil",
+              "de": "Temperaturänderung",
+              "fr": "Variation de température"
+            },
+            "example": 0.7
+          }
+        ],
+        "highlight": true
+      },
+      {
         "id": "learning_milestone_reached",
         "title": {
           "en": "Building model learning milestone",
@@ -2957,6 +3015,64 @@
               "fr": "Température de sortie actuelle"
             },
             "example": 25.5
+          }
+        ],
+        "highlight": true
+      },
+      {
+        "id": "outlet_temperature_value_changed",
+        "title": {
+          "en": "Outlet temperature changed",
+          "nl": "Water uittrede temperatuur gewijzigd",
+          "de": "Rücklauftemperatur geändert",
+          "fr": "Température de sortie changée"
+        },
+        "hint": {
+          "en": "Triggers when water outlet temperature changes by at least 0.5°C",
+          "nl": "Wordt geactiveerd wanneer de water uittrede temperatuur minimaal 0,5°C wijzigt",
+          "de": "Wird ausgelöst, wenn sich die Rücklauftemperatur um mindestens 0,5°C ändert",
+          "fr": "Se déclenche lorsque la température de sortie d'eau change d'au moins 0,5°C"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=intelligent-heatpump-modbus"
+          }
+        ],
+        "tokens": [
+          {
+            "type": "number",
+            "name": "current_temperature",
+            "title": {
+              "en": "Current outlet temperature",
+              "nl": "Huidige water uittrede temperatuur",
+              "de": "Aktuelle Rücklauftemperatur",
+              "fr": "Température de sortie actuelle"
+            },
+            "example": 25.5
+          },
+          {
+            "type": "number",
+            "name": "previous_temperature",
+            "title": {
+              "en": "Previous outlet temperature",
+              "nl": "Vorige water uittrede temperatuur",
+              "de": "Vorherige Rücklauftemperatur",
+              "fr": "Température de sortie précédente"
+            },
+            "example": 24.8
+          },
+          {
+            "type": "number",
+            "name": "delta_temperature",
+            "title": {
+              "en": "Temperature change",
+              "nl": "Temperatuurverschil",
+              "de": "Temperaturänderung",
+              "fr": "Variation de température"
+            },
+            "example": 0.7
           }
         ],
         "highlight": true
