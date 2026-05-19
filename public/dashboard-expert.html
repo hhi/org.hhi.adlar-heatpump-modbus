@@ -296,6 +296,7 @@ const rangeWarningTips = new Map();
 const readRegisters = new Map();
 const readErrors = new Map();
 const cachedRegisters = new Map();
+const directReadInFlight = new Set();
 let readProgressRun = 0;
 let readProgressClearTimer = null;
 let cacheRefreshTimer = null;
@@ -629,6 +630,7 @@ function updateCacheStatus(count) {
 
 function applyRegisterCacheToVisibleRows() {
   for (const entry of cachedRegisters.values()) {
+    if (directReadInFlight.has(entry.address)) continue;
     applyRegisterValue(entry.address, entry.rawValue, entry.scaledValue, entry.isCoil, 'cache', entry.wireRawValue);
   }
 }
@@ -651,41 +653,46 @@ function applyRegisterValue(addr, rawValue, scaledValue, isCoil, source, wireRaw
 async function readRow(addr, isCoil, multiply) {
   const rawEl = document.getElementById('raw-' + addr);
   const scEl  = document.getElementById('scaled-' + addr);
+  directReadInFlight.add(addr);
   rawEl.innerHTML = '<span class="reading">…</span>';
 
-  for (let attempt = 1; attempt <= 2; attempt++) {
-    try {
-      const r = await fetch('/api/expert/read', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: addr, isCoil, multiply }),
-      });
-      const j = await r.json();
-      if (j.ok) {
-        cachedRegisters.set(addr, {
-          address: addr,
-          wireRawValue: j.rawValue,
-          rawValue: j.rawValue,
-          scaledValue: isCoil ? null : j.scaledValue,
-          isCoil,
-          source: 'direct',
+  try {
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const r = await fetch('/api/expert/read', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address: addr, isCoil, multiply }),
         });
-        applyRegisterValue(addr, j.rawValue, isCoil ? null : j.scaledValue, isCoil, 'direct');
-        flashRow(addr);
-        return;
+        const j = await r.json();
+        if (j.ok) {
+          cachedRegisters.set(addr, {
+            address: addr,
+            wireRawValue: j.rawValue,
+            rawValue: j.rawValue,
+            scaledValue: isCoil ? null : j.scaledValue,
+            isCoil,
+            source: 'direct',
+          });
+          applyRegisterValue(addr, j.rawValue, isCoil ? null : j.scaledValue, isCoil, 'direct');
+          flashRow(addr);
+          return;
+        }
+        if (attempt < 2) { await sleep(r.status === 503 ? 4000 : 600); continue; }
+        rawEl.textContent = '⚠ ' + (j.error || 'fout');
+        scEl.textContent = '';
+        recordRegisterError(addr, j.error || 'fout');
+        updateRangeWarning(addr, null);
+      } catch (e) {
+        if (attempt < 2) { await sleep(600); continue; }
+        rawEl.textContent = '⚠ ' + e.message;
+        scEl.textContent = '';
+        recordRegisterError(addr, e.message);
+        updateRangeWarning(addr, null);
       }
-      if (attempt < 2) { await sleep(r.status === 503 ? 4000 : 600); continue; }
-      rawEl.textContent = '⚠ ' + (j.error || 'fout');
-      scEl.textContent = '';
-      recordRegisterError(addr, j.error || 'fout');
-      updateRangeWarning(addr, null);
-    } catch (e) {
-      if (attempt < 2) { await sleep(600); continue; }
-      rawEl.textContent = '⚠ ' + e.message;
-      scEl.textContent = '';
-      recordRegisterError(addr, e.message);
-      updateRangeWarning(addr, null);
     }
+  } finally {
+    directReadInFlight.delete(addr);
   }
 }
 
@@ -731,6 +738,7 @@ async function readBlock(blockId, progress = null) {
 
   // Lees registers met korte pauze om Modbus niet te overbelasten
   for (const reg of block.registers) {
+    setReadProgressCurrent(activeProgress, reg);
     await readRow(reg.address, !!reg.isCoil, reg.multiply || 1);
     incrementReadProgress(activeProgress);
     await sleep(120);
@@ -754,9 +762,16 @@ function incrementReadProgress(progress) {
   renderReadProgress(progress);
 }
 
+function setReadProgressCurrent(progress, reg) {
+  if (!progress || progress.token !== readProgressRun) return;
+  progress.current = `${formatAddress(reg.address)} ${reg.registerId || reg.key || reg.name || ''}`.trim();
+  renderReadProgress(progress);
+}
+
 function finishReadProgress(progress) {
   if (!progress || progress.token !== readProgressRun) return;
   progress.done = progress.total;
+  progress.current = null;
   renderReadProgress(progress, true);
   readProgressClearTimer = setTimeout(() => {
     if (progress.token === readProgressRun) {
@@ -769,7 +784,8 @@ function renderReadProgress(progress, finished = false) {
   const el = document.getElementById('read-progress');
   if (!el || !progress) return;
   const prefix = finished ? 'Gereed' : progress.label;
-  el.textContent = `${prefix}: ${progress.done}/${progress.total} registers`;
+  const current = !finished && progress.current ? ` · bezig ${progress.current}` : '';
+  el.textContent = `${prefix}: ${progress.done}/${progress.total} registers${current}`;
 }
 
 function getRangeEligibleRegisterCount() {

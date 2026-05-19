@@ -1,4 +1,8 @@
 {
+  "2.8.1": {
+    "en": "Existing devices now add any missing configured capabilities on app restart. In the expert dashboard, automatic cache updates no longer hide an active direct register read, and block refresh progress now shows the register currently being read.",
+    "nl": "Bestaande apparaten voegen ontbrekende geconfigureerde capabilities nu toe bij een app-herstart. In het expertdashboard verbergen automatische cache-updates een actieve directe registerlezing niet meer, en de voortgang van een blokverversing toont nu welk register wordt gelezen."
+  },
   "2.8.0": {
     "en": "Modbus-backed capabilities now update from all poll groups, including medium and slow groups. Dashboards refresh faster for superfast registers. The expert dashboard now shows cached register values automatically, refreshes cached values every 5 seconds, labels cached versus direct reads, and shows both wire raw and decoded register values. Internal power measurement capabilities are enabled by default for new devices.",
     "nl": "Modbus-gekoppelde capabilities worden nu bijgewerkt vanuit alle pollgroepen, inclusief medium en slow. Dashboards verversen sneller voor supersnelle registers. Het expertdashboard toont cachewaarden automatisch, ververst cachewaarden elke 5 seconden, labelt cachewaarden en directe reads, en toont zowel wire raw als gedecodeerde registerwaarden. Interne vermogensmeting-capabilities staan standaard aan voor nieuwe apparaten."
