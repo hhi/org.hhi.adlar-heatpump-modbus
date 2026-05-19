@@ -1,4 +1,8 @@
 {
+  "2.8.0": {
+    "en": "Modbus-backed capabilities now update from all poll groups, including medium and slow groups. Dashboards refresh faster for superfast registers. The expert dashboard now shows cached register values automatically, refreshes cached values every 5 seconds, labels cached versus direct reads, and shows both wire raw and decoded register values. Internal power measurement capabilities are enabled by default for new devices.",
+    "nl": "Modbus-gekoppelde capabilities worden nu bijgewerkt vanuit alle pollgroepen, inclusief medium en slow. Dashboards verversen sneller voor supersnelle registers. Het expertdashboard toont cachewaarden automatisch, ververst cachewaarden elke 5 seconden, labelt cachewaarden en directe reads, en toont zowel wire raw als gedecodeerde registerwaarden. Interne vermogensmeting-capabilities staan standaard aan voor nieuwe apparaten."
+  },
   "2.7.5": {
     "en": "Trigger card titles corrected: 'Inlet temperature has changed' and 'Outlet temperature has changed' now end consistently with 'has changed', distinguishing them from the threshold-based cards.",
     "nl": "Titels van de triggerkaarten gecorrigeerd: 'Water intrede temperatuur is veranderd' en 'Water uittrede temperatuur is veranderd' eindigen nu consequent op 'is veranderd', zodat ze zich duidelijk onderscheiden van de drempelgebaseerde kaarten."

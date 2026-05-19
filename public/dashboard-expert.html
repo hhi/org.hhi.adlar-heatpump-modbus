@@ -23,7 +23,7 @@
   .view-toggle button.active { color: #e0f2fe; background: #075985; }
 
   /* Accordion */
-  .block { border: 1px solid #2d3548; border-radius: 10px; margin-bottom: 0.75rem; overflow: hidden; }
+  .block { border: 1px solid #2d3548; border-radius: 10px; margin-bottom: 0.75rem; overflow: visible; }
   .block-header { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; background: #1a1f2e; cursor: pointer; user-select: none; }
   .block-header:hover { background: #1e2433; }
   .block-title { font-size: 0.9rem; font-weight: 600; color: #cbd5e1; flex: 1; }
@@ -75,6 +75,9 @@
   .btn-write:hover { background: #2563eb; }
   .actions-cell { white-space: nowrap; }
   .reading { color: #64748b; font-size: 0.75rem; font-style: italic; }
+  .value-source { display: inline-block; margin-left: 0.35rem; color: #64748b; font-size: 0.68rem; font-weight: 600; }
+  .value-source.direct { color: #22c55e; }
+  .value-source.cache { color: #38bdf8; }
 
   /* Dialog / popup */
   dialog { background: #1e2433; border: 1px solid #2d3548; border-radius: 12px; color: #e2e8f0; padding: 1.5rem; max-width: 420px; width: 100%; }
@@ -143,13 +146,22 @@
     border: 1px solid #334155;
     color: #cbd5e1;
     font-size: 0.72rem;
-    white-space: nowrap;
+    white-space: normal;
+    width: max-content;
+    max-width: min(320px, calc(100vw - 2rem));
+    line-height: 1.25;
+    text-align: left;
     padding: 0.3rem 0.55rem;
     border-radius: 5px;
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.15s;
     z-index: 100;
+  }
+  .actions-cell [data-tip]::after {
+    left: auto;
+    right: 0;
+    transform: none;
   }
   [data-tip]:hover::after { opacity: 1; }
   @media (prefers-color-scheme: light) {
@@ -213,9 +225,9 @@
     <button type="button" id="view-address" class="active" onclick="setViewMode('address')">Adresweergave</button>
     <button type="button" id="view-functional" onclick="setViewMode('functional')">Functioneel</button>
   </div>
-  <button type="button" class="btn-read btn-expand" onclick="expandAll()">&#9660; Alles uitklappen</button>
+  <button type="button" class="btn-read btn-expand" data-tip="Klap alle blokken open en toon beschikbare cachewaarden" onclick="expandAll()">&#9660; Alles uitklappen</button>
   <button type="button" class="btn-read btn-expand" onclick="collapseAll()">&#9650; Alles inklappen</button>
-  <button type="button" class="btn-read btn-expand" id="report-btn" onclick="openReportDialog()" disabled title="Lees eerst een blok of gebruik Alles uitklappen">Markdown rapport</button>
+  <button type="button" class="btn-read btn-expand" id="report-btn" onclick="openReportDialog()" disabled title="Nog geen cache- of directwaarden beschikbaar">Markdown rapport</button>
 </div>
 
 <div class="filter-bar">
@@ -283,8 +295,12 @@ const rangeCheckedRegisters = new Set();
 const rangeWarningTips = new Map();
 const readRegisters = new Map();
 const readErrors = new Map();
+const cachedRegisters = new Map();
 let readProgressRun = 0;
 let readProgressClearTimer = null;
+let cacheRefreshTimer = null;
+let cacheRefreshInFlight = false;
+const CACHE_REFRESH_MS = 5000;
 
 // ── Init ───────────────────────────────────────────────────────────────────────
 async function init() {
@@ -295,10 +311,12 @@ async function init() {
     functionalBlocks = buildFunctionalBlocks(blocks);
     visibleBlocks = blocks;
     renderBlocks();
+    await loadRegisterCache();
     updateRangeSummary();
     updateReportButton();
     document.getElementById('dot').className = 'dot ok';
-    document.getElementById('status-text').textContent = 'Registermetadata geladen';
+    document.getElementById('status-text').textContent = `Registermetadata geladen, ${cachedRegisters.size} cachewaarden beschikbaar`;
+    startCacheRefresh();
   } catch (e) {
     document.getElementById('status-text').textContent = 'Fout bij laden registerdata: ' + e.message;
   }
@@ -367,12 +385,12 @@ function renderBlocks() {
         <span class="chevron">&#9654;</span>
         <span class="block-title">${esc(block.label)}</span>
         <span class="block-badge ${block.readOnly ? 'badge-ro' : 'badge-rw'}" data-tip="${block.readOnly ? 'Alleen lezen' : 'Lezen en schrijven'}">${block.readOnly ? 'R' : 'R/W'}</span>
-        <button type="button" class="btn-read btn-expand" data-tip="Lees alle registers in dit blok live via Modbus" onclick="event.stopPropagation();readBlock('${block.id}')">&#8635; Ververs blok</button>
+        <button type="button" class="btn-read btn-expand" data-tip="Lees alle registers in dit blok direct via Modbus" onclick="event.stopPropagation();readBlock('${block.id}')">&#8635; Ververs blok</button>
       </div>
       <div class="block-body">
         <table>
           <thead><tr>
-            <th>Adres</th><th>ID</th><th>Naam</th><th>Poll</th><th>Registerwaarde</th><th>Geschaald</th><th>Eenheid</th><th>Bereik</th><th></th>
+            <th>Adres</th><th>ID</th><th>Naam</th><th>Poll</th><th>Wire raw</th><th>Registerwaarde</th><th>Geschaald</th><th>Eenheid</th><th>Bereik</th><th></th>
           </tr></thead>
           <tbody id="tbody-${block.id}">
             ${block.registers.map(reg => renderRow(block, reg)).join('')}
@@ -381,6 +399,7 @@ function renderBlocks() {
       </div>`;
     container.appendChild(el);
   }
+  applyRegisterCacheToVisibleRows();
 }
 
 function setViewMode(mode) {
@@ -479,7 +498,7 @@ function renderRow(block, reg) {
   const bitsBtn = hasBits ? `<span class="bits-toggle" data-tip="Toon/verberg afzonderlijke bits" onclick="toggleBits('${reg.address}')">bits</span>` : '';
   const canWrite = !block.readOnly && !reg.readOnly;
   const fc = reg.isCoil ? 'FC01' : 'FC03';
-  const readTip = `Lees register live (${fc}) — adres ${addrHex}`;
+  const readTip = `Lees register direct (${fc}) — adres ${addrHex}`;
   const writeTip = reg.serviceOnly
     ? `Schrijf naar ${reg.name || reg.key} ⚠ service-only register`
     : `Schrijf naar ${reg.name || reg.key}`;
@@ -493,6 +512,7 @@ function renderRow(block, reg) {
       <td class="reg-id">${esc(reg.registerId || '')}<span class="range-warning" id="range-warn-${reg.address}" aria-label="Waarde buiten gedocumenteerd bereik"${rangeWarningAttrs}>!</span></td>
       <td class="name-cell">${nameHtml}</td>
       <td class="poll-cell">${renderPollGroups(reg.pollGroups)}</td>
+      <td class="val-raw" id="wire-${reg.address}">—</td>
       <td class="val-raw" id="raw-${reg.address}">—</td>
       <td class="val-scaled" id="scaled-${reg.address}">—</td>
       <td class="unit">${esc(reg.unit||'')}</td>
@@ -502,12 +522,12 @@ function renderRow(block, reg) {
         ${writeBtn}
       </td>
     </tr>
-    ${hasBits ? `<tr class="bits-row" id="bits-${reg.address}"><td colspan="9">${renderBitsTable(reg)}</td></tr>` : ''}`;
+    ${hasBits ? `<tr class="bits-row" id="bits-${reg.address}"><td colspan="10">${renderBitsTable(reg)}</td></tr>` : ''}`;
 }
 
 function renderPollGroups(pollGroups) {
   if (!pollGroups || pollGroups.length === 0) {
-    return '<span class="poll-badge poll-none" data-tip="Niet automatisch gepolld; alleen live lezen via knop">manual</span>';
+    return '<span class="poll-badge poll-none" data-tip="Niet automatisch gepolld; alleen direct lezen via knop">manual</span>';
   }
 
   return pollGroups.map(group => {
@@ -548,29 +568,18 @@ function esc(s) {
 // ── Toggle accordion ──────────────────────────────────────────────────────────
 function toggleBlock(id) {
   const el = document.getElementById('block-' + id);
-  const wasOpen = el.classList.contains('open');
   el.classList.toggle('open');
-  if (!wasOpen) readBlock(id);
+  applyRegisterCacheToVisibleRows();
 }
 
 async function expandAll() {
-  const blocksToRead = [];
   visibleBlocks.forEach(block => {
     const el = document.getElementById('block-' + block.id);
     if (el && !el.classList.contains('open')) {
       el.classList.add('open');
-      blocksToRead.push(block);
     }
   });
-
-  const total = blocksToRead.reduce((sum, block) => sum + block.registers.length, 0);
-  if (total === 0) return;
-
-  const progress = startReadProgress(total, 'Alles lezen');
-  for (const block of blocksToRead) {
-    await readBlock(block.id, progress);
-  }
-  finishReadProgress(progress);
+  applyRegisterCacheToVisibleRows();
 }
 
 function collapseAll() {
@@ -585,7 +594,60 @@ function toggleBits(addr) {
   if (row) row.style.display = row.style.display === 'table-row' ? 'none' : 'table-row';
 }
 
-// ── Live lezen ────────────────────────────────────────────────────────────────
+// ── Direct lezen ────────────────────────────────────────────────────────────────
+async function loadRegisterCache() {
+  if (cacheRefreshInFlight) return;
+  cacheRefreshInFlight = true;
+  try {
+    const r = await fetch('/api/register-cache');
+    if (!r.ok) return;
+    const entries = await r.json();
+    cachedRegisters.clear();
+    for (const entry of entries) {
+      cachedRegisters.set(entry.address, entry);
+    }
+    applyRegisterCacheToVisibleRows();
+    updateCacheStatus(entries.length);
+  } catch {
+    // Expert blijft bruikbaar met handmatige directe reads.
+  } finally {
+    cacheRefreshInFlight = false;
+  }
+}
+
+function startCacheRefresh() {
+  if (cacheRefreshTimer) clearInterval(cacheRefreshTimer);
+  cacheRefreshTimer = setInterval(loadRegisterCache, CACHE_REFRESH_MS);
+}
+
+function updateCacheStatus(count) {
+  const status = document.getElementById('status-text');
+  if (!status) return;
+  const ts = new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  status.textContent = `Registermetadata geladen, ${count} cachewaarden beschikbaar · cache bijgewerkt ${ts}`;
+}
+
+function applyRegisterCacheToVisibleRows() {
+  for (const entry of cachedRegisters.values()) {
+    applyRegisterValue(entry.address, entry.rawValue, entry.scaledValue, entry.isCoil, 'cache', entry.wireRawValue);
+  }
+}
+
+function applyRegisterValue(addr, rawValue, scaledValue, isCoil, source, wireRawValue = rawValue) {
+  const wireEl = document.getElementById('wire-' + addr);
+  const rawEl = document.getElementById('raw-' + addr);
+  const scEl  = document.getElementById('scaled-' + addr);
+  if (!wireEl || !rawEl || !scEl) return;
+
+  const displayValue = isCoil ? (rawValue ? '1 (aan)' : '0 (uit)') : String(rawValue);
+  wireEl.textContent = String(wireRawValue);
+  rawEl.innerHTML = `${displayValue} <span class="value-source ${source}">${source === 'direct' ? 'direct' : 'cache'}</span>`;
+  scEl.textContent = isCoil ? '' : String(scaledValue);
+  recordRegisterRead(addr, rawValue, isCoil ? null : scaledValue, isCoil, source, wireRawValue);
+  updateRangeWarning(addr, isCoil ? null : scaledValue);
+  updateBits(addr, rawValue);
+}
+
 async function readRow(addr, isCoil, multiply) {
   const rawEl = document.getElementById('raw-' + addr);
   const scEl  = document.getElementById('scaled-' + addr);
@@ -600,11 +662,15 @@ async function readRow(addr, isCoil, multiply) {
       });
       const j = await r.json();
       if (j.ok) {
-        rawEl.textContent = isCoil ? (j.rawValue ? '1 (aan)' : '0 (uit)') : String(j.rawValue);
-        scEl.textContent  = isCoil ? '' : String(j.scaledValue);
-        recordRegisterRead(addr, j.rawValue, isCoil ? null : j.scaledValue, isCoil);
-        updateRangeWarning(addr, isCoil ? null : j.scaledValue);
-        updateBits(addr, j.rawValue);
+        cachedRegisters.set(addr, {
+          address: addr,
+          wireRawValue: j.rawValue,
+          rawValue: j.rawValue,
+          scaledValue: isCoil ? null : j.scaledValue,
+          isCoil,
+          source: 'direct',
+        });
+        applyRegisterValue(addr, j.rawValue, isCoil ? null : j.scaledValue, isCoil, 'direct');
         flashRow(addr);
         return;
       }
@@ -623,12 +689,14 @@ async function readRow(addr, isCoil, multiply) {
   }
 }
 
-function recordRegisterRead(addr, rawValue, scaledValue, isCoil) {
+function recordRegisterRead(addr, rawValue, scaledValue, isCoil, source = 'direct', wireRawValue = rawValue) {
   readErrors.delete(addr);
   readRegisters.set(addr, {
+    wireRawValue,
     rawValue,
     scaledValue,
     isCoil,
+    source,
     readAt: new Date(),
   });
   updateReportButton();
@@ -649,7 +717,7 @@ function updateReportButton() {
   const disabled = readRegisters.size === 0;
   btn.disabled = disabled;
   const tip = disabled
-    ? 'Lees eerst een blok of gebruik Alles uitklappen'
+    ? 'Nog geen cache- of directwaarden beschikbaar'
     : 'Maak een Markdown rapport van de gelezen registers';
   btn.title = tip;
   btn.setAttribute('data-tip', tip);
@@ -855,6 +923,8 @@ function buildMarkdownReport() {
   lines.push(`- Buiten bereik: ${outOfRangeRegisters.size}`);
   lines.push(`- Leesfouten: ${readErrors.size}`);
   lines.push(`- Registers in huidige weergave opgenomen in rapport: ${visibleReadRows.length}`);
+  lines.push(`- Cachewaarden: ${visibleReadRows.filter(row => row.read.source === 'cache').length}`);
+  lines.push(`- Direct gelezen waarden: ${visibleReadRows.filter(row => row.read.source === 'direct').length}`);
   lines.push('');
 
   lines.push('## Registers buiten bereik');
@@ -888,10 +958,10 @@ function buildMarkdownReport() {
   if (visibleReadRows.length === 0) {
     lines.push('Geen gelezen registers in de huidige gefilterde weergave.');
   } else {
-    lines.push('| Register | Adres | Naam | Raw | Geschaald | Bereik | Status | Tijd |');
-    lines.push('|---|---:|---|---:|---:|---|---|---|');
+    lines.push('| Register | Adres | Naam | Wire raw | Raw | Geschaald | Bron | Bereik | Status | Tijd |');
+    lines.push('|---|---:|---|---:|---:|---:|---|---|---|---|');
     visibleReadRows.forEach(row => {
-      lines.push(`| ${md(row.reg.registerId || row.reg.key)} | ${formatAddress(row.reg.address)} | ${md(row.reg.name || row.reg.key)} | ${md(String(row.read.rawValue))} | ${md(reportValue(row))} | ${md(rangeStr(row.reg))} | ${md(reportStatus(row.reg))} | ${formatDateTime(row.read.readAt)} |`);
+      lines.push(`| ${md(row.reg.registerId || row.reg.key)} | ${formatAddress(row.reg.address)} | ${md(row.reg.name || row.reg.key)} | ${md(String(row.read.wireRawValue ?? row.read.rawValue))} | ${md(String(row.read.rawValue))} | ${md(reportValue(row))} | ${md(row.read.source === 'direct' ? 'direct' : 'cache')} | ${md(rangeStr(row.reg))} | ${md(reportStatus(row.reg))} | ${formatDateTime(row.read.readAt)} |`);
     });
   }
 

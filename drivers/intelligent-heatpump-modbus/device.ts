@@ -310,6 +310,8 @@ class AdlarModbusDevice extends Homey.Device {
         setDiyHeatingCurveCallback(fn: (k: number, b: number) => Promise<void>): void;
         setGetTemperatureScaleCallback(fn: () => import('../../lib/modbus/adlar-modbus-registers').TemperatureRegisterScale): void;
         setGetChangeLogCallback(fn: () => Map<number, RegisterChangeEntry>): void;
+        setGetSnapshotCallback(fn: () => DataSnapshot | null): void;
+        setGetRegisterCacheCallback(fn: () => Map<number, number>): void;
         setGetCapabilityValuesCallback(fn: () => Record<string, unknown>): void;
       } | null;
     };
@@ -335,6 +337,8 @@ class AdlarModbusDevice extends Homey.Device {
 
     app.dashboard.setGetTemperatureScaleCallback(() => this.coordinator!.getTemperatureScale());
     app.dashboard.setGetChangeLogCallback(() => this.coordinator!.getChangeLog());
+    app.dashboard.setGetSnapshotCallback(() => this.coordinator!.getCurrentSnapshot());
+    app.dashboard.setGetRegisterCacheCallback(() => this.coordinator!.getRegisterCache());
     app.dashboard.setGetCapabilityValuesCallback(() => {
       const result: Record<string, unknown> = {};
       for (const id of this.getCapabilities()) {
@@ -351,6 +355,12 @@ class AdlarModbusDevice extends Homey.Device {
    * Called by ServiceCoordinator._handleModbusData() when new data arrives.
    */
   applyModbusSnapshot(snap: DataSnapshot): void {
+    const source = snap.sourcePollGroup;
+    const syncAll = source === undefined || source === 'manual';
+    const from = (...groups: Array<NonNullable<DataSnapshot['sourcePollGroup']>>) => (
+      syncAll || (source !== undefined && groups.includes(source))
+    );
+
     const set = (cap: string, val: unknown) => {
       if (this.hasCapability(cap)) {
         this.setCapabilityValue(cap, val).catch((e: Error) => this.logger.debug(`setCapabilityValue(${cap}) failed:`, e.message));
@@ -374,78 +384,101 @@ class AdlarModbusDevice extends Homey.Device {
     };
 
     // Control
-    set('onoff', snap.control.on);
-    set('target_temperature', snap.control.heatingSetpointC);
-    set('target_temperature.cooling', snap.control.coolingSetpointC);
-    set('target_temperature.dhw', snap.control.dhwSetpointC);
+    if (from('medium')) {
+      set('onoff', snap.control.on);
+      set('target_temperature', snap.control.heatingSetpointC);
+      set('target_temperature.cooling', snap.control.coolingSetpointC);
+      set('target_temperature.dhw', snap.control.dhwSetpointC);
 
-    set('target_temperature.floor', snap.control.floorSetpointC);
-    set('adlar_mode', String(snap.control.mode));
-    set('adlar_enum_countdown_set', heatingCurveToEnumId(snap.control.heatingCurve));
-    set('adlar_enum_work_mode', userModeToWorkModeId(snap.control.userMode));
-    set('adlar_enum_capacity_set', hotWaterCurveToEnumId(snap.control.hotWaterCurve));
-    set('adlar_state_backwater', backwaterModeToEnumId(snap.control.backwaterMode));
+      set('target_temperature.floor', snap.control.floorSetpointC);
+      set('adlar_mode', String(snap.control.mode));
+      set('adlar_enum_countdown_set', heatingCurveToEnumId(snap.control.heatingCurve));
+      set('adlar_enum_work_mode', userModeToWorkModeId(snap.control.userMode));
+      set('adlar_enum_capacity_set', hotWaterCurveToEnumId(snap.control.hotWaterCurve));
+      set('adlar_state_backwater', backwaterModeToEnumId(snap.control.backwaterMode));
+    }
 
     // Status
-    set('adlar_defrosting', snap.status.defrosting);
-    set('adlar_running', snap.status.running);
-    set('adlar_antifreeze', snap.status.antifreeze);
-    set('adlar_sterilization', snap.status.sterilization);
-    set('adlar_fault_shutdown', snap.status.faultShutdown);
-    set('adlar_state_compressor_state', snap.status.compressorOn);
-    set('adlar_state_defrost_state', snap.status.defrosting);
-    set('alarm_generic', snap.status.activeFaults.length > 0);
+    if (from('superfast', 'fast')) {
+      set('adlar_defrosting', snap.status.defrosting);
+      set('adlar_running', snap.status.running);
+      set('adlar_antifreeze', snap.status.antifreeze);
+      set('adlar_sterilization', snap.status.sterilization);
+      set('adlar_fault_shutdown', snap.status.faultShutdown);
+      set('adlar_state_compressor_state', snap.status.compressorOn);
+      set('adlar_state_defrost_state', snap.status.defrosting);
+    }
 
-    if (snap.version.programVersion) {
+    if (from('medium')) {
+      set('alarm_generic', snap.status.activeFaults.length > 0);
+    }
+
+    if (from('once') && snap.version.programVersion) {
       set('adlar_firmware_mcu', snap.version.programVersion);
     }
 
-    if (snap.version.protocolVersionFormatted) {
+    if (from('once') && snap.version.protocolVersionFormatted) {
       set('adlar_protocol_version', snap.version.protocolVersionFormatted);
     }
 
     // Temperatures
     const s = snap.sensors;
-    set('measure_temperature.outlet', s.outletT7?.value);
-    set('measure_temperature.inlet', s.inletT6?.value);
-    setWithExternalPriority('measure_temperature.ambient', 'adlar_external_ambient', s.ambientT1?.value);
-    set('measure_temperature.outer_coil', s.outerCoilT2?.value);
-    set('measure_temperature.inner_coil', s.innerCoilT3?.value);
-    set('measure_temperature.suction', s.suctionT4?.value);
-    set('measure_temperature.exhaust', s.exhaustT5?.value);
-    set('measure_temperature.dhw', s.dhwTankTemp?.value);
-    set('measure_temperature.econ_in', s.econInT8?.value);
-    set('measure_temperature.econ_out', s.econOutT9?.value);
-    set('measure_temperature.hp_sat', s.hpSatTemp?.value);
-    set('measure_temperature.lp_sat', s.lpSatTemp?.value);
-    set('measure_temperature.ipm', s.ipmTemp?.value);
-    set('measure_temperature.plate_hx', s.plateHxTemp?.value);
-    set('measure_temperature.dhw_return', s.dhwReturnTemp?.value);
-    set('measure_temperature.buffer_tank', s.bufferTankTemp?.value);
-    set('measure_temperature.total_outlet', s.totalOutlet?.value);
-    set('measure_temperature.zone1_mix', s.zone1MixTemp?.value);
-    set('measure_temperature.zone2', s.zone2Temp?.value);
+    if (from('superfast', 'fast')) {
+      set('measure_temperature.outlet', s.outletT7?.value);
+      set('measure_temperature.inlet', s.inletT6?.value);
+    }
+    if (from('fast')) {
+      setWithExternalPriority('measure_temperature.ambient', 'adlar_external_ambient', s.ambientT1?.value);
+      set('measure_temperature.outer_coil', s.outerCoilT2?.value);
+      set('measure_temperature.inner_coil', s.innerCoilT3?.value);
+      set('measure_temperature.suction', s.suctionT4?.value);
+      set('measure_temperature.exhaust', s.exhaustT5?.value);
+      set('measure_temperature.dhw', s.dhwTankTemp?.value);
+      set('measure_temperature.econ_in', s.econInT8?.value);
+      set('measure_temperature.econ_out', s.econOutT9?.value);
+      set('measure_temperature.hp_sat', s.hpSatTemp?.value);
+      set('measure_temperature.lp_sat', s.lpSatTemp?.value);
+      set('measure_temperature.ipm', s.ipmTemp?.value);
+      set('measure_temperature.plate_hx', s.plateHxTemp?.value);
+      set('measure_temperature.dhw_return', s.dhwReturnTemp?.value);
+    }
+    if (from('medium')) {
+      set('measure_temperature.buffer_tank', s.bufferTankTemp?.value);
+      set('measure_temperature.total_outlet', s.totalOutlet?.value);
+      set('measure_temperature.zone1_mix', s.zone1MixTemp?.value);
+      set('measure_temperature.zone2', s.zone2Temp?.value);
+    }
 
     // Power
-    set('measure_power', snap.power.inputPowerKw * 1000);
+    if (from('superfast', 'fast')) {
+      set('measure_power', snap.power.inputPowerKw * 1000);
+    }
     // meter_power is written exclusively by EnergyTrackingService (ETS).
     // ETS abstracts internal/external power sources and handles hardware that lacks register 0x005D.
-    set('measure_voltage', snap.power.inputVoltageV);
-    set('measure_current', snap.power.inputCurrentA);
+    if (from('fast')) {
+      set('measure_voltage', snap.power.inputVoltageV);
+      set('measure_current', snap.power.inputCurrentA);
+    }
 
     // COP
-    this.copService?.processSnapshot(snap, set);
+    if (from('superfast', 'fast')) {
+      this.copService?.processSnapshot(snap, set);
+    }
 
     // Mechanical sensors
-    set('measure_frequency.compressor_freq', s.compRunningFreq?.value);
-    set('measure_frequency.comp_target_freq', s.compTargetFreq?.value);
-    set('adlar_fan_speed', s.fanSpeed?.value);
-    set('adlar_eev_step', s.eevStep?.value);
-    set('adlar_evi_step', s.eviStep?.value);
-    set('adlar_pump_pwm', s.pumpPwm?.value);
-    set('measure_water', s.waterFlow?.value);
+    if (from('superfast', 'fast')) {
+      set('measure_frequency.compressor_freq', s.compRunningFreq?.value);
+      set('measure_frequency.comp_target_freq', s.compTargetFreq?.value);
+      set('adlar_pump_pwm', s.pumpPwm?.value);
+      set('measure_water', s.waterFlow?.value);
+    }
+    if (from('fast')) {
+      set('adlar_fan_speed', s.fanSpeed?.value);
+      set('adlar_eev_step', s.eevStep?.value);
+      set('adlar_evi_step', s.eviStep?.value);
+    }
     // TTL-bewaking voor adlar_external_flow (gebruikt door COP-berekening, niet door measure_water)
-    if (this.hasCapability('adlar_external_flow')) {
+    if (from('superfast', 'fast') && this.hasCapability('adlar_external_flow')) {
       const extFlow = this.getCapabilityValue('adlar_external_flow');
       if (extFlow !== null && extFlow !== undefined) {
         const ts = this.externalDataTimestamps.get('adlar_external_flow') ?? 0;
@@ -458,25 +491,31 @@ class AdlarModbusDevice extends Homey.Device {
     }
 
     // Additional currents
-    set('measure_current.comp_phase', s.compPhaseI?.value);
-    set('measure_current.b_phase', s.bPhaseCurrent?.value);
-    set('measure_current.c_phase', s.cPhaseCurrent?.value);
+    if (from('fast')) {
+      set('measure_current.comp_phase', s.compPhaseI?.value);
+    }
+    if (from('medium')) {
+      set('measure_current.b_phase', s.bPhaseCurrent?.value);
+      set('measure_current.c_phase', s.cPhaseCurrent?.value);
+    }
 
     // Fault register aggregation
-    const faults = snap.status.activeFaults;
-    set('adlar_fault', faults.length);
-    set('adlar_fault_1', faults.some((f: string) => f.startsWith('F1.')));
-    set('adlar_fault_2', faults.some((f: string) => f.startsWith('F2.')));
-    set('adlar_fault_3', faults.some((f: string) => f.startsWith('F3.') || f.startsWith('SYS1_')));
-    set(
-      'adlar_fault_active',
-      faults.length > 0
-        ? faults.map((f: string) => FAULT_DESCRIPTIONS[f] ?? f).join('; ')
-        : '',
-    );
+    if (from('medium')) {
+      const faults = snap.status.activeFaults;
+      set('adlar_fault', faults.length);
+      set('adlar_fault_1', faults.some((f: string) => f.startsWith('F1.')));
+      set('adlar_fault_2', faults.some((f: string) => f.startsWith('F2.')));
+      set('adlar_fault_3', faults.some((f: string) => f.startsWith('F3.') || f.startsWith('SYS1_')));
+      set(
+        'adlar_fault_active',
+        faults.length > 0
+          ? faults.map((f: string) => FAULT_DESCRIPTIONS[f] ?? f).join('; ')
+          : '',
+      );
+    }
 
     // DIY heating curve parameters
-    if (snap.diy) {
+    if (from('medium') && snap.diy) {
       set('heating_curve_slope', snap.diy.slopeK);
       set('heating_curve_intercept', snap.diy.interceptB);
       // Expand k×(T+15)+b → k×T + (k×15+b) to match the Tuya app formula display
