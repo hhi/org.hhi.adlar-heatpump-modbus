@@ -208,6 +208,7 @@ export interface DiagnosticsSnapshot {
 
 export interface DataSnapshot {
   ts: number;
+  sourcePollGroup?: 'superfast' | 'fast' | 'medium' | 'slow' | 'once' | 'manual';
   status: StatusSnapshot;
   control: ControlSnapshot;
   power: PowerSnapshot;
@@ -358,16 +359,19 @@ export class Adlar2ModbusService extends EventEmitter {
     this.tcp.on('poll-complete', (groupName) => {
       if (groupName === ADLAR2_POLL_FAST.name) {
         this.hasBaseSnapshot = true;
-        const snapshot = this.buildSnapshot();
+        const snapshot = this.buildSnapshot(groupName);
         this.emit('data', snapshot);
         this.checkFaults(snapshot.status.activeFaults);
       } else if (groupName === ADLAR2_POLL_SUPERFAST.name) {
         if (this.hasBaseSnapshot) {
-          const snapshot = this.buildSnapshot();
+          const snapshot = this.buildSnapshot(groupName);
           this.emit('data', snapshot);
           this.checkFaults(snapshot.status.activeFaults);
         }
       } else {
+        const snapshot = this.buildSnapshot(groupName);
+        this.emit('data', snapshot);
+        this.checkFaults(snapshot.status.activeFaults);
         this.emit('poll-group-succeeded', groupName);
       }
     });
@@ -376,6 +380,9 @@ export class Adlar2ModbusService extends EventEmitter {
       // FAST heeft geen optional blokken — poll-partial kan hier nooit geëmit worden.
       // Non-fast: required blokken OK, optional gefaald → telt als succes voor quality.
       if (groupName !== ADLAR2_POLL_FAST.name) {
+        const snapshot = this.buildSnapshot(groupName);
+        this.emit('data', snapshot);
+        this.checkFaults(snapshot.status.activeFaults);
         this.emit('poll-group-succeeded', groupName);
       }
     });
@@ -438,8 +445,12 @@ export class Adlar2ModbusService extends EventEmitter {
     return this.tcp.getChangeLog();
   }
 
+  getRegisterCache(): Map<number, number> {
+    return this.tcp.getRegisterCache();
+  }
+
   getSnapshot(): DataSnapshot {
-    return this.buildSnapshot();
+    return this.buildSnapshot('manual');
   }
 
   async validateRefrigerant(): Promise<{ valid: boolean; type: number; name: string }> {
@@ -594,9 +605,10 @@ export class Adlar2ModbusService extends EventEmitter {
     }
   }
 
-  private buildSnapshot(): DataSnapshot {
+  private buildSnapshot(sourcePollGroup?: DataSnapshot['sourcePollGroup']): DataSnapshot {
     return {
       ts: Date.now(),
+      sourcePollGroup,
       status: this.buildStatus(),
       control: this.buildControl(),
       power: this.buildPower(),

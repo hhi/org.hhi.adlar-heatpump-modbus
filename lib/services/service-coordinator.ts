@@ -371,29 +371,35 @@ export class ServiceCoordinator {
   // ── Data handlers ──────────────────────────────────────────────────────────
 
   private _handleModbusData(snapshot: DataSnapshot): void {
+    const sourcePollGroup = snapshot.sourcePollGroup ?? 'fast';
+
     // ADR-042/043: fast/superfast poll succes registreren
-    this._lastSuccessfulFastPollAt = Date.now();
-    this._consecutiveFastPollFailures = 0;
-    this._consecutiveSuperfastPollFailures = 0;
-
-    // ADR-043 Fase 3c: annuleer degraded-naar-offline timer bij succesvolle FAST poll
-    if (this._degradedSinceTimer) {
-      this.device.homey.clearTimeout(this._degradedSinceTimer);
-      this._degradedSinceTimer = null;
-    }
-
-    // ADR-043 Fase 2c: reset structurele vlag als FAST nu wél slaagt
-    if (this._structurallyUnsupportedFast) {
-      this._structurallyUnsupportedFast = false;
-      if (this._connectionQuality === 'online') {
-        this.device.setAvailable().catch(() => {});
+    if (sourcePollGroup === 'fast' || sourcePollGroup === 'superfast') {
+      this._lastSuccessfulFastPollAt = Date.now();
+      this._consecutiveFastPollFailures = 0;
+      if (sourcePollGroup === 'superfast') {
+        this._consecutiveSuperfastPollFailures = 0;
       }
-    }
 
-    // ADR-043 Fase 2c: reset naar online alleen als non-fast teller ook schoon is
-    if (this._connectionQuality !== 'online'
-        && this._consecutiveNonFastRequiredFailures === 0) {
-      this._setConnectionQuality('online');
+      // ADR-043 Fase 3c: annuleer degraded-naar-offline timer bij succesvolle FAST poll
+      if (this._degradedSinceTimer) {
+        this.device.homey.clearTimeout(this._degradedSinceTimer);
+        this._degradedSinceTimer = null;
+      }
+
+      // ADR-043 Fase 2c: reset structurele vlag als FAST nu wél slaagt
+      if (this._structurallyUnsupportedFast) {
+        this._structurallyUnsupportedFast = false;
+        if (this._connectionQuality === 'online') {
+          this.device.setAvailable().catch(() => {});
+        }
+      }
+
+      // ADR-043 Fase 2c: reset naar online alleen als non-fast teller ook schoon is
+      if (this._connectionQuality !== 'online'
+          && this._consecutiveNonFastRequiredFailures === 0) {
+        this._setConnectionQuality('online');
+      }
     }
 
     // Forward snapshot to device for capability updates
@@ -735,8 +741,16 @@ export class ServiceCoordinator {
     return this.modbusConnection.getTemperatureScale();
   }
 
+  getCurrentSnapshot(): DataSnapshot | null {
+    return this.modbusConnection.getSnapshot();
+  }
+
   getChangeLog(): Map<number, RegisterChangeEntry> {
     return this.modbusConnection.getChangeLog();
+  }
+
+  getRegisterCache(): Map<number, number> {
+    return this.modbusConnection.getRegisterCache();
   }
 
   /** FC03 — lees één holding register; retourneert de ruwe unsigned waarde. */

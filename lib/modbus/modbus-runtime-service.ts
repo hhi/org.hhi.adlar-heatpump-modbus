@@ -43,5 +43,7 @@ export interface ModbusRuntimeService<TSnapshot> {
   on(event: 'data', cb: (snapshot: TSnapshot) => void): this;
   on(event: 'poll-group-succeeded', cb: (groupName: string) => void): this;
 
+  getSnapshot(): TSnapshot;
   getChangeLog(): Map<number, RegisterChangeEntry>;
+  getRegisterCache(): Map<number, number>;
 }

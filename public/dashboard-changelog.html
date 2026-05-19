@@ -98,7 +98,7 @@
   <a href="/heating-curve">Stooklijn</a>
 </nav>
 <h1>Register Change Log</h1>
-<p class="subtitle">Statistieken per register — helpt bij het bepalen van de optimale pollgroep. Reset bij herstart van de app.</p>
+<p class="subtitle">Statistieken per register uit de automatische polling. Handmatige live reads in het expert dashboard tellen hier niet als wijzigingsdetectie mee. Reset bij herstart van de app.</p>
 
 <div class="toolbar">
   <button type="button" class="btn btn-primary" onclick="load()">&#8635; Vernieuwen</button>
@@ -258,7 +258,7 @@
 
   buildGroupFilters();
   load();
-  setInterval(load, 60_000);
+  setInterval(load, 15_000);
 </script>
 </body>
 </html>

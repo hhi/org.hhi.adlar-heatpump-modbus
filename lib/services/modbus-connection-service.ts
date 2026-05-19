@@ -209,6 +209,10 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
     };
   }
 
+  getSnapshot(): TSnapshot | null {
+    return this.service?.getSnapshot() ?? null;
+  }
+
   /**
    * Update the external flow rate used for COP calculations.
    */
@@ -222,6 +226,10 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
 
   getChangeLog(): Map<number, RegisterChangeEntry> {
     return (this.service as unknown as { getChangeLog(): Map<number, RegisterChangeEntry> } | null)?.getChangeLog() ?? new Map();
+  }
+
+  getRegisterCache(): Map<number, number> {
+    return this.service?.getRegisterCache() ?? new Map();
   }
 
   /** FC03 — lees één holding register; retourneert de ruwe unsigned waarde. */

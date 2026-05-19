@@ -466,6 +466,10 @@ export class ModbusTcpService extends EventEmitter {
     return this.changeLog;
   }
 
+  getRegisterCache(): Map<number, number> {
+    return new Map(this.cache);
+  }
+
   /**
    * FC06 — Write Single Register.
    * Cache wordt synchroon bijgewerkt na succesvolle write.

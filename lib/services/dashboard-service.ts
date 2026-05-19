@@ -115,6 +115,7 @@ export interface DashboardServiceOptions {
  *   GET /expert                → public/dashboard-expert.html   (ADR-046)
  *   GET /expert.html           → zelfde
  *   GET /api/registers         → alle registerblokken als JSON  (ADR-046)
+ *   GET /api/register-cache    → bekende registerwaarden uit cache
  *   POST /api/expert/read      → lees één register live        (ADR-046)
  *   POST /api/expert/write     → schrijf één register/coil     (ADR-046)
  *   GET /heating-curve         → public/heating_curve_line.html (ADR-049)
@@ -140,6 +141,8 @@ export class DashboardService {
   private onSetDiyHeatingCurve: ((k: number, b: number) => Promise<void>) | null = null;
   private getTemperatureScale: (() => TemperatureRegisterScale) | null = null;
   private getChangeLog: (() => Map<number, RegisterChangeEntry>) | null = null;
+  private getSnapshot: (() => DataSnapshot | null) | null = null;
+  private getRegisterCache: (() => Map<number, number>) | null = null;
 
   private readonly appDir: string;
   private capabilityMeta: Map<string, { title: string; unit: string; icon: string; type: string }> | null = null;
@@ -176,6 +179,14 @@ export class DashboardService {
 
   setGetChangeLogCallback(fn: () => Map<number, RegisterChangeEntry>): void {
     this.getChangeLog = fn;
+  }
+
+  setGetSnapshotCallback(fn: () => DataSnapshot | null): void {
+    this.getSnapshot = fn;
+  }
+
+  setGetRegisterCacheCallback(fn: () => Map<number, number>): void {
+    this.getRegisterCache = fn;
   }
 
   setGetCapabilityValuesCallback(fn: () => Record<string, unknown>): void {
@@ -273,6 +284,10 @@ export class DashboardService {
       res.end(JSON.stringify(buildRegisterBlocks(tempScale)));
       return;
     }
+    if (method === 'GET' && url === '/api/register-cache') {
+      this._serveRegisterCache(res);
+      return;
+    }
     if (method === 'POST' && url === '/api/expert/read') {
       await this._handleExpertRead(req, res);
       return;
@@ -358,6 +373,49 @@ export class DashboardService {
         recommendedGroup: this._recommendPollGroup(avgInterval),
         lastValue: entry.lastValue,
         previousValue: entry.previousValue,
+      });
+    }
+
+    entries.sort((a, b) => (a as { address: number }).address - (b as { address: number }).address);
+
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(entries));
+  }
+
+  private _serveRegisterCache(res: http.ServerResponse): void {
+    if (!this.getRegisterCache) {
+      res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ error: 'Not connected' }));
+      return;
+    }
+
+    const tempScale = this.getTemperatureScale?.() ?? 'x1';
+    const registerMeta = this._buildRegisterMetaMap(tempScale);
+    const changeLog = this.getChangeLog?.() ?? new Map();
+    const entries: object[] = [];
+
+    for (const [address, wireRawValue] of this.getRegisterCache()) {
+      const meta = registerMeta.get(address);
+      const multiply = meta?.multiply ?? 1;
+      const rawValue = meta?.isTemperatureRegister && wireRawValue > 0x7FFF
+        ? wireRawValue - 0x10000
+        : wireRawValue;
+      const scaledValue = meta?.isCoil
+        ? null
+        : Math.round(scaleRegisterValue(address, rawValue, tempScale, multiply) * 10) / 10;
+      const change = changeLog.get(address);
+
+      entries.push({
+        address,
+        wireRawValue,
+        rawValue,
+        scaledValue,
+        isCoil: meta?.isCoil ?? false,
+        unit: meta?.unit ?? '',
+        lastChanged: change?.lastChanged ?? null,
+        firstSeen: change?.firstSeen ?? null,
+        changeCount: change?.changeCount ?? null,
+        source: 'cache',
       });
     }
 
@@ -503,6 +561,18 @@ export class DashboardService {
     return map;
   }
 
+  private _buildRegisterMetaMap(tempScale: TemperatureRegisterScale): Map<number, RegisterMeta> {
+    const map = new Map<number, RegisterMeta>();
+    for (const block of buildRegisterBlocks(tempScale)) {
+      for (const register of block.registers) {
+        if (!map.has(register.address)) {
+          map.set(register.address, register);
+        }
+      }
+    }
+    return map;
+  }
+
   private _buildPollGroupMap(): Map<number, string> {
     const map = new Map<number, string>();
     const groups = [
@@ -558,11 +628,13 @@ export class DashboardService {
   }
 
   private _serveSnapshot(res: http.ServerResponse): void {
-    if (!this.snapshot) {
+    const snapshot = this.snapshot ?? this.getSnapshot?.() ?? null;
+    if (!snapshot) {
       res.writeHead(204);
       res.end();
       return;
     }
+    this.snapshot = snapshot;
     // ADR-041b: JSON-replacer om floating point-getallen af te ronden.
     // Dit voorkomt weergaveproblemen zoals 1.2000000000000002 op het dashboard.
     const replacer = (_key: string, value: unknown): unknown => {
@@ -572,7 +644,7 @@ export class DashboardService {
       }
       return value;
     };
-    const json = JSON.stringify(this.snapshot, replacer);
+    const json = JSON.stringify(snapshot, replacer);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(json);
   }
