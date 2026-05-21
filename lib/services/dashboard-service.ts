@@ -397,9 +397,8 @@ export class DashboardService {
     for (const [address, wireRawValue] of this.getRegisterCache()) {
       const meta = registerMeta.get(address);
       const multiply = meta?.multiply ?? 1;
-      const rawValue = meta?.isTemperatureRegister && wireRawValue > 0x7FFF
-        ? wireRawValue - 0x10000
-        : wireRawValue;
+      const isSigned = meta?.isTemperatureRegister === true || (meta?.min !== undefined && meta.min < 0);
+      const rawValue = isSigned && wireRawValue > 0x7FFF ? wireRawValue - 0x10000 : wireRawValue;
       const scaledValue = meta?.isCoil
         ? null
         : Math.round(scaleRegisterValue(address, rawValue, tempScale, multiply) * 10) / 10;

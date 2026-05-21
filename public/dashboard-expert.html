@@ -132,6 +132,12 @@
   .toolbar { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
   .toolbar .view-toggle { margin: 0; }
   .btn-expand { font-size: 0.75rem; }
+  .roe-label { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: #94a3b8; cursor: pointer; -webkit-user-select: none; user-select: none; white-space: nowrap; }
+  .roe-input { display: none; }
+  .roe-switch { position: relative; width: 36px; height: 20px; background: #334155; border-radius: 10px; flex-shrink: 0; transition: background 0.2s; }
+  .roe-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #64748b; transition: transform 0.2s, background 0.2s; }
+  .roe-input:checked + .roe-switch { background: #22c55e; }
+  .roe-input:checked + .roe-switch::after { transform: translateX(16px); background: #fff; }
   .dlg-hidden { display: none; }
 
   /* Tooltip */
@@ -198,6 +204,9 @@
     nav a { color: #475569; border-color: #e2e8f0; }
     nav a:hover { background: #e2e8f0; color: #0f172a; }
     nav a.active { background: #e0f2fe; color: #0284c7; border-color: #0284c7; }
+    .roe-label { color: #475569; }
+    .roe-switch { background: #cbd5e1; }
+    .roe-switch::after { background: #94a3b8; }
   }
 </style>
 </head>
@@ -227,6 +236,11 @@
   </div>
   <button type="button" class="btn-read btn-expand" data-tip="Klap alle blokken open en toon beschikbare cachewaarden" onclick="expandAll()">&#9660; Alles uitklappen</button>
   <button type="button" class="btn-read btn-expand" onclick="collapseAll()">&#9650; Alles inklappen</button>
+  <label class="roe-label" for="read-on-expand-cb" data-tip="Lees registers direct via Modbus bij het uitklappen van een blok">
+    <input type="checkbox" id="read-on-expand-cb" class="roe-input">
+    <span class="roe-switch"></span>
+    &#8635; Lezen bij uitklappen
+  </label>
   <button type="button" class="btn-read btn-expand" id="report-btn" onclick="openReportDialog()" disabled title="Nog geen cache- of directwaarden beschikbaar">Markdown rapport</button>
 </div>
 
@@ -569,18 +583,29 @@ function esc(s) {
 // ── Toggle accordion ──────────────────────────────────────────────────────────
 function toggleBlock(id) {
   const el = document.getElementById('block-' + id);
+  const wasOpen = el.classList.contains('open');
   el.classList.toggle('open');
   applyRegisterCacheToVisibleRows();
+  if (!wasOpen && el.classList.contains('open') && document.getElementById('read-on-expand-cb').checked) {
+    readBlock(id);
+  }
 }
 
 async function expandAll() {
   visibleBlocks.forEach(block => {
     const el = document.getElementById('block-' + block.id);
-    if (el && !el.classList.contains('open')) {
-      el.classList.add('open');
-    }
+    if (el && !el.classList.contains('open')) el.classList.add('open');
   });
   applyRegisterCacheToVisibleRows();
+
+  if (document.getElementById('read-on-expand-cb').checked) {
+    const totalRegs = visibleBlocks.reduce((sum, b) => sum + b.registers.length, 0);
+    const progress = startReadProgress(totalRegs, 'Alles lezen');
+    for (const block of visibleBlocks) {
+      await readBlock(block.id, progress);
+    }
+    finishReadProgress(progress);
+  }
 }
 
 function collapseAll() {
