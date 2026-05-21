@@ -565,7 +565,6 @@ export class Adlar2ModbusService extends EventEmitter {
     await this.tcp.writeSingleRegister(L_PARAMETERS.L27_heatingLowTempCurveDIY.address, 0);
     await this.tcp.writeSingleRegister(L_PARAMETERS.L28_heatingCurveCoeffK.address, Math.round(k * 10));
     await this.tcp.writeSingleRegister(L_PARAMETERS.L29_heatingCurveConstantB.address, Math.round(b));
-    await this.tcp.writeSingleRegister(CONTROL_REGISTERS.heatingCurve.address, 0);
   }
 
   async disableDiyHeatingCurve(): Promise<void> {
