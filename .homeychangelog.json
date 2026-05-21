@@ -1,4 +1,8 @@
 {
+  "2.8.2": {
+    "en": "Heating curve dashboard: new 'Prerequisites' section with two toggles to set the preset curve to HL8 (0x0314=18) and enable the DIY curve (L27=0). Toggles write directly to the heat pump and show their current state on open. Initial load now reads all four registers (preset, L27, L28, L29) with up to five retries when the connection is not yet available. Falls back to default values (-5/55) when L28 and L29 are both zero. Applying L28/L29 no longer resets the preset curve setting to off.",
+    "nl": "Stooklijn dashboard: nieuwe sectie 'Randvoorwaarden' met twee toggles om de preset-stooklijn op HL8 (0x0314=18) in te stellen en de custom stooklijn (L27=0) te activeren. Toggles schrijven direct naar de warmtepomp en tonen bij openen de actuele staat. Het initieel laden leest nu alle vier registers (preset, L27, L28, L29) met maximaal vijf pogingen bij een nog niet beschikbare verbinding. Valt terug op standaardwaarden (-5/55) wanneer L28 en L29 beide nul zijn. Toepassen van L28/L29 reset de preset-stooklijn instelling niet langer naar uit."
+  },
   "2.8.1": {
     "en": "Existing devices now add any missing configured capabilities on app restart. In the expert dashboard, automatic cache updates no longer hide an active direct register read, and block refresh progress now shows the register currently being read.",
     "nl": "Bestaande apparaten voegen ontbrekende geconfigureerde capabilities nu toe bij een app-herstart. In het expertdashboard verbergen automatische cache-updates een actieve directe registerlezing niet meer, en de voortgang van een blokverversing toont nu welk register wordt gelezen."
