@@ -56,6 +56,7 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
   private readonly onDisconnected: (reason: string) => void;
   private readonly onError: (err: Error, context: string) => void;
   private readonly onPollGroupSucceeded?: (groupName: string) => void;
+  private _firstConnect = true;
 
   constructor(options: ModbusConnectionOptions<TSnapshot>) {
     super();
@@ -93,6 +94,8 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
       const fast = config.pollFastMs ?? 10_000;
       const medium = config.pollMediumMs ?? 30_000;
       const slow = config.pollSlowMs ?? 300_000;
+      const staggerMs = this._firstConnect ? 300 : 0;
+      this._firstConnect = false;
       this.service!.startPolling({
         superfast,
         superfastAdaptive,
@@ -100,6 +103,7 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
         fast,
         medium,
         slow,
+        staggerMs,
       });
       this.onConnected();
     });

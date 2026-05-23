@@ -1,4 +1,8 @@
 {
+  "2.8.4": {
+    "en": "The 'Partial Modbus communication error' warning is now cleared as soon as the connection recovers, instead of persisting until the next app restart. Poll groups (superfast, fast, medium, slow) now start staggered by 300 ms at initial connection to avoid a simultaneous burst on the RS485 gateway. On reconnects, all groups start immediately as before.",
+    "nl": "De melding 'Gedeeltelijke Modbus-communicatiefout' wordt nu direct gewist zodra de verbinding herstelt, in plaats van te blijven staan tot de volgende app-herstart. Pollgroepen (superfast, fast, medium, slow) starten bij de initiële verbinding gespreid met 300 ms tussenruimte, zodat er geen gelijktijdige aanvraagpiek op de RS485-gateway ontstaat. Bij herverbinding starten alle groepen direct zoals voorheen."
+  },
   "2.8.3": {
     "en": "Expert dashboard: cached register values with a negative range (min < 0) are now correctly shown as signed values, matching the direct read result. Toggle 'Read on expand' added to the toolbar: when enabled, opening a block reads all its registers directly via Modbus; 'Expand all' with this toggle on reads all visible blocks sequentially with a shared progress indicator.",
     "nl": "Expertdashboard: gecachte registerwaarden met een negatief bereik (min < 0) worden nu correct als signed waarde getoond, overeenkomstig het resultaat van een directe lezing. Schakelaar 'Lezen bij uitklappen' toegevoegd aan de toolbar: bij inschakelen worden alle registers van een blok direct via Modbus gelezen bij het uitklappen; 'Alles uitklappen' met deze schakelaar aan leest alle zichtbare blokken sequentieel met een gedeelde voortgangsindicator."

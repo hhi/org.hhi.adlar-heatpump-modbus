@@ -662,6 +662,7 @@ export class ServiceCoordinator {
           .catch(() => {});
       } else {
         this.device.setAvailable().catch(() => {});
+        this.device.setWarning(null).catch(() => {});
       }
     } else if (quality === 'degraded') {
       this.device
