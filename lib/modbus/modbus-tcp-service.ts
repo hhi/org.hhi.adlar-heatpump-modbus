@@ -579,11 +579,12 @@ export class ModbusTcpService extends EventEmitter {
    * Poll-groepen worden opgeslagen zodat ze na reconnect
    * automatisch herstart worden met dezelfde intervallen.
    */
-  startPolling(groups: PollGroup[]): void {
+  startPolling(groups: PollGroup[], staggerMs = 0): void {
     this._stopPolling();
     this._pollGroups = groups;
     const pollGeneration = this._pollGeneration;
 
+    let staggerIndex = 0;
     for (const group of groups) {
       if (group.intervalMs <= 0) {
         // Eenmalig uitvoeren (bijv. versie-info)
@@ -591,8 +592,8 @@ export class ModbusTcpService extends EventEmitter {
         continue;
       }
 
-      // Direct eerste poll
-      this._schedulePollGroup(group, 0, pollGeneration);
+      this._schedulePollGroup(group, staggerIndex * staggerMs, pollGeneration);
+      staggerIndex++;
     }
   }
 

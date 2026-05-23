@@ -407,6 +407,7 @@ export class Adlar2ModbusService extends EventEmitter {
     fast?: number;
     medium?: number;
     slow?: number;
+    staggerMs?: number;
   }): void {
     this.hasBaseSnapshot = false;
     const superfastInterval = ms?.superfast ?? ADLAR2_POLL_SUPERFAST.intervalMs;
@@ -425,7 +426,7 @@ export class Adlar2ModbusService extends EventEmitter {
       clonePollGroup(ADLAR2_POLL_SLOW, ms?.slow ?? ADLAR2_POLL_SLOW.intervalMs),
     ];
 
-    this.tcp.startPolling(groups);
+    this.tcp.startPolling(groups, ms?.staggerMs ?? 0);
   }
 
   stopPolling(): void {

@@ -23,6 +23,7 @@ export interface ModbusRuntimeService<TSnapshot> {
     fast?: number;
     medium?: number;
     slow?: number;
+    staggerMs?: number;
   }): void;
 
   // ── Schrijfoperaties ────────────────────────────────────────────────────────
