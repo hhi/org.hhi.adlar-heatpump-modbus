@@ -348,6 +348,7 @@ export class DashboardService {
 
     const pollGroupMap = this._buildPollGroupMap();
     const nameMap = this._buildNameMap();
+    const writableAddresses = this._buildWritableAddressSet();
     const log = this.getChangeLog();
     const entries: object[] = [];
 
@@ -364,6 +365,7 @@ export class DashboardService {
         addressHex: `0x${addr.toString(16).toUpperCase().padStart(4, '0')}`,
         name: nameMap.get(addr) ?? '',
         pollGroup: pollGroupMap.get(addr) ?? 'manual',
+        writable: writableAddresses.has(addr),
         firstSeen: entry.firstSeen,
         lastChanged: entry.lastChanged,
         changeCount: entry.changeCount,
@@ -570,6 +572,18 @@ export class DashboardService {
       }
     }
     return map;
+  }
+
+  private _buildWritableAddressSet(): Set<number> {
+    const writable = new Set<number>();
+    for (const block of buildRegisterBlocks()) {
+      if (!block.readOnly) {
+        for (const reg of block.registers) {
+          writable.add(reg.address);
+        }
+      }
+    }
+    return writable;
   }
 
   private _buildPollGroupMap(): Map<number, string> {

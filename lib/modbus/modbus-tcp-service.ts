@@ -429,7 +429,6 @@ export class ModbusTcpService extends EventEmitter {
   }
 
   private async _readHoldingRegistersAndDetectChange(startAddr: number, count: number): Promise<boolean> {
-    const before = Array.from({ length: count }, (_, i) => this.cache.get(startAddr + i));
     await this.readHoldingRegisters(startAddr, count);
 
     const now = Date.now();
@@ -437,26 +436,25 @@ export class ModbusTcpService extends EventEmitter {
 
     for (let i = 0; i < count; i++) {
       const addr = startAddr + i;
-      const oldVal = before[i];
       const newVal = this.cache.get(addr)!;
 
       let entry = this.changeLog.get(addr);
       if (!entry) {
         entry = { firstSeen: now, lastChanged: now, changeCount: 0, intervals: [], lastValue: newVal, previousValue: null };
         this.changeLog.set(addr, entry);
-      }
-
-      if (oldVal !== undefined && oldVal !== newVal) {
+      } else if (entry.lastValue !== newVal) {
+        // Vergelijk tegen entry.lastValue (laatste poll-waarde), niet de cache-snapshot.
+        // De cache kan tussentijds zijn bijgewerkt door een expert-read, waardoor een
+        // cache-snapshot vóór de poll de echte delta zou missen.
         const interval = now - entry.lastChanged;
         entry.intervals.push(interval);
         if (entry.intervals.length > 50) entry.intervals.shift();
         entry.previousValue = entry.lastValue;
         entry.changeCount++;
         entry.lastChanged = now;
+        entry.lastValue = newVal;
         anyChanged = true;
       }
-
-      entry.lastValue = newVal;
     }
 
     return anyChanged;

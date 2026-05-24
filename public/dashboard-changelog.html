@@ -31,10 +31,25 @@
   .pill.inactive  { opacity: 0.35; }
   .stats { font-size: 0.75rem; color: #64748b; margin-left: auto; }
   .last-load { font-size: 0.72rem; color: #475569; }
-  @keyframes tbl-flash { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
-  .flash { animation: tbl-flash 0.4s ease; }
   .filter-label { font-size: 0.75rem; color: #64748b; display: flex; align-items: center; gap: 0.4rem; }
   .filter-label input { accent-color: #3b82f6; }
+
+  details { margin-bottom: 1.25rem; }
+  details summary {
+    font-size: 0.82rem; font-weight: 600; color: #94a3b8;
+    padding: 0.45rem 0.6rem; background: #1e293b;
+    border: 1px solid #334155; border-radius: 0.375rem;
+    cursor: pointer; -webkit-user-select: none; user-select: none;
+    list-style: none; display: flex; align-items: center; gap: 0.5rem;
+  }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::before { content: '▶'; font-size: 0.65rem; transition: transform 0.15s; }
+  details[open] summary::before { transform: rotate(90deg); }
+  details summary:hover { color: #e2e8f0; }
+
+  @keyframes tbl-flash { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+  .flash { animation: tbl-flash 0.4s ease; }
+
   table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
   thead th { background: #1e293b; color: #94a3b8; font-weight: 500; padding: 0.5rem 0.6rem; text-align: left; border-bottom: 1px solid #334155; white-space: nowrap; cursor: pointer; -webkit-user-select: none; user-select: none; }
   thead th:hover { color: #e2e8f0; }
@@ -51,6 +66,7 @@
   .unknown { color: #64748b; }
   .no-data { color: #64748b; font-style: italic; }
   .empty { text-align: center; padding: 3rem; color: #475569; }
+
   @media (prefers-color-scheme: light) {
     body { background: #f8fafc; color: #0f172a; }
     h1 { color: #0f172a; }
@@ -67,6 +83,8 @@
     .pill.slow      { background: #ffedd5; border-color: #f97316; color: #9a3412; }
     .pill.once      { background: #e0e7ff; border-color: #818cf8; color: #4338ca; }
     .pill.manual    { background: #f1f5f9; border-color: #94a3b8; color: #475569; }
+    details summary { background: #f1f5f9; border-color: #e2e8f0; color: #475569; }
+    details summary:hover { color: #0f172a; }
     thead th { background: #f1f5f9; color: #475569; border-bottom-color: #e2e8f0; }
     thead th:hover { color: #0f172a; }
     thead th.sorted .sort-icon { color: #0284c7; }
@@ -111,24 +129,7 @@
   <span class="stats" id="stats"></span>
 </div>
 
-<table id="tbl">
-  <thead>
-    <tr>
-      <th onclick="sortBy('addressHex')" data-col="addressHex">Adres / Naam<span class="sort-icon">&#9650;</span></th>
-      <th onclick="sortBy('pollGroup')" data-col="pollGroup">Huidig<span class="sort-icon">&#9650;</span></th>
-      <th onclick="sortBy('recommendedGroup')" data-col="recommendedGroup">Aanbevolen<span class="sort-icon">&#9650;</span></th>
-      <th onclick="sortBy('changeCount')" data-col="changeCount">Wijzigingen<span class="sort-icon">&#9650;</span></th>
-      <th onclick="sortBy('avgInterval')" data-col="avgInterval">Gem. interval<span class="sort-icon">&#9650;</span></th>
-      <th onclick="sortBy('minInterval')" data-col="minInterval">Min<span class="sort-icon">&#9650;</span></th>
-      <th onclick="sortBy('maxInterval')" data-col="maxInterval">Max<span class="sort-icon">&#9650;</span></th>
-      <th onclick="sortBy('previousValue')" data-col="previousValue">Vorige waarde<span class="sort-icon">&#9650;</span></th>
-      <th onclick="sortBy('lastValue')" data-col="lastValue">Laatste waarde<span class="sort-icon">&#9650;</span></th>
-      <th onclick="sortBy('firstSeen')" data-col="firstSeen">Eerste gezien<span class="sort-icon">&#9650;</span></th>
-      <th onclick="sortBy('lastChanged')" data-col="lastChanged">Laatste wijziging<span class="sort-icon">&#9650;</span></th>
-    </tr>
-  </thead>
-  <tbody id="tbody"></tbody>
-</table>
+<div id="sections"></div>
 
 <script>
   const GROUPS = ['superfast','fast','medium','slow','once','manual'];
@@ -136,6 +137,9 @@
   let sortCol = 'address';
   let sortAsc = true;
   let activeGroups = new Set(GROUPS);
+  let prevHashRw = '';
+  let prevHashRo = '';
+  let isFirstLoad = true;
 
   function load() {
     const btn = document.querySelector('button.btn-primary');
@@ -145,19 +149,42 @@
       .then(r => r.json())
       .then(d => {
         data = d;
+
+        // Hashes berekend op ruwe data — filter/sort triggeren geen flash
+        const newHashRw = hashSection(d.filter(e => e.writable));
+        const newHashRo = hashSection(d.filter(e => !e.writable));
+
         render();
-        const tbl = document.getElementById('tbl');
-        if (tbl) { tbl.classList.add('flash'); setTimeout(() => tbl.classList.remove('flash'), 400); }
+
+        if (!isFirstLoad) {
+          if (newHashRw !== prevHashRw) flashSection('sec-rw');
+          if (newHashRo !== prevHashRo) flashSection('sec-ro');
+        }
+
+        prevHashRw = newHashRw;
+        prevHashRo = newHashRo;
+        isFirstLoad = false;
+
         const ts = new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         document.getElementById('last-load').textContent = `Bijgewerkt om ${ts}`;
       })
       .catch(e => {
-        document.getElementById('tbody').innerHTML = `<tr><td colspan="11" class="empty">Fout: ${e.message}</td></tr>`;
+        document.getElementById('sections').innerHTML =
+          `<p style="padding:3rem;text-align:center;color:#475569">Fout: ${e.message}</p>`;
         document.getElementById('last-load').textContent = 'Laden mislukt';
       })
       .finally(() => {
         if (btn) { btn.disabled = false; btn.innerHTML = '&#8635; Vernieuwen'; }
       });
+  }
+
+  function hashSection(rows) {
+    return rows.map(e => `${e.address}:${e.changeCount}:${e.lastValue}`).join('|');
+  }
+
+  function flashSection(id) {
+    const tbl = document.querySelector(`#${id} table`);
+    if (tbl) { tbl.classList.add('flash'); setTimeout(() => tbl.classList.remove('flash'), 400); }
   }
 
   function buildGroupFilters() {
@@ -176,13 +203,28 @@
   function sortBy(col) {
     if (sortCol === col) sortAsc = !sortAsc;
     else { sortCol = col; sortAsc = col === 'addressHex'; }
-    document.querySelectorAll('thead th').forEach(th => {
-      th.classList.toggle('sorted', th.dataset.col === col);
-      const icon = th.querySelector('.sort-icon');
-      if (th.dataset.col === col) icon.innerHTML = sortAsc ? '&#9650;' : '&#9660;';
-      else icon.innerHTML = '&#9650;';
-    });
     render();
+  }
+
+  function theadHtml() {
+    const cols = [
+      { key: 'addressHex',       label: 'Adres / Naam' },
+      { key: 'pollGroup',        label: 'Huidig' },
+      { key: 'recommendedGroup', label: 'Aanbevolen' },
+      { key: 'changeCount',      label: 'Wijzigingen' },
+      { key: 'avgInterval',      label: 'Gem. interval' },
+      { key: 'minInterval',      label: 'Min' },
+      { key: 'maxInterval',      label: 'Max' },
+      { key: 'previousValue',    label: 'Vorige waarde' },
+      { key: 'lastValue',        label: 'Laatste waarde' },
+      { key: 'firstSeen',        label: 'Eerste gezien' },
+      { key: 'lastChanged',      label: 'Laatste wijziging' },
+    ];
+    return `<thead><tr>${cols.map(c => {
+      const active = sortCol === c.key;
+      const icon = active ? (sortAsc ? '&#9650;' : '&#9660;') : '&#9650;';
+      return `<th onclick="sortBy('${c.key}')" class="${active ? 'sorted' : ''}">${c.label}<span class="sort-icon">${icon}</span></th>`;
+    }).join('')}</tr></thead>`;
   }
 
   function fmtMs(ms) {
@@ -208,36 +250,8 @@
     return 'mismatch';
   }
 
-  function render() {
-    const q = document.getElementById('search').value.toLowerCase();
-    const onlyChanged = document.getElementById('only-changed').checked;
-
-    let rows = data.filter(e => {
-      if (!activeGroups.has(e.pollGroup)) return false;
-      if (onlyChanged && e.changeCount === 0) return false;
-      if (q && !e.addressHex.toLowerCase().includes(q) && !String(e.address).includes(q) && !(e.name || '').toLowerCase().includes(q)) return false;
-      return true;
-    });
-
-    rows.sort((a, b) => {
-      let av = a[sortCol], bv = b[sortCol];
-      if (av === null) av = sortAsc ? Infinity : -Infinity;
-      if (bv === null) bv = sortAsc ? Infinity : -Infinity;
-      if (typeof av === 'string') return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
-      return sortAsc ? av - bv : bv - av;
-    });
-
-    const tbody = document.getElementById('tbody');
-    if (rows.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="10" class="empty">Geen registers gevonden. Wacht tot de app Modbus-data heeft ontvangen.</td></tr>';
-      document.getElementById('stats').textContent = '';
-      return;
-    }
-
-    const changed = rows.filter(r => r.changeCount > 0).length;
-    document.getElementById('stats').textContent = `${rows.length} registers · ${changed} gewijzigd`;
-
-    tbody.innerHTML = rows.map(e => {
+  function rowsHtml(rows) {
+    return rows.map(e => {
       const rc = recClass(e.pollGroup, e.recommendedGroup);
       const recPill = e.recommendedGroup === '?' ? `<span class="unknown">?</span>` : pillHtml(e.recommendedGroup);
       return `<tr>
@@ -254,6 +268,54 @@
         <td>${e.changeCount > 0 ? fmtTime(e.lastChanged) : '<span class="no-data">—</span>'}</td>
       </tr>`;
     }).join('');
+  }
+
+  function render() {
+    const q = document.getElementById('search').value.toLowerCase();
+    const onlyChanged = document.getElementById('only-changed').checked;
+
+    // Open/dicht-staat bewaren
+    const secRw = document.getElementById('sec-rw');
+    const secRo = document.getElementById('sec-ro');
+    const rwOpen = secRw ? secRw.open : true;
+    const roOpen = secRo ? secRo.open : true;
+
+    let rows = data.filter(e => {
+      if (!activeGroups.has(e.pollGroup)) return false;
+      if (onlyChanged && e.changeCount === 0) return false;
+      if (q && !e.addressHex.toLowerCase().includes(q) && !String(e.address).includes(q) && !(e.name || '').toLowerCase().includes(q)) return false;
+      return true;
+    });
+
+    rows.sort((a, b) => {
+      let av = a[sortCol], bv = b[sortCol];
+      if (av === null) av = sortAsc ? Infinity : -Infinity;
+      if (bv === null) bv = sortAsc ? Infinity : -Infinity;
+      if (typeof av === 'string') return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+      return sortAsc ? av - bv : bv - av;
+    });
+
+    const rwRows = rows.filter(e => e.writable);
+    const roRows = rows.filter(e => !e.writable);
+
+    const total = rows.length;
+    const changed = rows.filter(r => r.changeCount > 0).length;
+    document.getElementById('stats').textContent =
+      total === 0 ? '' : changed > 0 ? `${total} registers · ${changed} gewijzigd` : `${total} registers`;
+
+    const emptyMsg = (colspan) =>
+      `<tbody><tr><td colspan="${colspan}" class="empty">Geen registers gevonden.</td></tr></tbody>`;
+
+    const colspan = 11;
+    document.getElementById('sections').innerHTML = `
+      <details id="sec-ro"${roOpen ? ' open' : ''}>
+        <summary>&#128274; Alleen lezen — ${roRows.length} registers</summary>
+        <table>${theadHtml()}${roRows.length ? `<tbody>${rowsHtml(roRows)}</tbody>` : emptyMsg(colspan)}</table>
+      </details>
+      <details id="sec-rw"${rwOpen ? ' open' : ''}>
+        <summary>&#9998; Lezen &amp; schrijven — ${rwRows.length} registers</summary>
+        <table>${theadHtml()}${rwRows.length ? `<tbody>${rowsHtml(rwRows)}</tbody>` : emptyMsg(colspan)}</table>
+      </details>`;
   }
 
   buildGroupFilters();
