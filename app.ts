@@ -6,8 +6,15 @@ import enableDebugInspector from './app-debug';
 import { SelfHealingRegistry } from './lib/self-healing-registry';
 import { Logger, LogLevel } from './lib/logger';
 import { DashboardService } from './lib/services/dashboard-service';
+import { LiveOperationWidgetState } from './lib/services/widget-state-service';
 
 const DEFAULT_DASHBOARD_PORT = 8090;
+const ADLAR_DRIVER_ID = 'intelligent-heatpump-modbus';
+
+interface LiveOperationWidgetDevice {
+  getData(): unknown;
+  getLiveOperationWidgetState?: () => LiveOperationWidgetState;
+}
 
 class MyApp extends App {
 
@@ -21,7 +28,87 @@ class MyApp extends App {
   private _dashboard: DashboardService | null = null;
   private _dashboardPort = DEFAULT_DASHBOARD_PORT;
 
-  get dashboard(): DashboardService | null { return this._dashboard; }
+  get dashboard(): DashboardService | null {
+    return this._dashboard;
+  }
+
+  getAdlarLiveOperationWidgetState(deviceId?: string): LiveOperationWidgetState {
+    const devices = this._getAdlarDevices();
+    if (devices.length === 0) {
+      return {
+        ok: false,
+        message: 'Geen Adlar warmtepomp gekoppeld.',
+        device: { name: '' },
+        status: {
+          running: false,
+          compressorOn: false,
+          defrosting: false,
+          mode: 'Unknown',
+          faultActive: '',
+          connectionStatus: 'unknown',
+        },
+        temperatures: {
+          outletC: null,
+          inletC: null,
+          ambientC: null,
+          dhwC: null,
+          bufferC: null,
+        },
+        process: {
+          deltaTC: null,
+          flowLpm: null,
+          electricalPowerKw: null,
+          thermalPowerKw: null,
+          compressorHz: null,
+          liveCopEstimate: null,
+          capabilityCop: null,
+          flowSource: 'none',
+          powerSource: 'none',
+        },
+        data: {
+          timestamp: null,
+          ageMs: null,
+          freshness: 'no_data',
+          sourcePollGroup: null,
+        },
+      };
+    }
+
+    const device = this._findAdlarDevice(devices, deviceId) ?? devices[0];
+    if (typeof device.getLiveOperationWidgetState !== 'function') {
+      throw new Error('Selected device does not support the live operation widget.');
+    }
+
+    return device.getLiveOperationWidgetState();
+  }
+
+  private _getAdlarDevices(): LiveOperationWidgetDevice[] {
+    try {
+      return this.homey.drivers
+        .getDriver(ADLAR_DRIVER_ID)
+        .getDevices() as LiveOperationWidgetDevice[];
+    } catch {
+      return [];
+    }
+  }
+
+  private _findAdlarDevice(
+    devices: LiveOperationWidgetDevice[],
+    deviceId?: string,
+  ): LiveOperationWidgetDevice | null {
+    if (!deviceId) return null;
+
+    return devices.find((device) => {
+      const record = device as unknown as Record<string, unknown>;
+      const data = device.getData() as Record<string, unknown>;
+      const candidates = [
+        record.id,
+        record._id,
+        data.id,
+      ];
+      return candidates.some((candidate) => String(candidate) === deviceId);
+    }) ?? null;
+  }
 
   async setDashboardPort(port: number): Promise<void> {
     const nextPort = Number.isInteger(port) && port >= 1 && port <= 65535
