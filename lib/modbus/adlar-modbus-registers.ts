@@ -825,7 +825,7 @@ export const P_PARAMETERS = {
     desc: 'Sensor offset correctie. Adlar Aurora II: T7 (outlet/discharge)',
   }, // v2.2: naam
   P26_acReturnDiff: {
-    address: 0x011A, min: 0, max: 10, default: 5, unit: '°C', name: 'H&C return differential value',
+    address: 0x011A, min: 0, max: 10, default: 5, unit: '°C', name: 'H&C Hysteresis return differential value',
   }, // v2.2: default
   P27_floorReturnDiff: {
     address: 0x011B, min: 0, max: 10, default: 5, unit: '°C', name: 'Floor heating return differential value',
@@ -2195,7 +2195,7 @@ export const POLL_GROUP_SUPERFAST = {
   interval: 5_000,
   reads: [
     { start: 0x0000, count: 2, label: 'Status 1+2' },
-    { start: 0x0027, count: 1, label: 'Compressor target frequency' },
+    { start: 0x0027, count: 2, label: 'Compressor target frequency 1+2' },
     { start: 0x0040, count: 1, label: 'Compressor running frequency' },
     { start: 0x004F, count: 2, label: 'Water inlet T6 + outlet T7' },
     { start: 0x0057, count: 2, label: 'Water pump PWM + water flow' },
@@ -2221,8 +2221,8 @@ export const POLL_GROUP_MEDIUM = {
     { start: 0x0002, count: 8, label: 'Fault State 13 + Sys1 Faults (0x020x09)' }, // v2.2: was 38
     { start: 0x0019, count: 8, label: 'Relay 1-4 + Switch 1-4 (0x190x20)', optional: true as const }, // v2.2: was 68
     { start: 0x0072, count: 12, label: 'Aux/Buffer/Grid/Zone', optional: true as const },
-    { start: 0x0300, count: 8, label: 'Control 0x3000x307' },
-    { start: 0x0313, count: 4, label: 'Curves 0x03130x0316' }, // verplaatst van SLOW: max 40s feedback na write
+    { start: 0x0300, count: 14, label: 'Control 0x300–0x30D' },
+    { start: 0x0313, count: 7, label: 'Curves & Zone 0x0313–0x0319' }, // verplaatst van SLOW: max 40s feedback na write
     { start: 0x01FF, count: 2, label: 'P255/P256 Smart Grid' }, // verplaatst van SLOW: max 40s feedback na write
     { start: 0x080B, count: 5, label: 'L22L26 backwater circulatie' },
     { start: 0x0810, count: 3, label: 'L27L29 DIY stooklijn' }, // verplaatst van SLOW: max 30s feedback na write (ADR-049)
@@ -2244,6 +2244,9 @@ export const POLL_GROUP_SLOW = {
     { start: 0x013C, count: 6, label: 'P60P65 freq limits (constants+hot water)' }, // v2.2: was 0x013D/5 0x013C/6
     { start: 0x0158, count: 2, label: 'P88/P89 silent mode freq' },
     { start: 0x0165, count: 1, label: 'P101 pump control mode' },
+    { start: 0x011A, count: 1, label: 'P26 H&C Hysteresis return diff' },
+    { start: 0x011B, count: 1, label: 'P27 Floor heating Hysteresis return diff' },
+    { start: 0x0160, count: 1, label: 'P96 DHW differential value' },
     { start: 0x01A4, count: 1, label: 'P164 energy level control' },
     { start: 0x0813, count: 7, label: 'L30L36 energieboekhouding', optional: true as const }, // v2.2
   ],
@@ -2258,28 +2261,49 @@ export const POLL_GROUP_ONCE = { // v2.2
   reads: [
     { start: 0x0360, count: 4, label: 'Version Info (0x3600x363)', optional: true as const },
     { start: 0x0100, count: 11, label: 'P00P10 Protection switches' },
-    { start: 0x010B, count: 6, label: 'P11P16 Protection values' },
-    { start: 0x0172, count: 2, label: 'P114/P115 System config' },
+    { start: 0x010B, count: 6, label: 'P11–P16 Protection values' },
+    { start: 0x0111, count: 9, label: 'P17–P25 Fan speeds & temp protections' },
+    { start: 0x011C, count: 2, label: 'P28–P29 Antifreeze pump' },
+    { start: 0x011F, count: 7, label: 'P31–P37 Defrost params' },
     { start: 0x0126, count: 1, label: 'P38 Heating main valve opening const' },
-    { start: 0x0128, count: 3, label: 'P40P42 EEV superheat corrections' },
-    { start: 0x012E, count: 2, label: 'P46P47 EVI liquid injection & superheat' },
-    { start: 0x0147, count: 17, label: 'P71P87 EEV enthalpy & valve params' },
-    { start: 0x015A, count: 5, label: 'P90P94 EVI conditions' },
-    { start: 0x0161, count: 2, label: 'P97P98 Tank temp compensation' },
+    { start: 0x0127, count: 1, label: 'P39 Pressure sensor settings' },
+    { start: 0x0128, count: 3, label: 'P40–P42 EEV superheat corrections' },
+    { start: 0x012B, count: 3, label: 'P43–P45 MV, water flow switch, Modbus addr' },
+    { start: 0x012E, count: 2, label: 'P46–P47 EVI liquid injection & superheat' },
+    { start: 0x0130, count: 2, label: 'P48–P49 DHW tank temp sensor & hot water freq' },
+    { start: 0x0142, count: 5, label: 'P66–P70 Fan freq limits' },
+    { start: 0x0147, count: 17, label: 'P71–P87 EEV enthalpy & valve params' },
+    { start: 0x015A, count: 5, label: 'P90–P94 EVI conditions' },
+    { start: 0x015F, count: 1, label: 'P95 Network pump mode' },
+    { start: 0x0161, count: 2, label: 'P97–P98 Tank temp compensation' },
+    { start: 0x0163, count: 2, label: 'P99–P100' },
     { start: 0x0166, count: 1, label: 'P102 Four-way valve mode' },
+    { start: 0x0167, count: 1, label: 'P103 Pump running mode' },
     { start: 0x0168, count: 1, label: 'P104 Mode switch freq %' },
-    { start: 0x0179, count: 12, label: 'P121P132 Freq shield zones' },
+    { start: 0x0169, count: 9, label: 'P105–P113 Temp limits (cooling/heating/DHW)' },
+    { start: 0x0172, count: 2, label: 'P114–P115 System config' },
+    { start: 0x0179, count: 12, label: 'P121–P132 Freq shield zones' },
     { start: 0x0185, count: 1, label: 'P133 Fan module' },
-    { start: 0x0187, count: 4, label: 'P135P138 Anti-condensation & defrost compressor' },
-    { start: 0x018D, count: 2, label: 'P141P142 Dew point defrost' },
-    { start: 0x018F, count: 3, label: 'P143P145 Defrost & antifreeze' },
-    { start: 0x0193, count: 3, label: 'P147P149 Cooling antifreeze' },
-    { start: 0x0199, count: 2, label: 'P153P154 Heat source temp limits' },
-    { start: 0x019B, count: 6, label: 'P155P160 Aux EEV & limit temps' },
-    { start: 0x01A5, count: 9, label: 'P165P173 Load shedding & cascading' },
-    { start: 0x01AF, count: 6, label: 'P175P180 Defrost timing & powerful mode' },
-    { start: 0x01B7, count: 71, label: 'P183P253 Werkconditie-ijkpunten', optional: true as const },
-    { start: 0x0201, count: 3, label: 'P257P259 Dual zone & mixing valve' },
+    { start: 0x0186, count: 1, label: 'P134 Fan module type' },
+    { start: 0x0187, count: 4, label: 'P135–P138 Anti-condensation & defrost compressor' },
+    { start: 0x018B, count: 2, label: 'P139–P140 AHS heating source' },
+    { start: 0x018D, count: 2, label: 'P141–P142 Dew point defrost' },
+    { start: 0x018F, count: 3, label: 'P143–P145 Defrost & antifreeze' },
+    { start: 0x0192, count: 1, label: 'P146 Cooling antifreeze mode' },
+    { start: 0x0193, count: 3, label: 'P147–P149 Cooling antifreeze' },
+    { start: 0x0196, count: 3, label: 'P150–P152 Control mode & return diff' },
+    { start: 0x0199, count: 2, label: 'P153–P154 Heat source temp limits' },
+    { start: 0x019B, count: 6, label: 'P155–P160 Aux EEV & limit temps' },
+    { start: 0x01A1, count: 3, label: 'P161–P163 Energy level settings' },
+    { start: 0x01A5, count: 9, label: 'P165–P173 Load shedding & cascading' },
+    { start: 0x01AE, count: 1, label: 'P174 Powerful mode duration' },
+    { start: 0x01AF, count: 6, label: 'P175–P180 Defrost timing & powerful mode' },
+    { start: 0x01B5, count: 2, label: 'P181–P182 Defrost selection & pipe heating' },
+    { start: 0x01B7, count: 71, label: 'P183–P253 Werkconditie-ijkpunten', optional: true as const },
+    { start: 0x01FE, count: 1, label: 'P254 Heating medium' },
+    { start: 0x0201, count: 3, label: 'P257–P259 Dual zone & mixing valve' },
+    { start: 0x0204, count: 3, label: 'P260–P262 Dual zone extra params' },
+    { start: 0x0800, count: 11, label: 'L01–L21 DHW & sterilization settings', optional: true as const },
   ],
 } as const;
 

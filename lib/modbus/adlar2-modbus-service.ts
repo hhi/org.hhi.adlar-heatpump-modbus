@@ -154,6 +154,12 @@ export interface ControlSnapshot {
   backwaterMode: number;
   protocolVersion: number;
   coilsAvailable: boolean;
+  tempControlMode: number | null;
+  acReturnDiffC: number | null;
+  floorReturnDiffC: number | null;
+  dhwReturnDiffC: number | null;
+  hotWaterHeatSourceReturnDiffC: number | null;
+  heatingHeatSourceReturnDiffC: number | null;
 }
 
 export type PowerSource = 'unit-direct' | 'unit-derived' | 'ac-derived' | 'none';
@@ -647,6 +653,12 @@ export class Adlar2ModbusService extends EventEmitter {
     const protocolVersion = this.tcp.has(VERSION_REGISTERS.protocolVersion.address)
       ? this.tcp.u16(VERSION_REGISTERS.protocolVersion.address)
       : null;
+    const optionalScaled = (def: NumericRegisterDefinition): number | null => (
+      this.tcp.has(def.address) ? this.readScaledValue(def) : null
+    );
+    const optionalU16 = (address: number): number | null => (
+      this.tcp.has(address) ? this.tcp.u16(address) : null
+    );
 
     return {
       on: this.tcp.u16(CONTROL_REGISTERS.mainSwitch.address) === 1,
@@ -664,6 +676,12 @@ export class Adlar2ModbusService extends EventEmitter {
         : 0,
       protocolVersion: protocolVersion ?? 0,
       coilsAvailable: protocolVersion !== null && protocolSupportsCoils(protocolVersion),
+      tempControlMode: optionalU16(P_PARAMETERS.P116_tempControlMode.address),
+      acReturnDiffC: optionalScaled(P_PARAMETERS.P26_acReturnDiff),
+      floorReturnDiffC: optionalScaled(P_PARAMETERS.P27_floorReturnDiff),
+      dhwReturnDiffC: optionalScaled(P_PARAMETERS.P96_hotWaterReturnDiff),
+      hotWaterHeatSourceReturnDiffC: optionalScaled(P_PARAMETERS.P151_returnDiffHwSource),
+      heatingHeatSourceReturnDiffC: optionalScaled(P_PARAMETERS.P152_returnDiffHeatSource),
     };
   }
 

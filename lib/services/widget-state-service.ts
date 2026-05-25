@@ -2,6 +2,7 @@
 /* eslint-disable node/no-missing-import */
 /* eslint-disable import/extensions */
 import { DataSnapshot } from '../modbus/adlar2-modbus-service';
+import { MODE_OPTIONS } from '../modbus/adlar-modbus-registers';
 
 const THERMAL_POWER_FACTOR_KW_PER_LPM_PER_C = 0.0698;
 const DATA_FRESH_MS = 60_000;
@@ -32,6 +33,7 @@ export interface LiveOperationWidgetState {
     mode: string;
     faultActive: string;
     connectionStatus: string;
+    connectionLabel: string;
   };
   temperatures: {
     outletC: number | null;
@@ -50,6 +52,17 @@ export interface LiveOperationWidgetState {
     capabilityCop: number | null;
     flowSource: 'external' | 'capability' | 'snapshot' | 'none';
     powerSource: 'external' | 'capability' | 'snapshot' | 'none';
+  };
+  regulation: {
+    mode: string;
+    sensor: string;
+    hysteresisC: number | null;
+    hysteresisSource: string;
+    hysteresisText: string;
+    activeSetpointC: number | null;
+    activeSetpointText: string;
+    setpointDeviationC: number | null;
+    summary: string;
   };
   data: {
     timestamp: number | null;
@@ -107,10 +120,83 @@ function round(value: number | null, decimals: number): number | null {
 }
 
 function modeLabel(value: string | null, snapshot: DataSnapshot | null): string {
+  const capabilityMode = numberOrNull(value);
+  if (capabilityMode !== null) {
+    const label = MODE_OPTIONS[capabilityMode as keyof typeof MODE_OPTIONS];
+    if (label) return label;
+  }
   const source = value ?? snapshot?.control.modeName ?? '';
   const normalized = source.trim();
   if (normalized === '') return 'Unknown';
   return normalized;
+}
+
+function connectionLabel(status: string): string {
+  const normalized = status.trim().toLowerCase();
+  if (normalized.startsWith('connected')) return 'Online';
+  if (normalized.startsWith('disconnected')) return 'Offline';
+  if (normalized === 'online') return 'Online';
+  if (normalized === 'offline') return 'Offline';
+  if (normalized === 'degraded') return 'Degraded';
+  if (normalized === '') return 'Unknown';
+  return status;
+}
+
+function regulationSensorLabel(tempControlMode: number | null | undefined): string {
+  if (tempControlMode === 0) return 'aanvoer T6';
+  if (tempControlMode === 1) return 'retour T7';
+  return 'regelbron onbekend';
+}
+
+function activeHysteresis(snapshot: DataSnapshot | null): {
+  value: number | null;
+  source: string;
+} {
+  const mode = snapshot?.control.mode;
+  if (mode === 2) {
+    return { value: numberOrNull(snapshot?.control.dhwReturnDiffC), source: 'P96' };
+  }
+  if (mode === 3 || mode === 7) {
+    return { value: numberOrNull(snapshot?.control.floorReturnDiffC), source: 'P27' };
+  }
+  if (mode === 0 || mode === 1 || mode === 4 || mode === 5) {
+    return { value: numberOrNull(snapshot?.control.acReturnDiffC), source: 'P26' };
+  }
+  return { value: null, source: '-' };
+}
+
+function activeSetpoint(snapshot: DataSnapshot | null): number | null {
+  const mode = snapshot?.control.mode;
+  if (mode === 0) return numberOrNull(snapshot?.control.coolingSetpointC);
+  if (mode === 1 || mode === 5) return numberOrNull(snapshot?.control.heatingSetpointC);
+  if (mode === 2 || mode === 4) return numberOrNull(snapshot?.control.dhwSetpointC);
+  if (mode === 3 || mode === 7) return numberOrNull(snapshot?.control.floorSetpointC);
+  return null;
+}
+
+function regulatedTemperature(
+  tempControlMode: number | null | undefined,
+  inletC: number | null,
+  outletC: number | null,
+): number | null {
+  if (tempControlMode === 0) return inletC;
+  if (tempControlMode === 1) return outletC;
+  return null;
+}
+
+function regulationSummary(mode: string, sensor: string, hysteresis: { value: number | null; source: string }): string {
+  return `${mode} op ${sensor}`;
+}
+
+function hysteresisText(hysteresis: { value: number | null; source: string }): string {
+  if (hysteresis.source === '-') return 'Hysterese onbekend';
+  if (hysteresis.value === null) return `${hysteresis.source} nog niet gelezen`;
+  return `${hysteresis.source} hysterese ${hysteresis.value.toFixed(1)}C`;
+}
+
+function activeSetpointText(setpointC: number | null): string {
+  if (setpointC === null) return 'Setpoint onbekend';
+  return `Setpoint ${setpointC.toFixed(1)}C`;
 }
 
 function externalNumber(
@@ -180,7 +266,7 @@ export function buildLiveOperationWidgetState(context: WidgetStateContext): Live
 
   const compressorHz = capNumber(device, 'measure_frequency.compressor_freq')
     ?? sensorValue(snapshot, 'compRunningFreq');
-  const deltaTC = outletC !== null && inletC !== null ? outletC - inletC : null;
+  const deltaTC = inletC !== null && outletC !== null ? inletC - outletC : null;
   const thermalPowerKw = flowLpm !== null && deltaTC !== null
     ? Math.abs(flowLpm * deltaTC * THERMAL_POWER_FACTOR_KW_PER_LPM_PER_C)
     : null;
@@ -205,9 +291,18 @@ export function buildLiveOperationWidgetState(context: WidgetStateContext): Live
   const connectionStatus = capString(device, 'adlar_connection_status')
     ?? snapshot?.diagnostics?.connectionQuality
     ?? 'unknown';
+  const shortConnectionStatus = connectionLabel(connectionStatus);
   const timestamp = snapshot?.ts ?? null;
   const ageMs = timestamp !== null ? Date.now() - timestamp : null;
   const freshness = dataFreshness(ageMs);
+  const mode = modeLabel(capString(device, 'adlar_mode'), snapshot);
+  const regulationSensor = regulationSensorLabel(snapshot?.control.tempControlMode);
+  const hysteresis = activeHysteresis(snapshot);
+  const setpointC = activeSetpoint(snapshot);
+  const regulatedTempC = regulatedTemperature(snapshot?.control.tempControlMode, inletC, outletC);
+  const setpointDeviationC = regulatedTempC !== null && setpointC !== null
+    ? regulatedTempC - setpointC
+    : null;
 
   return {
     ok: true,
@@ -218,9 +313,10 @@ export function buildLiveOperationWidgetState(context: WidgetStateContext): Live
       running,
       compressorOn,
       defrosting,
-      mode: modeLabel(capString(device, 'adlar_mode'), snapshot),
+      mode,
       faultActive,
       connectionStatus,
+      connectionLabel: shortConnectionStatus,
     },
     temperatures: {
       outletC: round(outletC, 1),
@@ -247,6 +343,17 @@ export function buildLiveOperationWidgetState(context: WidgetStateContext): Live
         { value: capabilityPowerW, source: 'capability' },
         { value: snapshotInputPowerKw ?? snapshotDerivedPowerKw, source: 'snapshot' },
       ], 'none'),
+    },
+    regulation: {
+      mode,
+      sensor: regulationSensor,
+      hysteresisC: round(hysteresis.value, 1),
+      hysteresisSource: hysteresis.source,
+      hysteresisText: hysteresisText(hysteresis),
+      activeSetpointC: round(setpointC, 1),
+      activeSetpointText: activeSetpointText(setpointC),
+      setpointDeviationC: round(setpointDeviationC, 1),
+      summary: regulationSummary(mode, regulationSensor, hysteresis),
     },
     data: {
       timestamp,
