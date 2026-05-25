@@ -2209,7 +2209,8 @@ export const POLL_GROUP_FAST = {
   interval: 10_000,
   reads: [
     { start: 0x0000, count: 2, label: 'Status 1+2' },
-    { start: 0x0040, count: 30, label: 'WP1 Sensors (0x400x5D)' },
+    { start: 0x0040, count: 19, label: 'WP1 Sensors (0x40–0x52)' },
+    { start: 0x0054, count: 10, label: 'WP1 Sensors (0x54–0x5D)' },
   ],
 } as const;
 
@@ -2259,6 +2260,7 @@ export const POLL_GROUP_ONCE = { // v2.2
   name: 'once',
   interval: 0, // Eenmalig
   reads: [
+    { start: 0x0053, count: 1, label: 'Device Tooling No (0x53)' },
     { start: 0x0360, count: 4, label: 'Version Info (0x3600x363)', optional: true as const },
     { start: 0x0100, count: 11, label: 'P00P10 Protection switches' },
     { start: 0x010B, count: 6, label: 'P11–P16 Protection values' },
