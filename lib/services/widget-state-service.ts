@@ -143,8 +143,8 @@ function connectionLabel(status: string): string {
 }
 
 function regulationSensorLabel(tempControlMode: number | null | undefined): string {
-  if (tempControlMode === 0) return 'aanvoer T6';
-  if (tempControlMode === 1) return 'retour T7';
+  if (tempControlMode === 0) return 'retour T6';
+  if (tempControlMode === 1) return 'aanvoer T7';
   return 'regelbron onbekend';
 }
 
@@ -266,7 +266,7 @@ export function buildLiveOperationWidgetState(context: WidgetStateContext): Live
 
   const compressorHz = capNumber(device, 'measure_frequency.compressor_freq')
     ?? sensorValue(snapshot, 'compRunningFreq');
-  const deltaTC = inletC !== null && outletC !== null ? inletC - outletC : null;
+  const deltaTC = outletC !== null && inletC !== null ? outletC - inletC : null;
   const thermalPowerKw = flowLpm !== null && deltaTC !== null
     ? Math.abs(flowLpm * deltaTC * THERMAL_POWER_FACTOR_KW_PER_LPM_PER_C)
     : null;

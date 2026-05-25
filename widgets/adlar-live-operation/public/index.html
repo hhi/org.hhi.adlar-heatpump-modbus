@@ -239,7 +239,7 @@
 
     .footer {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 8px;
     }
 
@@ -377,7 +377,7 @@
           '<div class="regulation">',
           '<div class="regulation-line">Regeling</div>',
           '<div class="regulation-line regulation-main">' + escapeHtml(state.regulation.summary || 'Regeling onbekend') + '</div>',
-          '<div class="regulation-line">' + escapeHtml(state.regulation.activeSetpointText || 'Setpoint onbekend') + '</div>',
+          '<div class="regulation-line">Setpoint afwijking ' + escapeHtml(formatSetpointDeviation(state)) + ' C</div>',
           '<div class="regulation-line">' + escapeHtml(state.regulation.hysteresisText || 'Hysterese onbekend') + '</div>',
           '</div>',
           '</div>',
@@ -390,13 +390,14 @@
           metricBox('Flow', formatNumber(state.process.flowLpm, 1), 'L/min'),
           metricBox('Compressor', formatNumber(state.process.compressorHz, 0), 'Hz'),
           metricBox('COP live', formatNumber(cop, 1), ''),
-          metricBox('Setpoint afwijking', formatSetpointDeviation(state), 'C'),
+          metricBox('Defrost', state.status.defrosting ? 'Ja' : 'Nee', ''),
           '</div>',
           '</section>',
           '<section class="footer">',
-          footerItem('Aanvoer', formatValue(state.temperatures.inletC, ' C', 1)),
-          footerItem('Retour', formatValue(state.temperatures.outletC, ' C', 1)),
+          footerItem('Aanvoer (T7)', formatValue(state.temperatures.outletC, ' C', 1)),
+          footerItem('Retour (T6)', formatValue(state.temperatures.inletC, ' C', 1)),
           footerItem('Buiten', formatValue(state.temperatures.ambientC, ' C', 1)),
+          footerItem('Setpoint', formatValue(state.regulation.activeSetpointC, ' C', 1)),
           footerItem('Laatste poll', formatPoll(state.data.timestamp, state.data.ageMs)),
           '</section>',
         ].join('');

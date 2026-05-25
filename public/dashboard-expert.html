@@ -445,7 +445,7 @@ function buildFunctionalBlocks(sourceBlocks) {
     { id: 'func_workcond', label: 'Werkconditie-ijkpunten', match: r => hasAny(r, ['working cond', 'pfc']) },
     { id: 'func_energy', label: 'Energie & COP', match: r => hasAny(r, ['energy', 'power', 'current', 'voltage', 'consumption', 'cop']) },
     { id: 'func_smartgrid', label: "Smart Grid & commando's", match: r => hasAny(r, ['smart grid', 'command', 'mode']) || inAddress(r, 0x0330, 0x0345) || !!r.isCoil },
-    { id: 'func_service', label: 'Service & firmware', match: r => hasAny(r, ['version', 'firmware', 'protocol', 'manufacturer', 'protection', 'password', 'compressor code']) || inAddress(r, 0x0360, 0x0363) || !!r.serviceOnly },
+    { id: 'func_service', label: 'Service & firmware', match: r => hasAny(r, ['version', 'firmware', 'protocol', 'manufacturer', 'protection', 'password', 'compressor code', 'tooling']) || inAddress(r, 0x0360, 0x0363) || !!r.serviceOnly },
     { id: 'func_temperature', label: 'Temperatuur', match: r => r.unit === '°C' || !!r.isTemperatureRegister },
   ];
 
