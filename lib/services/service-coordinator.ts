@@ -67,6 +67,7 @@ export class ServiceCoordinator {
   private static readonly DEGRADED_TO_OFFLINE_MS = 10 * 60 * 1000; // 10 minuten
   private _lastErrorContext: string | null = null;
   private _errorCountByContext = new Map<string, number>();
+  private _latestSnapshot: DataSnapshot | null = null;
 
   // Dashboard snapshot callback (ADR-041a)
   private readonly onSnapshot?: (snapshot: DataSnapshot) => void;
@@ -452,6 +453,7 @@ export class ServiceCoordinator {
       lastSuccessfulFastPollAt: this._lastSuccessfulFastPollAt,
       lastErrorContext: this._lastErrorContext,
     };
+    this._latestSnapshot = snapshot;
 
     // Forward naar dashboard (ADR-041a)
     this.onSnapshot?.(snapshot);
@@ -743,7 +745,7 @@ export class ServiceCoordinator {
   }
 
   getCurrentSnapshot(): DataSnapshot | null {
-    return this.modbusConnection.getSnapshot();
+    return this._latestSnapshot;
   }
 
   getChangeLog(): Map<number, RegisterChangeEntry> {

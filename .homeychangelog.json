@@ -1,4 +1,8 @@
 {
+  "2.10.1": {
+    "en": "Live Operation widget: operating mode now shows readable labels such as Heating instead of numeric values. The widget now shows the last poll time and age, the active control sensor, active setpoint, relevant hysteresis register, and setpoint deviation. Water temperature labels now use T6 as supply/inlet and T7 as return/outlet in the widget and interactive dashboard.",
+    "nl": "Live Bedrijf-widget: bedrijfsmodus toont nu leesbare labels zoals Verwarming in plaats van numerieke waarden. De widget toont nu de laatste polltijd en leeftijd, de actieve regelsensor, het actieve setpoint, het relevante hysterese-register en de setpoint-afwijking. Watertemperatuurlabels gebruiken nu T6 als aanvoer/intrede en T7 als retour/uittrede in de widget en het interactieve dashboard."
+  },
   "2.10.0": {
     "en": "Added a Homey Dashboard widget 'Adlar Live Operation'. The widget shows whether the heat pump is active, current mode and connection status, water ΔT, water flow, electrical input, estimated thermal output, compressor frequency, live COP, and key temperatures. Homey 12.3 or newer is now required.",
     "nl": "Homey Dashboard-widget 'Adlar Live Bedrijf' toegevoegd. De widget toont of de warmtepomp actief is, de huidige modus en verbindingsstatus, water-ΔT, waterdebiet, elektrisch ingangsvermogen, geschatte thermische output, compressorfrequentie, live COP en belangrijke temperaturen. Homey 12.3 of nieuwer is nu vereist."

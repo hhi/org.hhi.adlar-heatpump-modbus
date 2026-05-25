@@ -163,6 +163,23 @@
       font-weight: 700;
     }
 
+    .regulation {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .regulation-line {
+      overflow-wrap: anywhere;
+    }
+
+    .regulation-main {
+      color: var(--text);
+      font-size: 12px;
+    }
+
     .power-line {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -196,6 +213,28 @@
 
     .metric-value.small {
       font-size: 16px;
+    }
+
+    .value-line {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .value-number {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .value-unit {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1;
     }
 
     .footer {
@@ -262,11 +301,32 @@
         return Number(value).toFixed(decimals) + suffix;
       }
 
+      function formatNumber(value, decimals) {
+        if (value === null || value === undefined || Number.isNaN(Number(value))) return '-';
+        return Number(value).toFixed(decimals);
+      }
+
       function formatAge(ageMs) {
         if (ageMs === null || ageMs === undefined) return '-';
         var seconds = Math.max(0, Math.round(ageMs / 1000));
+        if (seconds < 2) return 'nu';
         if (seconds < 60) return seconds + 's';
-        return Math.round(seconds / 60) + 'm';
+        if (seconds < 3600) return Math.round(seconds / 60) + 'm';
+        return Math.round(seconds / 3600) + 'u';
+      }
+
+      function formatPoll(timestamp, ageMs) {
+        if (!timestamp) return '-';
+        var time = new Date(timestamp).toLocaleTimeString('nl-NL', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        return time + ' / ' + formatAge(ageMs);
+      }
+
+      function formatSetpointDeviation(state) {
+        if (!state.regulation || state.regulation.setpointDeviationC === null) return '-';
+        return formatNumber(state.regulation.setpointDeviationC, 1);
       }
 
       function statusClass(state) {
@@ -306,41 +366,50 @@
           '<div class="pills">',
           '<span class="pill ' + cls + '">' + escapeHtml(statusText) + '</span>',
           '<span class="pill">' + escapeHtml(state.status.mode) + '</span>',
-          '<span class="pill ' + (state.data.freshness === 'stale' ? 'warn' : '') + '">' + escapeHtml(state.status.connectionStatus) + '</span>',
+          '<span class="pill ' + (state.data.freshness === 'stale' ? 'warn' : '') + '">' + escapeHtml(state.status.connectionLabel || state.status.connectionStatus) + '</span>',
           '</div>',
           '</section>',
           '<section class="main">',
           '<div class="hero">',
           '<div>',
-          '<div class="hero-label">Delta T water</div>',
+          '<div class="hero-label">Aanvoer - retour</div>',
           '<div class="delta"><span class="delta-value">' + formatValue(state.process.deltaTC, '', 1) + '</span><span class="delta-unit">C</span></div>',
+          '<div class="regulation">',
+          '<div class="regulation-line">Regeling</div>',
+          '<div class="regulation-line regulation-main">' + escapeHtml(state.regulation.summary || 'Regeling onbekend') + '</div>',
+          '<div class="regulation-line">' + escapeHtml(state.regulation.activeSetpointText || 'Setpoint onbekend') + '</div>',
+          '<div class="regulation-line">' + escapeHtml(state.regulation.hysteresisText || 'Hysterese onbekend') + '</div>',
+          '</div>',
           '</div>',
           '<div class="power-line">',
-          metricBox('Input', formatValue(state.process.electricalPowerKw, ' kW', 2)),
-          metricBox('Output', formatValue(state.process.thermalPowerKw, ' kW', 2)),
+          metricBox('Input', formatNumber(state.process.electricalPowerKw, 2), 'kW'),
+          metricBox('Output', formatNumber(state.process.thermalPowerKw, 2), 'kW'),
           '</div>',
           '</div>',
           '<div class="grid">',
-          metricBox('Flow', formatValue(state.process.flowLpm, ' L/min', 1)),
-          metricBox('Compressor', formatValue(state.process.compressorHz, ' Hz', 0)),
-          metricBox('COP live', formatValue(cop, '', 1)),
-          metricBox('Defrost', state.status.defrosting ? 'Ja' : 'Nee'),
+          metricBox('Flow', formatNumber(state.process.flowLpm, 1), 'L/min'),
+          metricBox('Compressor', formatNumber(state.process.compressorHz, 0), 'Hz'),
+          metricBox('COP live', formatNumber(cop, 1), ''),
+          metricBox('Setpoint afwijking', formatSetpointDeviation(state), 'C'),
           '</div>',
           '</section>',
           '<section class="footer">',
-          footerItem('Aanvoer', formatValue(state.temperatures.outletC, ' C', 1)),
-          footerItem('Retour', formatValue(state.temperatures.inletC, ' C', 1)),
+          footerItem('Aanvoer', formatValue(state.temperatures.inletC, ' C', 1)),
+          footerItem('Retour', formatValue(state.temperatures.outletC, ' C', 1)),
           footerItem('Buiten', formatValue(state.temperatures.ambientC, ' C', 1)),
-          footerItem('Update', formatAge(state.data.ageMs)),
+          footerItem('Laatste poll', formatPoll(state.data.timestamp, state.data.ageMs)),
           '</section>',
         ].join('');
       }
 
-      function metricBox(label, value) {
+      function metricBox(label, value, unit) {
         return [
           '<div class="metric">',
           '<div class="metric-label">' + escapeHtml(label) + '</div>',
-          '<div class="metric-value small">' + escapeHtml(value) + '</div>',
+          '<div class="metric-value small value-line">',
+          '<span class="value-number">' + escapeHtml(value) + '</span>',
+          unit ? '<span class="value-unit">' + escapeHtml(unit) + '</span>' : '',
+          '</div>',
           '</div>',
         ].join('');
       }

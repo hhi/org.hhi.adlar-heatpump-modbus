@@ -233,6 +233,7 @@
   <div class="view-toggle" aria-label="Dashboard weergave">
     <button type="button" id="view-address" class="active" onclick="setViewMode('address')">Adresweergave</button>
     <button type="button" id="view-functional" onclick="setViewMode('functional')">Functioneel</button>
+    <button type="button" id="view-unit" onclick="setViewMode('unit')">Eenheid</button>
   </div>
   <button type="button" class="btn-read btn-expand" data-tip="Klap alle blokken open en toon beschikbare cachewaarden" onclick="expandAll()">&#9660; Alles uitklappen</button>
   <button type="button" class="btn-read btn-expand" onclick="collapseAll()">&#9650; Alles inklappen</button>
@@ -297,6 +298,7 @@
 // ── State ──────────────────────────────────────────────────────────────────────
 let blocks = [];
 let functionalBlocks = [];
+let unitBlocks = [];
 let visibleBlocks = [];
 let viewMode = 'address';
 let pendingWrite = null; // { reg, rowEl }
@@ -324,6 +326,7 @@ async function init() {
     if (!r.ok) throw new Error(r.statusText);
     blocks = await r.json();
     functionalBlocks = buildFunctionalBlocks(blocks);
+    unitBlocks = buildUnitBlocks(blocks);
     visibleBlocks = blocks;
     renderBlocks();
     await loadRegisterCache();
@@ -388,7 +391,7 @@ function applyFilters(sourceBlocks) {
 function renderBlocks() {
   const container = document.getElementById('blocks-container');
   container.innerHTML = '';
-  const source = viewMode === 'functional' ? functionalBlocks : blocks;
+  const source = viewMode === 'functional' ? functionalBlocks : viewMode === 'unit' ? unitBlocks : blocks;
   visibleBlocks = applyFilters(source);
   const isFiltered = filterText || filterPollGroups.size > 0 || filterWritable || filterOutOfRange;
   for (const block of visibleBlocks) {
@@ -421,6 +424,7 @@ function setViewMode(mode) {
   viewMode = mode;
   document.getElementById('view-address').classList.toggle('active', mode === 'address');
   document.getElementById('view-functional').classList.toggle('active', mode === 'functional');
+  document.getElementById('view-unit').classList.toggle('active', mode === 'unit');
   renderBlocks();
 }
 
@@ -442,6 +446,7 @@ function buildFunctionalBlocks(sourceBlocks) {
     { id: 'func_energy', label: 'Energie & COP', match: r => hasAny(r, ['energy', 'power', 'current', 'voltage', 'consumption', 'cop']) },
     { id: 'func_smartgrid', label: "Smart Grid & commando's", match: r => hasAny(r, ['smart grid', 'command', 'mode']) || inAddress(r, 0x0330, 0x0345) || !!r.isCoil },
     { id: 'func_service', label: 'Service & firmware', match: r => hasAny(r, ['version', 'firmware', 'protocol', 'manufacturer', 'protection', 'password', 'compressor code']) || inAddress(r, 0x0360, 0x0363) || !!r.serviceOnly },
+    { id: 'func_temperature', label: 'Temperatuur', match: r => r.unit === '°C' || !!r.isTemperatureRegister },
   ];
 
   const flat = [];
@@ -486,6 +491,50 @@ function buildFunctionalBlocks(sourceBlocks) {
       label: 'Overig — ongedocumenteerd',
       readOnly: true,
       registers: uncharted,
+    });
+  }
+
+  return result;
+}
+
+function buildUnitBlocks(sourceBlocks) {
+  const flat = [];
+  for (const block of sourceBlocks) {
+    for (const reg of block.registers) {
+      flat.push({ ...reg, sourceBlockId: block.id, sourceBlockLabel: block.label, readOnly: reg.readOnly || block.readOnly });
+    }
+  }
+
+  const unitMap = new Map();
+  for (const reg of flat) {
+    const unit = reg.unit || '';
+    if (!unitMap.has(unit)) unitMap.set(unit, []);
+    unitMap.get(unit).push(reg);
+  }
+
+  const unitOrder = ['°C', 'Hz', '%', 'min', 's', 'W', 'kW', 'kWh', 'A', 'V', 'RPM', 'Pa', 'bar', 'days', 'P'];
+  const result = [];
+  const handled = new Set();
+
+  for (const unit of unitOrder) {
+    if (!unitMap.has(unit)) continue;
+    const regs = unitMap.get(unit);
+    result.push({
+      id: 'unit_' + (unit || 'none').replace(/[^a-zA-Z0-9]/g, '_'),
+      label: unit || '(geen eenheid)',
+      readOnly: regs.every(r => r.readOnly),
+      registers: regs.sort((a, b) => a.address - b.address),
+    });
+    handled.add(unit);
+  }
+
+  for (const [unit, regs] of unitMap.entries()) {
+    if (handled.has(unit)) continue;
+    result.push({
+      id: 'unit_' + (unit || 'none').replace(/[^a-zA-Z0-9]/g, '_'),
+      label: unit || '(geen eenheid)',
+      readOnly: regs.every(r => r.readOnly),
+      registers: regs.sort((a, b) => a.address - b.address),
     });
   }
 
@@ -815,7 +864,7 @@ function renderReadProgress(progress, finished = false) {
 
 function getRangeEligibleRegisterCount() {
   const seen = new Set();
-  const source = viewMode === 'functional' ? functionalBlocks : blocks;
+  const source = viewMode === 'functional' ? functionalBlocks : viewMode === 'unit' ? unitBlocks : blocks;
   source.forEach(block => {
     block.registers.forEach(reg => {
       if (!reg.isCoil && (reg.min != null || reg.max != null)) seen.add(reg.address);
@@ -954,7 +1003,7 @@ function buildMarkdownReport() {
   lines.push('# Modbus Expert Dashboard Rapport');
   lines.push('');
   lines.push(`Datum: ${formatDateTime(now)}`);
-  lines.push(`Weergave: ${viewMode === 'functional' ? 'Functioneel' : 'Adresweergave'}`);
+  lines.push(`Weergave: ${viewMode === 'functional' ? 'Functioneel' : viewMode === 'unit' ? 'Eenheid' : 'Adresweergave'}`);
   lines.push(`Filters: ${activeFilterDescription()}`);
   lines.push('');
   lines.push('## Samenvatting');

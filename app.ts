@@ -46,6 +46,7 @@ class MyApp extends App {
           mode: 'Unknown',
           faultActive: '',
           connectionStatus: 'unknown',
+          connectionLabel: 'Unknown',
         },
         temperatures: {
           outletC: null,
@@ -64,6 +65,17 @@ class MyApp extends App {
           capabilityCop: null,
           flowSource: 'none',
           powerSource: 'none',
+        },
+        regulation: {
+          mode: 'Unknown',
+          sensor: 'regelbron onbekend',
+          hysteresisC: null,
+          hysteresisSource: '-',
+          hysteresisText: 'Hysterese onbekend',
+          activeSetpointC: null,
+          activeSetpointText: 'Setpoint onbekend',
+          setpointDeviationC: null,
+          summary: 'Regeling onbekend',
         },
         data: {
           timestamp: null,

@@ -118,13 +118,13 @@
     <div class="live-card-unit">kW</div>
   </div>
   <div class="live-card" id="lc-outlet">
-    <div class="live-card-label">Aanvoer (T7)</div>
+    <div class="live-card-label">Aanvoer (T6)</div>
     <div class="live-card-value" id="lv-outlet">—</div>
     <div class="live-card-unit">°C</div>
     <svg class="live-card-spark" id="sp-outlet" viewBox="0 0 120 24" preserveAspectRatio="none"></svg>
   </div>
   <div class="live-card" id="lc-inlet">
-    <div class="live-card-label">Retour (T6)</div>
+    <div class="live-card-label">Retour (T7)</div>
     <div class="live-card-value" id="lv-inlet">—</div>
     <div class="live-card-unit">°C</div>
     <svg class="live-card-spark" id="sp-inlet" viewBox="0 0 120 24" preserveAspectRatio="none"></svg>
@@ -320,8 +320,8 @@ function updateLiveOverview(d) {
   if (pwEl) pwEl.textContent = Number.isFinite(power.inputPowerKw) ? power.inputPowerKw.toFixed(2) : '—';
 
   // Temperaturen
-  setLiveCard('lc-outlet',  'lv-outlet',  'sp-outlet',  'outlet',  sensors.outletT7?.value);
-  setLiveCard('lc-inlet',   'lv-inlet',   'sp-inlet',   'inlet',   sensors.inletT6?.value);
+  setLiveCard('lc-outlet',  'lv-outlet',  'sp-outlet',  'outlet',  sensors.inletT6?.value);
+  setLiveCard('lc-inlet',   'lv-inlet',   'sp-inlet',   'inlet',   sensors.outletT7?.value);
   setLiveCard('lc-ambient', 'lv-ambient', 'sp-ambient', 'ambient', sensors.ambientT1?.value);
   setLiveCard('lc-dhw',     'lv-dhw',     'sp-dhw',     'dhw',     sensors.dhwTankTemp?.value);
 
@@ -348,7 +348,7 @@ function updateLiveOverview(d) {
   if (fanBar) fanBar.style.width = Math.min(100, (fan ?? 0)) + '%';
   const dtEl = document.getElementById('lv-dt');
   if (dtEl && Number.isFinite(inlet) && Number.isFinite(outlet)) {
-    dtEl.textContent = (outlet - inlet).toFixed(1);
+    dtEl.textContent = (inlet - outlet).toFixed(1);
   }
 }
 
