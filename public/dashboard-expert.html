@@ -434,6 +434,7 @@ function buildFunctionalBlocks(sourceBlocks) {
     { id: 'func_heating', label: 'Verwarming', match: r => hasAny(r, ['heating', 'heat', 'floor', 'zone', 'curve', 'stooklijn', 'water outlet', 'water inlet']) || inAddress(r, 0x0301, 0x0303) },
     { id: 'func_dhw', label: 'Tapwater & retourcirculatie', match: r => hasAny(r, ['dhw', 'hot water', 'tank', 'backwater', 'return water', 'sterilization']) || inAddress(r, 0x080B, 0x080F) || r.address === 0x0054 || r.address === 0x0059 },
     { id: 'func_cooling', label: 'Koeling', match: r => hasAny(r, ['cooling', 'cool']) || r.address === 0x0300 },
+    { id: 'func_service', label: 'Service & firmware', match: r => r.address === 0x0053 || hasAny(r, ['version', 'firmware', 'protocol', 'manufacturer', 'protection', 'password', 'tooling']) || inAddress(r, 0x0360, 0x0363) || !!r.serviceOnly },
     { id: 'func_compressor', label: 'Compressor & ventilator', match: r => hasAny(r, ['compressor', 'fan', 'ipm', 'four-way', 'strong mode', 'powerful mode']) || inAddress(r, 0x0040, 0x0048) },
     { id: 'func_eev', label: 'EEV & ventielregeling', match: r => hasAny(r, ['eev', 'valve', 'enthalpy', 'superheat', 'opening', 'coeff']) },
     { id: 'func_evi', label: 'EVI & vloeistofinjector', match: r => hasAny(r, ['evi', 'liquid injection']) },
@@ -445,7 +446,6 @@ function buildFunctionalBlocks(sourceBlocks) {
     { id: 'func_workcond', label: 'Werkconditie-ijkpunten', match: r => hasAny(r, ['working cond', 'pfc']) },
     { id: 'func_energy', label: 'Energie & COP', match: r => hasAny(r, ['energy', 'power', 'current', 'voltage', 'consumption', 'cop']) },
     { id: 'func_smartgrid', label: "Smart Grid & commando's", match: r => hasAny(r, ['smart grid', 'command', 'mode']) || inAddress(r, 0x0330, 0x0345) || !!r.isCoil },
-    { id: 'func_service', label: 'Service & firmware', match: r => hasAny(r, ['version', 'firmware', 'protocol', 'manufacturer', 'protection', 'password', 'compressor code', 'tooling']) || inAddress(r, 0x0360, 0x0363) || !!r.serviceOnly },
     { id: 'func_temperature', label: 'Temperatuur', match: r => r.unit === '°C' || !!r.isTemperatureRegister },
   ];
 
@@ -456,12 +456,11 @@ function buildFunctionalBlocks(sourceBlocks) {
     }
   }
 
-  const assigned = new Set();
+  const matchedAddresses = new Set();
   const result = categories.map(category => {
     const registers = flat.filter(reg => {
-      if (assigned.has(reg.address)) return false;
       if (!category.match(reg)) return false;
-      assigned.add(reg.address);
+      matchedAddresses.add(reg.address);
       return true;
     });
     return {
@@ -472,10 +471,10 @@ function buildFunctionalBlocks(sourceBlocks) {
     };
   }).filter(block => block.registers.length > 0);
 
-  const uncharted = flat.filter(reg => !assigned.has(reg.address) && (reg.sourceBlockId === 'blok10_p_uncharted' || reg.sourceBlockId === 'blok11_l_uncharted'));
-  uncharted.forEach(reg => assigned.add(reg.address));
+  const uncharted = flat.filter(reg => !matchedAddresses.has(reg.address) && (reg.sourceBlockId === 'blok10_p_uncharted' || reg.sourceBlockId === 'blok11_l_uncharted'));
+  uncharted.forEach(reg => matchedAddresses.add(reg.address));
 
-  const remaining = flat.filter(reg => !assigned.has(reg.address));
+  const remaining = flat.filter(reg => !matchedAddresses.has(reg.address) && reg.sourceBlockId !== 'blok10_p_uncharted' && reg.sourceBlockId !== 'blok11_l_uncharted');
   if (remaining.length > 0) {
     result.push({
       id: 'func_overig',
@@ -543,7 +542,7 @@ function buildUnitBlocks(sourceBlocks) {
 
 function hasAny(reg, terms) {
   const text = `${reg.key || ''} ${reg.registerId || ''} ${reg.name || ''} ${reg.desc || ''}`.toLowerCase();
-  return terms.some(term => text.includes(term));
+  return terms.some(term => new RegExp('\\b' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(text));
 }
 
 function inAddress(reg, start, end) {
