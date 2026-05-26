@@ -852,7 +852,8 @@ function buildRegisterBlocks(tempScale: TemperatureRegisterScale = 'x1'): Regist
       registers: Object.entries(STATUS_REGISTER_MAP).map(([key, def]) => ({
         key,
         address: (def as { address: number }).address,
-        name: key,
+        name: (def as { name?: string }).name ?? key,
+        unit: (def as { unit?: string }).unit,
         readOnly: true,
         bits: _serializeBits(def),
         pollGroups: _pollGroupsForAddress((def as { address: number }).address),

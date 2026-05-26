@@ -390,8 +390,8 @@ export const STATUS_REGISTER_MAP = {
   switchPortState1: { address: 0x001D, bits: SWITCH_1_BITS },
   switchPortState2: { address: 0x001E, bits: SWITCH_2_BITS }, // v2.2
   switchPortState3: { address: 0x001F, bits: SWITCH_3_BITS }, // v2.2
-  compressorTargetFreq1: { address: 0x0027 },
-  compressorTargetFreq2: { address: 0x0028 },
+  compressorTargetFreq1: { address: 0x0027, name: 'Compressor target frequency 1', unit: 'Hz' },
+  compressorTargetFreq2: { address: 0x0028, name: 'Compressor target frequency 2', unit: 'Hz' },
 } as const;
 
 // ============================================================================

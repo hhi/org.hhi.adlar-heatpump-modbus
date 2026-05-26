@@ -57,6 +57,7 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
   private readonly onError: (err: Error, context: string) => void;
   private readonly onPollGroupSucceeded?: (groupName: string) => void;
   private _firstConnect = true;
+  private _initialDelayDone = false;
 
   constructor(options: ModbusConnectionOptions<TSnapshot>) {
     super();
@@ -130,6 +131,12 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
     this.service.on('poll-group-succeeded', (groupName: string) => {
       this.onPollGroupSucceeded?.(groupName);
     });
+
+    if (!this._initialDelayDone) {
+      this._initialDelayDone = true;
+      this.logger('ModbusConnectionService: Wachten 5s voor initiële verbinding...');
+      await new Promise<void>(resolve => this.device.homey.setTimeout(resolve, 5_000));
+    }
 
     try {
       await this.service.connect();

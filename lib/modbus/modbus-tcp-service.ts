@@ -304,7 +304,7 @@ export class ModbusTcpService extends EventEmitter {
     this._destroyed = false;
     if (this._connected) {
       this._connected = false;
-      this.socket.destroy();
+      this._gracefulClose();
       this.emit('disconnected', 'manual');
     }
   }
@@ -315,9 +315,21 @@ export class ModbusTcpService extends EventEmitter {
     this._clearBackoff();
     if (this._connected) {
       this._connected = false;
-      this.socket.destroy();
+      this._gracefulClose();
     }
     this.removeAllListeners();
+  }
+
+  private _gracefulClose(): void {
+    // socket.end() stuurt FIN zodat de Elfin de sessie netjes kan opruimen.
+    // Na 1s alsnog destroy() als de remote niet antwoordt.
+    try {
+      this.socket.end();
+      const t = setTimeout(() => this.socket.destroy(), 1000);
+      if (t.unref) t.unref();
+    } catch {
+      this.socket.destroy();
+    }
   }
 
   private _scheduleReconnect(): void {
