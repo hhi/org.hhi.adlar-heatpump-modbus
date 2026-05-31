@@ -160,6 +160,7 @@ export interface RegisterChangeEntry {
   intervals: number[];
   lastValue: number;
   previousValue: number | null;
+  previousChangedAt: number | null;
 }
 
 /**
@@ -452,7 +453,15 @@ export class ModbusTcpService extends EventEmitter {
 
       let entry = this.changeLog.get(addr);
       if (!entry) {
-        entry = { firstSeen: now, lastChanged: now, changeCount: 0, intervals: [], lastValue: newVal, previousValue: null };
+        entry = {
+          firstSeen: now,
+          lastChanged: now,
+          changeCount: 0,
+          intervals: [],
+          lastValue: newVal,
+          previousValue: null,
+          previousChangedAt: null,
+        };
         this.changeLog.set(addr, entry);
       } else if (entry.lastValue !== newVal) {
         // Vergelijk tegen entry.lastValue (laatste poll-waarde), niet de cache-snapshot.
@@ -462,6 +471,7 @@ export class ModbusTcpService extends EventEmitter {
         entry.intervals.push(interval);
         if (entry.intervals.length > 50) entry.intervals.shift();
         entry.previousValue = entry.lastValue;
+        entry.previousChangedAt = entry.lastChanged;
         entry.changeCount++;
         entry.lastChanged = now;
         entry.lastValue = newVal;

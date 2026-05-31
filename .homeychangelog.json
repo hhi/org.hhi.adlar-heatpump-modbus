@@ -1,4 +1,8 @@
 {
+  "2.11.0": {
+    "en": "Register Change Log dashboard: previous values now show when they were active. Decoded values are shown alongside raw register values. A Markdown report can now be copied or downloaded from the current filtered and sorted change log view.",
+    "nl": "Register Change Log-dashboard: vorige waarden tonen nu wanneer ze actief waren. Gedecodeerde waarden worden naast ruwe registerwaarden getoond. Van de huidige gefilterde en gesorteerde changelog-weergave kan nu een Markdown-rapport worden gekopieerd of gedownload."
+  },
   "2.10.3": {
     "en": "Expert dashboard: registers now appear in every applicable category simultaneously. Keyword matching now works on whole words, preventing registers from appearing in unrelated categories. Connection after an app update or restart is more reliable.",
     "nl": "Expertdashboard: registers verschijnen nu in alle categorieën die van toepassing zijn. Trefwoorden worden op hele woorden gematcht, zodat registers niet meer onterecht in een andere categorie terechtkomen. Verbinding na een app-update of herstart is stabieler."
