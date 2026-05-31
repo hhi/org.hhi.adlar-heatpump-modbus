@@ -18,7 +18,8 @@
   .btn:hover { background: #293548; color: #e2e8f0; }
   .btn-primary { background: #1d4ed8; border-color: #2563eb; color: #fff; }
   .btn-primary:hover { background: #2563eb; }
-  input[type=search] { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; font-size: 0.8rem; padding: 0.35rem 0.75rem; border-radius: 0.375rem; width: 220px; }
+  input[type=search], select { background: #1e293b; border: 1px solid #334155; color: #e2e8f0; font-size: 0.8rem; padding: 0.35rem 0.75rem; border-radius: 0.375rem; }
+  input[type=search] { width: 220px; }
   input[type=search]::placeholder { color: #475569; }
   .filter-group { display: flex; gap: 0.4rem; align-items: center; }
   .pill { font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 9999px; border: 1px solid transparent; cursor: pointer; -webkit-user-select: none; user-select: none; }
@@ -83,7 +84,7 @@
     .subtitle { color: #475569; }
     .btn { background: #f1f5f9; border-color: #e2e8f0; color: #1e293b; }
     .btn:hover { background: #e2e8f0; color: #0f172a; }
-    input[type=search] { background: #f8fafc; border-color: #e2e8f0; color: #0f172a; }
+    input[type=search], select { background: #f8fafc; border-color: #e2e8f0; color: #0f172a; }
     input[type=search]::placeholder { color: #94a3b8; }
     .filter-label { color: #475569; }
     .stats { color: #475569; }
@@ -130,10 +131,14 @@
   <a href="/heating-curve">Stooklijn</a>
 </nav>
 <h1>Register Change Log</h1>
-<p class="subtitle">Statistieken per register uit de automatische polling. Handmatige live reads in het expert dashboard tellen hier niet als wijzigingsdetectie mee. Reset bij herstart van de app.</p>
+<p class="subtitle">Statistieken per register uit automatische polling of cache-observaties. Expert writes tellen als expliciete wijzigingsactie. Reset bij herstart van de app.</p>
 
 <div class="toolbar">
   <button type="button" class="btn btn-primary" onclick="load()">&#8635; Vernieuwen</button>
+  <select id="mode" onchange="load()">
+    <option value="poll">Automatische polling</option>
+    <option value="cache">Cache-observaties</option>
+  </select>
   <input type="search" id="search" placeholder="Zoek op adres of naam…" oninput="render()">
   <div class="filter-group" id="group-filters"></div>
   <label class="filter-label">
@@ -172,9 +177,17 @@
     const btn = document.querySelector('button.btn-primary');
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Laden…'; }
 
-    fetch('/api/register-changelog')
-      .then(r => r.json())
+    const mode = document.getElementById('mode').value;
+    fetch(`/api/register-changelog?mode=${encodeURIComponent(mode)}`)
+      .then(async r => {
+        const body = await r.json();
+        if (!r.ok) throw new Error(body.error || r.statusText);
+        return body;
+      })
       .then(d => {
+        if (!Array.isArray(d)) {
+          throw new Error(d && d.error ? d.error : 'Onverwachte API-respons');
+        }
         data = d;
 
         // Hashes berekend op ruwe data — filter/sort triggeren geen flash
@@ -206,7 +219,7 @@
   }
 
   function hashSection(rows) {
-    return rows.map(e => `${e.address}:${e.changeCount}:${e.lastValue}`).join('|');
+    return rows.map(e => `${e.address}:${e.changeCount}:${e.lastValue}:${e.lastSource}`).join('|');
   }
 
   function flashSection(id) {
@@ -233,15 +246,27 @@
     render();
   }
 
-  function theadHtml() {
+  function normalizeSortForMode() {
+    if (!isPollMode() && ['recommendedGroup', 'avgInterval', 'minInterval', 'maxInterval'].includes(sortCol)) {
+      sortCol = 'addressHex';
+      sortAsc = true;
+    }
+  }
+
+  function currentMode() {
+    return document.getElementById('mode').value === 'cache' ? 'cache' : 'poll';
+  }
+
+  function isPollMode() {
+    return currentMode() === 'poll';
+  }
+
+  function tableColumns() {
     const cols = [
       { key: 'addressHex',       label: 'Adres / Naam' },
       { key: 'pollGroup',        label: 'Huidig' },
-      { key: 'recommendedGroup', label: 'Aanbevolen' },
+      { key: 'lastSource',       label: 'Bron' },
       { key: 'changeCount',      label: 'Wijzigingen' },
-      { key: 'avgInterval',      label: 'Gem. interval' },
-      { key: 'minInterval',      label: 'Min' },
-      { key: 'maxInterval',      label: 'Max' },
       { key: 'previousValue',    label: 'Vorige waarde' },
       { key: 'previousChangedAt', label: 'Vorige sinds' },
       { key: 'lastValue',        label: 'Laatste waarde' },
@@ -249,6 +274,21 @@
       { key: 'firstSeen',        label: 'Eerste gezien' },
       { key: 'lastChanged',      label: 'Laatste wijziging' },
     ];
+    if (isPollMode()) {
+      cols.splice(
+        2,
+        0,
+        { key: 'recommendedGroup', label: 'Aanbevolen' },
+        { key: 'avgInterval',      label: 'Gem. interval' },
+        { key: 'minInterval',      label: 'Min' },
+        { key: 'maxInterval',      label: 'Max' },
+      );
+    }
+    return cols;
+  }
+
+  function theadHtml() {
+    const cols = tableColumns();
     return `<thead><tr>${cols.map(c => {
       const active = sortCol === c.key;
       const icon = active ? (sortAsc ? '&#9650;' : '&#9660;') : '&#9650;';
@@ -276,6 +316,12 @@
     return `${prev}${u} → ${last}${u}`;
   }
 
+  function fmtSource(source) {
+    if (source === 'expert-read') return 'expert read';
+    if (source === 'expert-write') return 'expert write';
+    return source || 'poll';
+  }
+
   function pillHtml(group) {
     return `<span class="pill ${group || 'manual'}">${group || 'manual'}</span>`;
   }
@@ -290,14 +336,18 @@
     return rows.map(e => {
       const rc = recClass(e.pollGroup, e.recommendedGroup);
       const recPill = e.recommendedGroup === '?' ? `<span class="unknown">?</span>` : pillHtml(e.recommendedGroup);
+      const pollCells = isPollMode()
+        ? `<td class="${rc}">${recPill}</td>
+        <td>${fmtMs(e.avgInterval)}</td>
+        <td>${fmtMs(e.minInterval)}</td>
+        <td>${fmtMs(e.maxInterval)}</td>`
+        : '';
       return `<tr>
         <td class="addr">${e.addressHex}${e.name ? `<br><span style="font-family:system-ui;font-size:0.7rem;color:#64748b">${e.name}</span>` : ''}</td>
         <td>${pillHtml(e.pollGroup)}</td>
-        <td class="${rc}">${recPill}</td>
+        ${pollCells}
+        <td>${fmtSource(e.lastSource)}</td>
         <td>${e.changeCount === 0 ? '<span class="zero">0</span>' : e.changeCount}</td>
-        <td>${fmtMs(e.avgInterval)}</td>
-        <td>${fmtMs(e.minInterval)}</td>
-        <td>${fmtMs(e.maxInterval)}</td>
         <td class="addr">${e.previousValue !== null ? e.previousValue : '<span class="no-data">—</span>'}</td>
         <td>${fmtTime(e.previousChangedAt)}</td>
         <td class="addr">${e.lastValue}</td>
@@ -309,6 +359,7 @@
   }
 
   function getVisibleRows() {
+    normalizeSortForMode();
     const q = document.getElementById('search').value.toLowerCase();
     const onlyChanged = document.getElementById('only-changed').checked;
 
@@ -348,7 +399,7 @@
     const emptyMsg = (colspan) =>
       `<tbody><tr><td colspan="${colspan}" class="empty">Geen registers gevonden.</td></tr></tbody>`;
 
-    const colspan = 13;
+    const colspan = tableColumns().length;
     document.getElementById('sections').innerHTML = `
       <details id="sec-ro"${roOpen ? ' open' : ''}>
         <summary>&#128274; Alleen lezen — ${roRows.length} registers</summary>
@@ -416,6 +467,7 @@
     lines.push('# Register Change Log Rapport');
     lines.push('');
     lines.push(`Datum: ${formatDateTime(new Date())}`);
+    lines.push(`Modus: ${modeDescription()}`);
     lines.push(`Filters: ${activeFilterDescription()}`);
     lines.push(`Sortering: ${sortCol} ${sortAsc ? 'oplopend' : 'aflopend'}`);
     lines.push('');
@@ -434,11 +486,19 @@
       return lines.join('\n');
     }
 
-    lines.push('| Adres | Naam | Type | Pollgroep | Aanbevolen | Wijzigingen | Gem. interval | Min | Max | Vorige waarde | Vorige sinds | Laatste waarde | Gedecodeerd | Eerste gezien | Laatste wijziging |');
-    lines.push('|---|---|---|---|---|---:|---:|---:|---:|---:|---|---:|---|---|---|');
-    rows.forEach(row => {
-      lines.push(`| ${md(row.addressHex)} | ${md(row.name || '')} | ${row.writable ? 'R/W' : 'R'} | ${md(row.pollGroup)} | ${md(row.recommendedGroup)} | ${row.changeCount} | ${md(reportMs(row.avgInterval))} | ${md(reportMs(row.minInterval))} | ${md(reportMs(row.maxInterval))} | ${md(reportValue(row.previousValue))} | ${formatDateTimeOrDash(row.previousChangedAt)} | ${md(reportValue(row.lastValue))} | ${md(reportDecoded(row))} | ${formatDateTimeOrDash(row.firstSeen)} | ${row.changeCount > 0 ? formatDateTimeOrDash(row.lastChanged) : '-'} |`);
-    });
+    if (isPollMode()) {
+      lines.push('| Adres | Naam | Type | Pollgroep | Aanbevolen | Bron | Wijzigingen | Gem. interval | Min | Max | Vorige waarde | Vorige sinds | Laatste waarde | Gedecodeerd | Eerste gezien | Laatste wijziging |');
+      lines.push('|---|---|---|---|---|---|---:|---:|---:|---:|---:|---|---:|---|---|---|');
+      rows.forEach(row => {
+        lines.push(`| ${md(row.addressHex)} | ${md(row.name || '')} | ${row.writable ? 'R/W' : 'R'} | ${md(row.pollGroup)} | ${md(row.recommendedGroup)} | ${md(fmtSource(row.lastSource))} | ${row.changeCount} | ${md(reportMs(row.avgInterval))} | ${md(reportMs(row.minInterval))} | ${md(reportMs(row.maxInterval))} | ${md(reportValue(row.previousValue))} | ${formatDateTimeOrDash(row.previousChangedAt)} | ${md(reportValue(row.lastValue))} | ${md(reportDecoded(row))} | ${formatDateTimeOrDash(row.firstSeen)} | ${row.changeCount > 0 ? formatDateTimeOrDash(row.lastChanged) : '-'} |`);
+      });
+    } else {
+      lines.push('| Adres | Naam | Type | Pollgroep | Bron | Wijzigingen | Vorige waarde | Vorige sinds | Laatste waarde | Gedecodeerd | Eerste gezien | Laatste wijziging |');
+      lines.push('|---|---|---|---|---|---:|---:|---|---:|---|---|---|');
+      rows.forEach(row => {
+        lines.push(`| ${md(row.addressHex)} | ${md(row.name || '')} | ${row.writable ? 'R/W' : 'R'} | ${md(row.pollGroup)} | ${md(fmtSource(row.lastSource))} | ${row.changeCount} | ${md(reportValue(row.previousValue))} | ${formatDateTimeOrDash(row.previousChangedAt)} | ${md(reportValue(row.lastValue))} | ${md(reportDecoded(row))} | ${formatDateTimeOrDash(row.firstSeen)} | ${row.changeCount > 0 ? formatDateTimeOrDash(row.lastChanged) : '-'} |`);
+      });
+    }
 
     return lines.join('\n');
   }
@@ -451,6 +511,10 @@
     if (inactiveGroups.length > 0) filters.push(`pollgroepen ${Array.from(activeGroups).join(', ') || 'geen'}`);
     if (document.getElementById('only-changed').checked) filters.push('alleen gewijzigd');
     return filters.length > 0 ? filters.join('; ') : 'geen';
+  }
+
+  function modeDescription() {
+    return currentMode() === 'cache' ? 'Cache-observaties' : 'Automatische polling';
   }
 
   function reportMs(ms) {

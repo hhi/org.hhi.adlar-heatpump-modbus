@@ -152,15 +152,22 @@ const BACKOFF_MAX = 60_000;
 // MODBUS TCP SERVICE
 // ============================================================================
 
+export type RegisterChangeSource = 'poll' | 'expert-read' | 'expert-write';
+export type RegisterChangeLogMode = 'poll' | 'cache';
+
 export interface RegisterChangeEntry {
   firstSeen: number;
   lastChanged: number;
   changeCount: number;
+  pollChangeCount: number;
+  actionChangeCount: number;
+  cacheChangeCount: number;
   /** Laatste 50 tussenpozen tussen wijzigingen in ms */
   intervals: number[];
   lastValue: number;
   previousValue: number | null;
   previousChangedAt: number | null;
+  lastSource: RegisterChangeSource;
 }
 
 /**
@@ -184,8 +191,10 @@ export class ModbusTcpService extends EventEmitter {
   /** Holding register cache: adres → unsigned 16-bit */
   private readonly cache = new Map<number, number>();
 
-  /** Per-register wijzigingsstatistieken (in-memory, reset bij herstart) */
+  /** Per-register poll-wijzigingsstatistieken (in-memory, reset bij herstart) */
   private readonly changeLog = new Map<number, RegisterChangeEntry>();
+  /** Per-register cache-observaties (in-memory, reset bij herstart) */
+  private readonly cacheChangeLog = new Map<number, RegisterChangeEntry>();
 
   private _connected = false;
   private _destroyed = false;
@@ -402,7 +411,7 @@ export class ModbusTcpService extends EventEmitter {
    * jsmodbus response.body.values kan zowel Buffer als number[] zijn,
    * afhankelijk van de jsmodbus versie.
    */
-  async readHoldingRegisters(startAddr: number, count: number): Promise<void> {
+  async readHoldingRegisters(startAddr: number, count: number, source?: RegisterChangeSource): Promise<void> {
     if (!this._connected) throw new Error('Niet verbonden');
 
     const addrHex = `0x${startAddr.toString(16).padStart(4, '0')}`;
@@ -423,7 +432,10 @@ export class ModbusTcpService extends EventEmitter {
         } else {
           throw new Error(`Onverwacht response type: ${typeof values}`);
         }
-        this.cache.set(startAddr + i, val);
+        const addr = startAddr + i;
+        const previous = this.cache.get(addr);
+        this.cache.set(addr, val);
+        if (source) this._recordCacheObservation(addr, previous, val, source);
       }
 
       if (this._debug) {
@@ -442,7 +454,7 @@ export class ModbusTcpService extends EventEmitter {
   }
 
   private async _readHoldingRegistersAndDetectChange(startAddr: number, count: number): Promise<boolean> {
-    await this.readHoldingRegisters(startAddr, count);
+    await this.readHoldingRegisters(startAddr, count, 'poll');
 
     const now = Date.now();
     let anyChanged = false;
@@ -453,28 +465,24 @@ export class ModbusTcpService extends EventEmitter {
 
       let entry = this.changeLog.get(addr);
       if (!entry) {
-        entry = {
-          firstSeen: now,
-          lastChanged: now,
-          changeCount: 0,
-          intervals: [],
-          lastValue: newVal,
-          previousValue: null,
-          previousChangedAt: null,
-        };
+        entry = this._createChangeEntry(now, newVal, 'poll');
         this.changeLog.set(addr, entry);
       } else if (entry.lastValue !== newVal) {
         // Vergelijk tegen entry.lastValue (laatste poll-waarde), niet de cache-snapshot.
         // De cache kan tussentijds zijn bijgewerkt door een expert-read, waardoor een
         // cache-snapshot vóór de poll de echte delta zou missen.
-        const interval = now - entry.lastChanged;
-        entry.intervals.push(interval);
-        if (entry.intervals.length > 50) entry.intervals.shift();
+        if (entry.lastSource === 'poll') {
+          const interval = now - entry.lastChanged;
+          entry.intervals.push(interval);
+          if (entry.intervals.length > 50) entry.intervals.shift();
+        }
         entry.previousValue = entry.lastValue;
         entry.previousChangedAt = entry.lastChanged;
         entry.changeCount++;
+        entry.pollChangeCount++;
         entry.lastChanged = now;
         entry.lastValue = newVal;
+        entry.lastSource = 'poll';
         anyChanged = true;
       }
     }
@@ -482,8 +490,8 @@ export class ModbusTcpService extends EventEmitter {
     return anyChanged;
   }
 
-  getChangeLog(): Map<number, RegisterChangeEntry> {
-    return this.changeLog;
+  getChangeLog(mode: RegisterChangeLogMode = 'poll'): Map<number, RegisterChangeEntry> {
+    return mode === 'cache' ? this.cacheChangeLog : this.changeLog;
   }
 
   getRegisterCache(): Map<number, number> {
@@ -502,7 +510,10 @@ export class ModbusTcpService extends EventEmitter {
 
     try {
       await this.client.writeSingleRegister(addr, raw);
+      const previous = this.cache.get(addr);
       this.cache.set(addr, raw);
+      this._recordCacheObservation(addr, previous, raw, 'expert-write');
+      this._recordExpertWrite(addr, previous, raw);
       this._log('  → OK');
       await this._batchDelay();
     } catch (err) {
@@ -517,7 +528,7 @@ export class ModbusTcpService extends EventEmitter {
    * FC01 — Read Single Coil.
    * Retourneert 1 als de coil actief is, 0 anders.
    */
-  async readSingleCoil(coilAddr: number): Promise<number> {
+  async readSingleCoil(coilAddr: number, source?: RegisterChangeSource): Promise<number> {
     if (!this._connected) throw new Error('Niet verbonden');
     const addrHex = `0x${coilAddr.toString(16).padStart(4, '0')}`;
     this._log(`FC01 COIL  ${addrHex} lezen`);
@@ -532,6 +543,10 @@ export class ModbusTcpService extends EventEmitter {
         result = (values[0] & 0x01) ? 1 : 0;
       } else {
         throw new Error(`Onverwacht coil response type: ${typeof values}`);
+      }
+      if (source) {
+        const previous = this.cacheChangeLog.get(coilAddr)?.lastValue;
+        this._recordCacheObservation(coilAddr, previous, result, source);
       }
       this._log(`  → ${result}`);
       return result;
@@ -552,6 +567,10 @@ export class ModbusTcpService extends EventEmitter {
 
     try {
       await this.client.writeSingleCoil(coilAddr, state);
+      const raw = state ? 1 : 0;
+      const previous = this.cacheChangeLog.get(coilAddr)?.lastValue;
+      this._recordCacheObservation(coilAddr, previous, raw, 'expert-write');
+      this._recordExpertWrite(coilAddr, previous, raw);
       this._log('  → OK');
       await this._batchDelay();
     } catch (err) {
@@ -560,6 +579,70 @@ export class ModbusTcpService extends EventEmitter {
       this.emit('error', err as Error, `fc05:${addrHex}`);
       throw err;
     }
+  }
+
+  private _createChangeEntry(now: number, value: number, source: RegisterChangeSource): RegisterChangeEntry {
+    return {
+      firstSeen: now,
+      lastChanged: now,
+      changeCount: 0,
+      pollChangeCount: 0,
+      actionChangeCount: 0,
+      cacheChangeCount: 0,
+      intervals: [],
+      lastValue: value,
+      previousValue: null,
+      previousChangedAt: null,
+      lastSource: source,
+    };
+  }
+
+  private _recordCacheObservation(addr: number, previous: number | undefined, newVal: number, source: RegisterChangeSource): void {
+    const now = Date.now();
+    let entry = this.cacheChangeLog.get(addr);
+    if (!entry) {
+      entry = this._createChangeEntry(now, newVal, source);
+      if (source === 'expert-write') {
+        entry.changeCount = 1;
+        entry.actionChangeCount = 1;
+      }
+      this.cacheChangeLog.set(addr, entry);
+      return;
+    }
+
+    if (entry.lastValue === newVal) return;
+
+    entry.lastSource = source;
+    entry.previousValue = previous ?? entry.lastValue;
+    entry.previousChangedAt = entry.lastChanged;
+    entry.changeCount++;
+    if (source === 'poll') entry.pollChangeCount++;
+    else if (source === 'expert-write') entry.actionChangeCount++;
+    else entry.cacheChangeCount++;
+    entry.lastChanged = now;
+    entry.lastValue = newVal;
+  }
+
+  private _recordExpertWrite(addr: number, previous: number | undefined, newVal: number): void {
+    const now = Date.now();
+    let entry = this.changeLog.get(addr);
+    if (!entry) {
+      entry = this._createChangeEntry(now, newVal, 'expert-write');
+      entry.changeCount = 1;
+      entry.actionChangeCount = 1;
+      this.changeLog.set(addr, entry);
+      return;
+    }
+
+    entry.lastSource = 'expert-write';
+    if (entry.lastValue === newVal) return;
+
+    entry.previousValue = previous ?? entry.lastValue;
+    entry.previousChangedAt = entry.lastChanged;
+    entry.changeCount++;
+    entry.actionChangeCount++;
+    entry.lastChanged = now;
+    entry.lastValue = newVal;
   }
 
   private _batchDelay(): Promise<void> {
