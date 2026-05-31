@@ -66,6 +66,16 @@
   .unknown { color: #64748b; }
   .no-data { color: #64748b; font-style: italic; }
   .empty { text-align: center; padding: 3rem; color: #475569; }
+  dialog { background: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; color: #e2e8f0; padding: 1.25rem; max-width: 960px; width: min(960px, calc(100vw - 2rem)); }
+  dialog::backdrop { background: rgba(0,0,0,0.6); }
+  dialog h2 { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; color: #f8fafc; }
+  dialog textarea { width: 100%; min-height: 55vh; resize: vertical; background: #0f172a; border: 1px solid #334155; border-radius: 0.375rem; color: #dbeafe; padding: 0.75rem; font: 0.78rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin: 0.75rem 0; }
+  dialog textarea:focus { outline: none; border-color: #3b82f6; }
+  .report-meta { font-size: 0.78rem; color: #94a3b8; margin-top: 0.35rem; }
+  .dialog-buttons { display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap; }
+  .dialog-feedback { font-size: 0.8rem; margin-top: 0.5rem; height: 1em; }
+  .dialog-feedback.ok { color: #22c55e; }
+  .dialog-feedback.err { color: #ef4444; }
 
   @media (prefers-color-scheme: light) {
     body { background: #f8fafc; color: #0f172a; }
@@ -99,6 +109,10 @@
     .unknown { color: #94a3b8; }
     .no-data { color: #94a3b8; }
     .empty { color: #94a3b8; }
+    dialog { background: #ffffff; border-color: #e2e8f0; color: #0f172a; }
+    dialog h2 { color: #0f172a; }
+    dialog textarea { background: #f8fafc; border-color: #e2e8f0; color: #0f172a; }
+    .report-meta { color: #475569; }
     nav { background: #ffffff; border-bottom-color: #e2e8f0; }
     nav a { color: #475569; border-color: #e2e8f0; }
     nav a:hover { background: #e2e8f0; color: #0f172a; }
@@ -125,11 +139,24 @@
   <label class="filter-label">
     <input type="checkbox" id="only-changed" onchange="render()" checked> Alleen gewijzigd
   </label>
+  <button type="button" class="btn" onclick="openReportDialog()">Markdown rapport</button>
   <span class="last-load" id="last-load"></span>
   <span class="stats" id="stats"></span>
 </div>
 
 <div id="sections"></div>
+
+<dialog id="report-dialog">
+  <h2>Markdown rapport</h2>
+  <div class="report-meta" id="report-meta"></div>
+  <textarea id="report-output" readonly spellcheck="false"></textarea>
+  <div class="dialog-buttons">
+    <button type="button" class="btn" onclick="copyReport()">Kopiëren</button>
+    <button type="button" class="btn" onclick="downloadReport()">Download .md</button>
+    <button type="button" class="btn btn-primary" onclick="closeReportDialog()">Sluiten</button>
+  </div>
+  <div class="dialog-feedback" id="report-feedback"></div>
+</dialog>
 
 <script>
   const GROUPS = ['superfast','fast','medium','slow','once','manual'];
@@ -216,7 +243,9 @@
       { key: 'minInterval',      label: 'Min' },
       { key: 'maxInterval',      label: 'Max' },
       { key: 'previousValue',    label: 'Vorige waarde' },
+      { key: 'previousChangedAt', label: 'Vorige sinds' },
       { key: 'lastValue',        label: 'Laatste waarde' },
+      { key: 'lastValueDecoded', label: 'Gedecodeerd' },
       { key: 'firstSeen',        label: 'Eerste gezien' },
       { key: 'lastChanged',      label: 'Laatste wijziging' },
     ];
@@ -238,6 +267,13 @@
   function fmtTime(ts) {
     if (!ts) return '<span class="no-data">—</span>';
     return new Date(ts).toLocaleTimeString('nl-NL', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  }
+
+  function fmtDecoded(last, prev, unit) {
+    if (last === null || last === undefined) return '<span class="no-data">—</span>';
+    const u = unit ? ` ${unit}` : '';
+    if (prev === null || prev === undefined || prev === last) return `${last}${u}`;
+    return `${prev}${u} → ${last}${u}`;
   }
 
   function pillHtml(group) {
@@ -263,22 +299,18 @@
         <td>${fmtMs(e.minInterval)}</td>
         <td>${fmtMs(e.maxInterval)}</td>
         <td class="addr">${e.previousValue !== null ? e.previousValue : '<span class="no-data">—</span>'}</td>
+        <td>${fmtTime(e.previousChangedAt)}</td>
         <td class="addr">${e.lastValue}</td>
+        <td class="addr">${fmtDecoded(e.lastValueDecoded, e.previousValueDecoded, e.unit)}</td>
         <td>${fmtTime(e.firstSeen)}</td>
         <td>${e.changeCount > 0 ? fmtTime(e.lastChanged) : '<span class="no-data">—</span>'}</td>
       </tr>`;
     }).join('');
   }
 
-  function render() {
+  function getVisibleRows() {
     const q = document.getElementById('search').value.toLowerCase();
     const onlyChanged = document.getElementById('only-changed').checked;
-
-    // Open/dicht-staat bewaren
-    const secRw = document.getElementById('sec-rw');
-    const secRo = document.getElementById('sec-ro');
-    const rwOpen = secRw ? secRw.open : true;
-    const roOpen = secRo ? secRo.open : true;
 
     let rows = data.filter(e => {
       if (!activeGroups.has(e.pollGroup)) return false;
@@ -295,6 +327,16 @@
       return sortAsc ? av - bv : bv - av;
     });
 
+    return rows;
+  }
+
+  function render() {
+    // Open/dicht-staat bewaren
+    const secRw = document.getElementById('sec-rw');
+    const secRo = document.getElementById('sec-ro');
+    const rwOpen = secRw ? secRw.open : true;
+    const roOpen = secRo ? secRo.open : true;
+    const rows = getVisibleRows();
     const rwRows = rows.filter(e => e.writable);
     const roRows = rows.filter(e => !e.writable);
 
@@ -306,7 +348,7 @@
     const emptyMsg = (colspan) =>
       `<tbody><tr><td colspan="${colspan}" class="empty">Geen registers gevonden.</td></tr></tbody>`;
 
-    const colspan = 11;
+    const colspan = 13;
     document.getElementById('sections').innerHTML = `
       <details id="sec-ro"${roOpen ? ' open' : ''}>
         <summary>&#128274; Alleen lezen — ${roRows.length} registers</summary>
@@ -316,6 +358,139 @@
         <summary>&#9998; Lezen &amp; schrijven — ${rwRows.length} registers</summary>
         <table>${theadHtml()}${rwRows.length ? `<tbody>${rowsHtml(rwRows)}</tbody>` : emptyMsg(colspan)}</table>
       </details>`;
+  }
+
+  function openReportDialog() {
+    const rows = getVisibleRows();
+    const report = buildMarkdownReport(rows);
+    const output = document.getElementById('report-output');
+    output.value = report;
+    document.getElementById('report-meta').textContent = `${rows.length} registers in huidige weergave`;
+    document.getElementById('report-feedback').textContent = '';
+    document.getElementById('report-feedback').className = 'dialog-feedback';
+    document.getElementById('report-dialog').showModal();
+    output.focus();
+    output.select();
+  }
+
+  function closeReportDialog() {
+    document.getElementById('report-dialog').close();
+  }
+
+  async function copyReport() {
+    const output = document.getElementById('report-output');
+    const fb = document.getElementById('report-feedback');
+    try {
+      await navigator.clipboard.writeText(output.value);
+      fb.textContent = 'Gekopieerd';
+      fb.className = 'dialog-feedback ok';
+    } catch (e) {
+      output.focus();
+      output.select();
+      document.execCommand('copy');
+      fb.textContent = 'Gekopieerd';
+      fb.className = 'dialog-feedback ok';
+    }
+  }
+
+  function downloadReport() {
+    const output = document.getElementById('report-output');
+    const stamp = compactDateStamp(new Date());
+    const blob = new Blob([output.value], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `register-changelog-rapport-${stamp}.md`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function buildMarkdownReport(rows) {
+    const changedRows = rows.filter(row => row.changeCount > 0);
+    const roRows = rows.filter(row => !row.writable);
+    const rwRows = rows.filter(row => row.writable);
+    const lines = [];
+
+    lines.push('# Register Change Log Rapport');
+    lines.push('');
+    lines.push(`Datum: ${formatDateTime(new Date())}`);
+    lines.push(`Filters: ${activeFilterDescription()}`);
+    lines.push(`Sortering: ${sortCol} ${sortAsc ? 'oplopend' : 'aflopend'}`);
+    lines.push('');
+    lines.push('## Samenvatting');
+    lines.push('');
+    lines.push(`- Registers in huidige weergave: ${rows.length}`);
+    lines.push(`- Gewijzigde registers: ${changedRows.length}`);
+    lines.push(`- Alleen lezen: ${roRows.length}`);
+    lines.push(`- Lezen en schrijven: ${rwRows.length}`);
+    lines.push('');
+    lines.push('## Registers');
+    lines.push('');
+
+    if (rows.length === 0) {
+      lines.push('Geen registers gevonden met de huidige filters.');
+      return lines.join('\n');
+    }
+
+    lines.push('| Adres | Naam | Type | Pollgroep | Aanbevolen | Wijzigingen | Gem. interval | Min | Max | Vorige waarde | Vorige sinds | Laatste waarde | Gedecodeerd | Eerste gezien | Laatste wijziging |');
+    lines.push('|---|---|---|---|---|---:|---:|---:|---:|---:|---|---:|---|---|---|');
+    rows.forEach(row => {
+      lines.push(`| ${md(row.addressHex)} | ${md(row.name || '')} | ${row.writable ? 'R/W' : 'R'} | ${md(row.pollGroup)} | ${md(row.recommendedGroup)} | ${row.changeCount} | ${md(reportMs(row.avgInterval))} | ${md(reportMs(row.minInterval))} | ${md(reportMs(row.maxInterval))} | ${md(reportValue(row.previousValue))} | ${formatDateTimeOrDash(row.previousChangedAt)} | ${md(reportValue(row.lastValue))} | ${md(reportDecoded(row))} | ${formatDateTimeOrDash(row.firstSeen)} | ${row.changeCount > 0 ? formatDateTimeOrDash(row.lastChanged) : '-'} |`);
+    });
+
+    return lines.join('\n');
+  }
+
+  function activeFilterDescription() {
+    const filters = [];
+    const q = document.getElementById('search').value.trim();
+    const inactiveGroups = GROUPS.filter(group => !activeGroups.has(group));
+    if (q) filters.push(`zoekterm "${q}"`);
+    if (inactiveGroups.length > 0) filters.push(`pollgroepen ${Array.from(activeGroups).join(', ') || 'geen'}`);
+    if (document.getElementById('only-changed').checked) filters.push('alleen gewijzigd');
+    return filters.length > 0 ? filters.join('; ') : 'geen';
+  }
+
+  function reportMs(ms) {
+    if (ms === null || ms === undefined) return '-';
+    if (ms < 1000) return `${ms} ms`;
+    if (ms < 60000) return `${(ms/1000).toFixed(1)} s`;
+    if (ms < 3600000) return `${(ms/60000).toFixed(1)} min`;
+    return `${(ms/3600000).toFixed(1)} u`;
+  }
+
+  function reportValue(value) {
+    return value === null || value === undefined ? '-' : String(value);
+  }
+
+  function reportDecoded(row) {
+    const unit = row.unit ? ` ${row.unit}` : '';
+    if (row.lastValueDecoded === null || row.lastValueDecoded === undefined) return '-';
+    if (row.previousValueDecoded === null || row.previousValueDecoded === undefined || row.previousValueDecoded === row.lastValueDecoded) {
+      return `${row.lastValueDecoded}${unit}`;
+    }
+    return `${row.previousValueDecoded}${unit} -> ${row.lastValueDecoded}${unit}`;
+  }
+
+  function formatDateTimeOrDash(value) {
+    return value ? formatDateTime(value) : '-';
+  }
+
+  function formatDateTime(date) {
+    const d = date instanceof Date ? date : new Date(date);
+    const pad = value => String(value).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+
+  function compactDateStamp(date) {
+    const pad = value => String(value).padStart(2, '0');
+    return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+  }
+
+  function md(value) {
+    return String(value == null ? '' : value).replace(/\|/g, '\\|').replace(/\n/g, ' ');
   }
 
   buildGroupFilters();

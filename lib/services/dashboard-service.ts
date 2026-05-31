@@ -346,11 +346,21 @@ export class DashboardService {
       return;
     }
 
+    const tempScale = this.getTemperatureScale?.() ?? 'x1';
     const pollGroupMap = this._buildPollGroupMap();
     const nameMap = this._buildNameMap();
+    const metaMap = this._buildRegisterMetaMap(tempScale);
     const writableAddresses = this._buildWritableAddressSet();
     const log = this.getChangeLog();
     const entries: object[] = [];
+
+    const decodeRaw = (addr: number, raw: number | null): number | null => {
+      if (raw === null) return null;
+      const meta = metaMap.get(addr);
+      const multiply = meta?.multiply ?? 1;
+      const scaleMultiply = meta?.scaleMultiply ?? 1;
+      return Math.round(raw * multiply * scaleMultiply * 1000) / 1000;
+    };
 
     for (const [addr, entry] of log) {
       const intervals = entry.intervals;
@@ -359,15 +369,18 @@ export class DashboardService {
         : null;
       const minInterval = intervals.length > 0 ? Math.min(...intervals) : null;
       const maxInterval = intervals.length > 0 ? Math.max(...intervals) : null;
+      const meta = metaMap.get(addr);
 
       entries.push({
         address: addr,
         addressHex: `0x${addr.toString(16).toUpperCase().padStart(4, '0')}`,
         name: nameMap.get(addr) ?? '',
+        unit: meta?.unit ?? '',
         pollGroup: pollGroupMap.get(addr) ?? 'manual',
         writable: writableAddresses.has(addr),
         firstSeen: entry.firstSeen,
         lastChanged: entry.lastChanged,
+        previousChangedAt: entry.previousChangedAt,
         changeCount: entry.changeCount,
         avgInterval,
         minInterval,
@@ -375,6 +388,8 @@ export class DashboardService {
         recommendedGroup: this._recommendPollGroup(avgInterval),
         lastValue: entry.lastValue,
         previousValue: entry.previousValue,
+        lastValueDecoded: decodeRaw(addr, entry.lastValue),
+        previousValueDecoded: decodeRaw(addr, entry.previousValue),
       });
     }
 
