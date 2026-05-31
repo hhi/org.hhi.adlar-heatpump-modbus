@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { RegisterChangeEntry } from './modbus-tcp-service';
+import { RegisterChangeEntry, RegisterChangeLogMode } from './modbus-tcp-service';
 
 /**
  * ADR-031: ModbusRuntimeService<TSnapshot>
@@ -45,6 +45,6 @@ export interface ModbusRuntimeService<TSnapshot> {
   on(event: 'poll-group-succeeded', cb: (groupName: string) => void): this;
 
   getSnapshot(): TSnapshot;
-  getChangeLog(): Map<number, RegisterChangeEntry>;
+  getChangeLog(mode?: RegisterChangeLogMode): Map<number, RegisterChangeEntry>;
   getRegisterCache(): Map<number, number>;
 }

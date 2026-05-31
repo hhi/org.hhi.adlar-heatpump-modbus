@@ -6,7 +6,7 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { DataSnapshot } from '../modbus/adlar2-modbus-service';
-import { RegisterChangeEntry } from '../modbus/modbus-tcp-service';
+import { RegisterChangeEntry, RegisterChangeLogMode } from '../modbus/modbus-tcp-service';
 import {
   STATUS_REGISTER_MAP,
   SENSOR_REGISTERS,
@@ -140,7 +140,7 @@ export class DashboardService {
   private onWriteExpert: ((address: number, rawValue: number, isCoil: boolean) => Promise<void>) | null = null;
   private onSetDiyHeatingCurve: ((k: number, b: number) => Promise<void>) | null = null;
   private getTemperatureScale: (() => TemperatureRegisterScale) | null = null;
-  private getChangeLog: (() => Map<number, RegisterChangeEntry>) | null = null;
+  private getChangeLog: ((mode?: RegisterChangeLogMode) => Map<number, RegisterChangeEntry>) | null = null;
   private getSnapshot: (() => DataSnapshot | null) | null = null;
   private getRegisterCache: (() => Map<number, number>) | null = null;
 
@@ -177,7 +177,7 @@ export class DashboardService {
     this.getTemperatureScale = fn;
   }
 
-  setGetChangeLogCallback(fn: () => Map<number, RegisterChangeEntry>): void {
+  setGetChangeLogCallback(fn: (mode?: RegisterChangeLogMode) => Map<number, RegisterChangeEntry>): void {
     this.getChangeLog = fn;
   }
 
@@ -241,7 +241,8 @@ export class DashboardService {
   // ── Request dispatcher ────────────────────────────────────────────────────────
 
   private async _handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
-    const url = (req.url ?? '/').split('?')[0];
+    const parsedUrl = new URL(req.url ?? '/', 'http://localhost');
+    const url = parsedUrl.pathname;
     const method = (req.method ?? 'GET').toUpperCase();
 
     this._setCors(res);
@@ -319,7 +320,7 @@ export class DashboardService {
       return;
     }
     if (method === 'GET' && url === '/api/register-changelog') {
-      this._serveChangeLog(res);
+      this._serveChangeLog(res, parsedUrl.searchParams.get('mode'));
       return;
     }
 
@@ -339,7 +340,7 @@ export class DashboardService {
 
   // ── Register change log ───────────────────────────────────────────────────────
 
-  private _serveChangeLog(res: http.ServerResponse): void {
+  private _serveChangeLog(res: http.ServerResponse, requestedMode: string | null): void {
     if (!this.getChangeLog) {
       res.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ error: 'Not connected' }));
@@ -351,7 +352,8 @@ export class DashboardService {
     const nameMap = this._buildNameMap();
     const metaMap = this._buildRegisterMetaMap(tempScale);
     const writableAddresses = this._buildWritableAddressSet();
-    const log = this.getChangeLog();
+    const mode: RegisterChangeLogMode = requestedMode === 'cache' ? 'cache' : 'poll';
+    const log = this.getChangeLog(mode);
     const entries: object[] = [];
 
     const decodeRaw = (addr: number, raw: number | null): number | null => {
@@ -374,14 +376,19 @@ export class DashboardService {
       entries.push({
         address: addr,
         addressHex: `0x${addr.toString(16).toUpperCase().padStart(4, '0')}`,
-        name: nameMap.get(addr) ?? '',
+        name: nameMap.get(addr) ?? meta?.name ?? '',
         unit: meta?.unit ?? '',
         pollGroup: pollGroupMap.get(addr) ?? 'manual',
+        mode,
         writable: writableAddresses.has(addr),
         firstSeen: entry.firstSeen,
         lastChanged: entry.lastChanged,
         previousChangedAt: entry.previousChangedAt,
         changeCount: entry.changeCount,
+        pollChangeCount: entry.pollChangeCount,
+        actionChangeCount: entry.actionChangeCount,
+        cacheChangeCount: entry.cacheChangeCount,
+        lastSource: entry.lastSource,
         avgInterval,
         minInterval,
         maxInterval,

@@ -448,8 +448,8 @@ export class Adlar2ModbusService extends EventEmitter {
     await this.tcp.destroy();
   }
 
-  getChangeLog(): Map<number, RegisterChangeEntry> {
-    return this.tcp.getChangeLog();
+  getChangeLog(mode?: import('./modbus-tcp-service').RegisterChangeLogMode): Map<number, RegisterChangeEntry> {
+    return this.tcp.getChangeLog(mode);
   }
 
   getRegisterCache(): Map<number, number> {
@@ -477,7 +477,7 @@ export class Adlar2ModbusService extends EventEmitter {
   }
 
   async readRegister(addr: number): Promise<number> {
-    await this.tcp.readHoldingRegisters(addr, 1);
+    await this.tcp.readHoldingRegisters(addr, 1, 'expert-read');
     return this.tcp.s16(addr);
   }
 
@@ -491,7 +491,7 @@ export class Adlar2ModbusService extends EventEmitter {
 
   /** FC01 — lees één coil; retourneert 1 (aan) of 0 (uit). */
   async readCoil(addr: number): Promise<number> {
-    return this.tcp.readSingleCoil(addr);
+    return this.tcp.readSingleCoil(addr, 'expert-read');
   }
 
   async setMainSwitch(on: boolean): Promise<void> {

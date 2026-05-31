@@ -13,7 +13,7 @@ import { BuildingInsightsService } from './building-insights-service';
 import { SnapshotTriggerService } from './snapshot-trigger-service';
 import { Adlar2ModbusService, DataSnapshot } from '../modbus/adlar2-modbus-service';
 import { TemperatureRegisterScale } from '../modbus/adlar-modbus-registers';
-import { ModbusBlockError, RegisterChangeEntry } from '../modbus/modbus-tcp-service';
+import { ModbusBlockError, RegisterChangeEntry, RegisterChangeLogMode } from '../modbus/modbus-tcp-service';
 import { RollingCOPCalculator } from './rolling-cop-calculator';
 
 // ADR-042: Verbindingskwaliteit als expliciete runtime-state
@@ -748,8 +748,8 @@ export class ServiceCoordinator {
     return this._latestSnapshot;
   }
 
-  getChangeLog(): Map<number, RegisterChangeEntry> {
-    return this.modbusConnection.getChangeLog();
+  getChangeLog(mode?: RegisterChangeLogMode): Map<number, RegisterChangeEntry> {
+    return this.modbusConnection.getChangeLog(mode);
   }
 
   getRegisterCache(): Map<number, number> {

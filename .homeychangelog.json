@@ -1,4 +1,8 @@
 {
+  "2.12.0": {
+    "en": "Register Change Log dashboard: added a mode selector for Automatic polling and Cache observations. Cache observations include values seen through polling, expert reads, and expert writes, and show the source of the latest change. Automatic polling keeps poll interval statistics and recommended poll groups. Markdown reports now match the selected mode.",
+    "nl": "Register Change Log-dashboard: moduskeuze toegevoegd voor Automatische polling en Cache-observaties. Cache-observaties bevatten waarden die via polling, expert reads en expert writes zijn gezien, en tonen de bron van de laatste wijziging. Automatische polling behoudt pollinterval-statistieken en aanbevolen pollgroepen. Markdown-rapporten sluiten nu aan op de gekozen modus."
+  },
   "2.11.0": {
     "en": "Register Change Log dashboard: previous values now show when they were active. Decoded values are shown alongside raw register values. A Markdown report can now be copied or downloaded from the current filtered and sorted change log view.",
     "nl": "Register Change Log-dashboard: vorige waarden tonen nu wanneer ze actief waren. Gedecodeerde waarden worden naast ruwe registerwaarden getoond. Van de huidige gefilterde en gesorteerde changelog-weergave kan nu een Markdown-rapport worden gekopieerd of gedownload."
