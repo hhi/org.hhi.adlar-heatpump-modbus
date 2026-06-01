@@ -176,6 +176,15 @@ nav a.active { background: #07090f; color: var(--blue); border-color: var(--blue
   min-width: 0;
   overflow: hidden;
 }
+.cap-card.updated, .diag-tile.updated {
+  animation: tileFlash 1.2s ease;
+  border-color: var(--blue);
+}
+@keyframes tileFlash {
+  0% { background: rgba(56, 189, 248, 0.22); box-shadow: 0 0 0 rgba(56, 189, 248, 0); }
+  35% { background: rgba(56, 189, 248, 0.16); box-shadow: 0 0 14px rgba(56, 189, 248, 0.24); }
+  100% { background: var(--surface2); box-shadow: 0 0 0 rgba(56, 189, 248, 0); }
+}
 .cap-icon-wrap {
   display: flex;
   align-items: center;
@@ -287,13 +296,15 @@ const CAP_GROUPS = [
 const RELEVANT    = ['Status','Storingen','Setpoints','Temperaturen','Vermogen','Mechanisch','Prestaties','Stooklijn','Ontdooiing'];
 const OVERIGE     = ['Energie & Prijs','Extern','Gebouwmodel','Verbinding','Overig'];
 const DIAGNOSTIEK = ['Diagnostiek'];
+const previousCapabilityValues = new Map();
+let hasRenderedCapabilities = false;
 
 function capGroup(id) {
   for (const g of CAP_GROUPS) if (g.match(id)) return g.label;
   return 'Overig';
 }
 
-function renderCapTile(cap) {
+function renderCapTile(cap, changedIds) {
   const iconHtml = cap.icon
     ? `<img class="cap-icon" src="${cap.icon}" alt="" loading="lazy" onerror="this.parentElement.style.display='none'">`
     : '';
@@ -310,7 +321,8 @@ function renderCapTile(cap) {
   } else {
     valText = String(raw ?? '—');
   }
-  return `<div class="cap-card">
+  const updatedClass = changedIds?.has(cap.id) ? ' updated' : '';
+  return `<div class="cap-card${updatedClass}">
     <div class="cap-icon-wrap">${iconHtml}</div>
     <div class="cap-body">
       <div class="cap-title" title="${cap.title}">${cap.title}</div>
@@ -320,26 +332,27 @@ function renderCapTile(cap) {
   </div>`;
 }
 
-function renderRubricRow(labels, grouped) {
+function renderRubricRow(labels, grouped, changedIds) {
   const active = labels.filter(l => grouped[l]?.length > 0);
   if (!active.length) return '';
   let html = '<div class="rubric-section">';
   for (const label of active) {
     html += `<div class="rubric-card">
       <div class="rubric-header">${label}</div>
-      <div class="rubric-tiles">${grouped[label].map(renderCapTile).join('')}</div>
+      <div class="rubric-tiles">${grouped[label].map(cap => renderCapTile(cap, changedIds)).join('')}</div>
     </div>`;
   }
   return html + '</div>';
 }
 
-function renderDiagSection(labels, grouped) {
+function renderDiagSection(labels, grouped, changedIds) {
   const caps = labels.flatMap(l => grouped[l] ?? []);
   if (!caps.length) return '';
   let html = '<div class="rubric-section">';
   for (const cap of caps) {
     const val = cap.value != null ? String(cap.value) : '—';
-    html += `<div class="diag-tile">
+    const updatedClass = changedIds?.has(cap.id) ? ' updated' : '';
+    html += `<div class="diag-tile${updatedClass}">
       <div class="rubric-header" title="${cap.title}">${cap.title}</div>
       <div class="diag-value">${val}</div>
     </div>`;
@@ -347,7 +360,27 @@ function renderDiagSection(labels, grouped) {
   return html + '</div>';
 }
 
+function valueKey(value) {
+  if (typeof value === 'number') return value % 1 === 0 ? String(value) : value.toFixed(2);
+  if (typeof value === 'object' && value !== null) return JSON.stringify(value);
+  return String(value);
+}
+
+function changedCapabilityIds(caps) {
+  const changed = new Set();
+  for (const cap of caps) {
+    const next = valueKey(cap.value);
+    if (hasRenderedCapabilities && previousCapabilityValues.get(cap.id) !== next) {
+      changed.add(cap.id);
+    }
+    previousCapabilityValues.set(cap.id, next);
+  }
+  hasRenderedCapabilities = true;
+  return changed;
+}
+
 function renderCapabilities(caps) {
+  const changedIds = changedCapabilityIds(caps);
   const grouped = {};
   for (const cap of caps) {
     const g = capGroup(cap.id);
@@ -356,18 +389,18 @@ function renderCapabilities(caps) {
   }
 
   const section = document.getElementById('cap-section');
-  let html = renderRubricRow(RELEVANT, grouped);
+  let html = renderRubricRow(RELEVANT, grouped, changedIds);
 
   const hasOverige = OVERIGE.some(g => grouped[g]?.length > 0);
   if (hasOverige) {
     html += '<div class="section-divider"><span>Overige</span></div>';
-    html += renderRubricRow(OVERIGE, grouped);
+    html += renderRubricRow(OVERIGE, grouped, changedIds);
   }
 
   const hasDiag = DIAGNOSTIEK.some(g => grouped[g]?.length > 0);
   if (hasDiag) {
     html += '<div class="section-divider"><span>Diagnostiek</span></div>';
-    html += renderDiagSection(DIAGNOSTIEK, grouped);
+    html += renderDiagSection(DIAGNOSTIEK, grouped, changedIds);
   }
   section.innerHTML = html;
 }

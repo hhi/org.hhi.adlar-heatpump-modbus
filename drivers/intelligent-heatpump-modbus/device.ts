@@ -424,6 +424,7 @@ class AdlarModbusDevice extends Homey.Device {
     type DashboardApp = {
       dashboard: {
         setWriteRegisterCallback(fn: (addr: number, rawValue: number) => Promise<void>): void;
+        setCapabilityWriteCallback(fn: (capability: string, value: number) => Promise<void>): void;
         setReadRegisterCallback(fn: (addr: number, isCoil: boolean) => Promise<number>): void;
         setWriteExpertCallback(fn: (addr: number, rawValue: number, isCoil: boolean) => Promise<void>): void;
         setDiyHeatingCurveCallback(fn: (k: number, b: number) => Promise<void>): void;
@@ -439,6 +440,12 @@ class AdlarModbusDevice extends Homey.Device {
 
     app.dashboard.setWriteRegisterCallback(async (addr, rawValue) => {
       await this.coordinator!.writeRaw(addr, rawValue, false);
+    });
+
+    app.dashboard.setCapabilityWriteCallback(async (capability, value) => {
+      if (this.hasCapability(capability)) {
+        await this.setCapabilityValue(capability, value);
+      }
     });
 
     app.dashboard.setReadRegisterCallback(async (addr, isCoil) => {
