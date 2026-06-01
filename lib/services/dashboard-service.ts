@@ -41,6 +41,7 @@ import {
   SWITCH_2_BITS,
   SWITCH_3_BITS,
   TemperatureRegisterScale,
+  encodeTemperatureRaw,
   isAdlar2TemperatureRegister,
   scaleRegisterValue,
 } from '../modbus/adlar-modbus-registers';
@@ -53,12 +54,14 @@ interface WritableRegisterMeta {
   max: number;
   multiply: number;
   name: string;
+  capability?: string;
+  temperature?: boolean;
 }
 
 const WRITABLE_REGISTERS: Record<string, WritableRegisterMeta> = {
-  tempSetHeating:  { address: CONTROL_REGISTERS.tempSetHeating.address,  min: 15, max: 60, multiply: 0.1, name: 'Verwarming setpoint' },
-  tempSetHotWater: { address: CONTROL_REGISTERS.tempSetHotWater.address, min: 20, max: 75, multiply: 0.1, name: 'Tapwater setpoint' },
-  tempSetCooling:  { address: CONTROL_REGISTERS.tempSetCooling.address,  min: 7,  max: 25, multiply: 0.1, name: 'Koeling setpoint' },
+  tempSetHeating:  { address: CONTROL_REGISTERS.tempSetHeating.address,  min: 15, max: 60, multiply: 0.1, name: 'Verwarming setpoint',                  capability: 'target_temperature', temperature: true },
+  tempSetHotWater: { address: CONTROL_REGISTERS.tempSetHotWater.address, min: 20, max: 75, multiply: 0.1, name: 'Tapwater setpoint',                    capability: 'target_temperature.dhw', temperature: true },
+  tempSetCooling:  { address: CONTROL_REGISTERS.tempSetCooling.address,  min: 7,  max: 25, multiply: 0.1, name: 'Koeling setpoint',                     capability: 'target_temperature.cooling', temperature: true },
   mainSwitch:      { address: CONTROL_REGISTERS.mainSwitch.address,      min: 0,  max: 1,  multiply: 1,   name: 'Hoofdschakelaar (0=uit, 1=aan)' },
   runningMode:     { address: CONTROL_REGISTERS.runningMode.address,     min: 0,  max: 2,  multiply: 1,   name: 'Gebruikersmodus (0=Standaard, 1=Krachtig, 2=Stil)' },
 };
@@ -136,6 +139,7 @@ export class DashboardService {
 
   // Callbacks — worden laat gebonden vanuit device.ts
   private onWriteRegister: ((address: number, rawValue: number) => Promise<void>) | null = null;
+  private onCapabilityWrite: ((capability: string, value: number) => Promise<void>) | null = null;
   private onReadRegister: ((address: number, isCoil: boolean) => Promise<number>) | null = null;
   private onWriteExpert: ((address: number, rawValue: number, isCoil: boolean) => Promise<void>) | null = null;
   private onSetDiyHeatingCurve: ((k: number, b: number) => Promise<void>) | null = null;
@@ -159,6 +163,10 @@ export class DashboardService {
 
   setWriteRegisterCallback(fn: (address: number, rawValue: number) => Promise<void>): void {
     this.onWriteRegister = fn;
+  }
+
+  setCapabilityWriteCallback(fn: (capability: string, value: number) => Promise<void>): void {
+    this.onCapabilityWrite = fn;
   }
 
   setReadRegisterCallback(fn: (address: number, isCoil: boolean) => Promise<number>): void {
@@ -738,10 +746,16 @@ export class DashboardService {
       return;
     }
 
-    const rawValue = Math.round(value / meta.multiply);
+    const tempScale = this.getTemperatureScale?.() ?? 'x1';
+    const rawValue = meta.temperature
+      ? encodeTemperatureRaw(value, tempScale)
+      : Math.round(value / meta.multiply);
 
     try {
       await this.onWriteRegister(meta.address, rawValue);
+      if (meta.capability && this.onCapabilityWrite) {
+        await this.onCapabilityWrite(meta.capability, value).catch(() => {});
+      }
       this._jsonOk(res);
     } catch (err) {
       this._jsonError(res, 500, (err as Error).message);

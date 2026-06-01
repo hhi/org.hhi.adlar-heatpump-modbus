@@ -1,4 +1,8 @@
 {
+  "2.12.1": {
+    "en": "Interactive dashboard: heating, cooling, and hot water setpoints now use the detected temperature scale when writing values. Setpoint fields now update automatically when values are changed from the Homey app, unless the field is being edited. Live dashboard tiles now briefly highlight when their value changes. Expert dashboard rows now show which register is currently being read.",
+    "nl": "Interactief dashboard: verwarmings-, koel- en tapwatersetpoints gebruiken nu de gedetecteerde temperatuurschaal bij het schrijven van waarden. Setpointvelden worden nu automatisch bijgewerkt wanneer waarden via de Homey-app wijzigen, behalve tijdens het bewerken van het veld. Live-dashboardtegels lichten nu kort op wanneer hun waarde wijzigt. Expertdashboardrijen tonen nu welk register op dat moment wordt gelezen."
+  },
   "2.12.0": {
     "en": "Register Change Log dashboard: added a mode selector for Automatic polling and Cache observations. Cache observations include values seen through polling, expert reads, and expert writes, and show the source of the latest change. Automatic polling keeps poll interval statistics and recommended poll groups. Markdown reports now match the selected mode.",
     "nl": "Register Change Log-dashboard: moduskeuze toegevoegd voor Automatische polling en Cache-observaties. Cache-observaties bevatten waarden die via polling, expert reads en expert writes zijn gezien, en tonen de bron van de laatste wijziging. Automatische polling behoudt pollinterval-statistieken en aanbevolen pollgroepen. Markdown-rapporten sluiten nu aan op de gekozen modus."

@@ -107,6 +107,8 @@
 
   .flash-green td { animation: flashGreen 1.2s ease; }
   @keyframes flashGreen { 0%,100% { background: transparent; } 30% { background: rgba(34,197,94,0.15); } }
+  .row-reading td { background: rgba(56, 189, 248, 0.07); }
+  .row-reading td:first-child { box-shadow: inset 2px 0 0 #38bdf8; }
 
   /* Filter bar */
   .filter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
@@ -315,6 +317,7 @@ const cachedRegisters = new Map();
 const directReadInFlight = new Set();
 let readProgressRun = 0;
 let readProgressClearTimer = null;
+let activeReadAddr = null;
 let cacheRefreshTimer = null;
 let cacheRefreshInFlight = false;
 const CACHE_REFRESH_MS = 5000;
@@ -812,6 +815,7 @@ async function readBlock(blockId, progress = null) {
   // Lees registers met korte pauze om Modbus niet te overbelasten
   for (const reg of block.registers) {
     setReadProgressCurrent(activeProgress, reg);
+    setActiveReadRow(reg.address);
     await readRow(reg.address, !!reg.isCoil, reg.multiply || 1);
     incrementReadProgress(activeProgress);
     await sleep(120);
@@ -849,6 +853,7 @@ function finishReadProgress(progress) {
   readProgressClearTimer = setTimeout(() => {
     if (progress.token === readProgressRun) {
       document.getElementById('read-progress').textContent = '';
+      setActiveReadRow(null);
     }
   }, 4000);
 }
@@ -1148,6 +1153,21 @@ function flashRow(addr) {
   row.classList.remove('flash-green');
   void row.offsetWidth; // reflow
   row.classList.add('flash-green');
+}
+
+function setActiveReadRow(addr) {
+  if (activeReadAddr !== null) {
+    const prev = document.getElementById('row-' + activeReadAddr);
+    if (prev) prev.classList.remove('row-reading');
+  }
+  activeReadAddr = addr;
+  if (addr !== null) {
+    const row = document.getElementById('row-' + addr);
+    if (row) {
+      row.classList.add('row-reading');
+      row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
 }
 
 // ── Write dialog ──────────────────────────────────────────────────────────────
