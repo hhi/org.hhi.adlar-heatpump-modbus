@@ -820,7 +820,7 @@ export class ServiceCoordinator {
       await this.adaptiveControl.saveEnergyOptimizerState().catch((e) => {
         this.logger('ServiceCoordinator: saveEnergyOptimizerState failed', e);
       });
-      this.adaptiveControl.destroy();
+      await this.adaptiveControl.destroy();
       await this.modbusConnection.destroy();
     } catch (err) {
       this.logger('ServiceCoordinator: Error during cleanup', err);

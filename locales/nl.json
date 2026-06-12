@@ -80,6 +80,9 @@
     "blocked_disabled": "Uitgeschakeld",
     "period_night": "Nacht",
     "period_day": "Dag",
-    "period_evening": "Avond"
+    "period_evening": "Avond",
+    "blocked_dhw_mode": "Niet in verwarmingsmodus",
+    "blocked_defrost": "Ontdooien actief",
+    "blocked_no_cop": "Geen COP-meting"
   }
 }
