@@ -80,6 +80,9 @@
     "blocked_disabled": "Disabled",
     "period_night": "Night",
     "period_day": "Day",
-    "period_evening": "Evening"
+    "period_evening": "Evening",
+    "blocked_dhw_mode": "Not in heating mode",
+    "blocked_defrost": "Defrost active",
+    "blocked_no_cop": "No COP measurement"
   }
 }

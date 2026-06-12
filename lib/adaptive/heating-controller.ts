@@ -4,10 +4,16 @@
 /* eslint-disable import/extensions */
 
 /**
- * HeatingController - PI (Proportional-Integral) Temperature Control
+ * HeatingController - PI-style (Proportional + windowed-average) Temperature Control
  *
- * Maintains stable indoor temperature (±0.3°C) using PI control algorithm.
- * Designed for external adaptive control - does NOT modify device class.
+ * Maintains stable indoor temperature (±0.3°C). Designed for external adaptive
+ * control - does NOT modify device class.
+ *
+ * ADR-058: De I-term is een venstergemiddelde over max 24 errors (2 uur), géén
+ * accumulerende integraal. Dit geeft inherente anti-windup, maar werkt een
+ * blijvende steady-state-fout niet gegarandeerd weg. Errors worden alleen buiten
+ * de deadband aan de history toegevoegd; binnen de deadband bevriest het gemiddelde.
+ * Houd hier rekening mee bij het tunen van Kp/Ki.
  *
  * Key Features:
  * - Deadband tolerance (0.3°C default) prevents oscillation
@@ -20,7 +26,7 @@
 
 export interface PIControllerConfig {
   logger?: (message: string, ...args: unknown[]) => void;
-  Kp?: number; // Proportional gain (default: 3.0)
+  Kp?: number; // Proportional gain (default: 5.0)
   Ki?: number; // Integral gain (default: 1.5)
   deadband?: number; // Temperature tolerance in °C (default: 0.3)
 }
@@ -62,13 +68,14 @@ export class HeatingController {
 
   /**
    * @param config.logger - Logger callback (uses Homey logging system)
-   * @param config.Kp - Proportional gain (default: 3.0)
+   * @param config.Kp - Proportional gain (default: 5.0 — ADR-059 W2 referentieproject:
+   *   herijkt van 3.0 zodat de effectieve versterking (Kp × comfort-anker 0.6) ≈ 3.0 blijft)
    * @param config.Ki - Integral gain (default: 1.5)
    * @param config.deadband - Deadband in °C (default: 0.3)
    */
   constructor(config: PIControllerConfig = {}) {
     this.logger = config.logger || (() => { });
-    this.Kp = config.Kp ?? 3.0;
+    this.Kp = config.Kp ?? 5.0;
     this.Ki = config.Ki ?? 1.5;
     this.deadband = config.deadband ?? 0.3;
 
