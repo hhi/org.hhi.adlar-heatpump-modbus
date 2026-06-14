@@ -687,7 +687,7 @@ export class DashboardService {
       }
       return value;
     };
-    const json = JSON.stringify(snapshot, replacer);
+    const json = JSON.stringify({ ...snapshot, serverNowMs: Date.now() }, replacer);
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(json);
   }

@@ -286,6 +286,7 @@ export class ModbusTcpService extends EventEmitter {
 
       onConnect = () => {
         cleanup();
+        this.socket.setTimeout(0); // Clear idle timeout so we don't drop TCP when WP is quiet
         resolve();
       };
 
@@ -303,6 +304,8 @@ export class ModbusTcpService extends EventEmitter {
       this.socket.once('error', onError);
       this.socket.once('close', onClose);
 
+      // Enable TCP Keep-Alive so we detect silent WiFi drops of the Elfin
+      this.socket.setKeepAlive(true, 10000);
       this.socket.connect({ host: this.cfg.host, port: this.cfg.port });
       this.socket.setTimeout(this.cfg.timeoutMs);
     });
