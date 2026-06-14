@@ -396,10 +396,10 @@ export class ServiceCoordinator {
         }
       }
 
-      // ADR-043 Fase 2c: reset naar online alleen als non-fast teller ook schoon is
-      if (this._connectionQuality !== 'online'
-          && this._consecutiveNonFastRequiredFailures === 0) {
-        this._setConnectionQuality('online');
+      // Een geldige fast/superfast snapshot bewijst dat Modbus weer antwoordt.
+      // Herstel Homey beschikbaarheid vóór capability-writes, ook na poll-timeout offline.
+      if (this._connectionQuality !== 'online' || !this._visibleConnectionConnected) {
+        this._markPollRecoveredOnline();
       }
     }
 
@@ -470,18 +470,13 @@ export class ServiceCoordinator {
       this.logger('ServiceCoordinator: Disconnect status timer cancelled (reconnected in time)');
     }
 
-    // ADR-042/043: reset failure counters en zet quality op online via _setConnectionQuality
-    // (die roept ook setAvailable() aan)
+    // TCP connect alleen is onvoldoende bewijs dat Modbus weer gezond is:
+    // bridges/servers kunnen de socket accepteren terwijl register reads blijven hangen.
+    // Homey-visible herstel gebeurt daarom pas bij een geldige Modbus snapshot.
     this._consecutiveFastPollFailures = 0;
     this._consecutiveSuperfastPollFailures = 0;
     this._consecutiveNonFastRequiredFailures = 0;
     this._errorCountByContext.clear();
-    this._setConnectionQuality('online');
-    this.energyTracking.setConnectionState(true).catch((e) => {
-      this.logger('ServiceCoordinator: setConnectionState(true) failed', e);
-    });
-    this._setConnectionCapabilities(true, null);
-    this.adaptiveControl.onConnectionRestored();
   }
 
   private _handleDisconnected(reason: string): void {
@@ -647,6 +642,7 @@ export class ServiceCoordinator {
           this._degradedSinceTimer = null;
           this.logger('ServiceCoordinator: Degraded timeout — setting offline');
           this._setConnectionQuality('offline');
+          this._markPollTimeoutOffline();
         }, ServiceCoordinator.DEGRADED_TO_OFFLINE_MS);
       }
     } else {
@@ -671,7 +667,45 @@ export class ServiceCoordinator {
         .setWarning('Gedeeltelijke Modbus-communicatiefout — data kan verouderd zijn')
         .catch(() => {});
     }
-    // 'offline' wordt via de bestaande _disconnectStatusTimer afgehandeld
+    // 'offline' wordt via de bestaande _disconnectStatusTimer afgehandeld,
+    // behalve bij poll-timeout zonder socket-disconnect.
+  }
+
+  private _markPollTimeoutOffline(): void {
+    const wasVisiblyConnected = this._visibleConnectionConnected;
+    this._setConnectionCapabilities(false, 'poll timeout');
+    if (wasVisiblyConnected) {
+      this._incrementDailyDisconnectCount();
+    }
+    this.device
+      .setUnavailable('Modbus reageert niet op polling')
+      .catch(() => {});
+    this.modbusConnection.forceReconnect('poll timeout').catch((err) => {
+      this.logger('ServiceCoordinator: Force reconnect after poll timeout failed', err);
+    });
+  }
+
+  private _markPollRecoveredOnline(): void {
+    this._consecutiveFastPollFailures = 0;
+    this._consecutiveSuperfastPollFailures = 0;
+    this._consecutiveNonFastRequiredFailures = 0;
+    this._errorCountByContext.clear();
+
+    this._setConnectionQuality('online');
+
+    if (!this._visibleConnectionConnected) {
+      this._setConnectionCapabilities(true, null);
+    }
+
+    if (!this._structurallyUnsupportedFast) {
+      this.device.setAvailable().catch(() => {});
+      this.device.setWarning(null).catch(() => {});
+    }
+
+    this.energyTracking.setConnectionState(true).catch((e) => {
+      this.logger('ServiceCoordinator: setConnectionState(true) after poll recovery failed', e);
+    });
+    this.adaptiveControl.onConnectionRestored();
   }
 
   // ── Public API ─────────────────────────────────────────────────────────────
