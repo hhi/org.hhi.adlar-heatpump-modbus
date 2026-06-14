@@ -25,7 +25,7 @@ Alle registers hieronder worden in de huidige transportlaag gelezen als **FC03 h
 | `measure_temperature.ipm` | sensor/default | `0x0047` | read only | compressor IPM temp |
 | `measure_temperature.hp_sat` | sensor/default | `0x0048` | read only | high pressure saturation temp |
 | `measure_temperature.lp_sat` | sensor/default | `0x0049` | read only | low pressure saturation temp |
-| `measure_temperature.ambient` | sensor/default | `0x004A` | read only | ambient T1, unless external ambient active |
+| `measure_temperature.ambient` | sensor/default | `0x004A` | read only | ambient T1 (always direct from Modbus) |
 | `measure_temperature.outer_coil` | sensor/default | `0x004B` | read only | outer coil T2 |
 | `measure_temperature.inner_coil` | sensor/default | `0x004C` | read only | inner coil T3 |
 | `measure_temperature.suction` | sensor/default | `0x004D` | read only | suction T4 |
@@ -76,6 +76,6 @@ Alle registers hieronder worden in de huidige transportlaag gelezen als **FC03 h
 ## Opmerkingen
 
 - `measure_power`, `measure_voltage`, `measure_current`, `meter_power` en de phase-current capabilities zijn dynamisch: ze worden toegevoegd of verwijderd via de setting `enable_power_measurements`.
-- `measure_power`, `measure_temperature.ambient` en `adlar_water_flow` kunnen door externe capabilities worden overschreven in de Homey UI. De Modbus-registers blijven dan wel de interne fallbackbron.
+- `measure_power` en `adlar_water_flow` kunnen door externe capabilities worden overschreven in de Homey UI. De Modbus-registers blijven dan wel de interne fallbackbron. `measure_temperature.ambient` toont altijd direct de T1-registerwaarde; `adlar_external_ambient` wordt afzonderlijk gebruikt door COP en adaptieve regeling (met eigen TTL van 1u).
 - `meter_power` is niet opgenomen in de tabel omdat het geen directe registerwaarde is. De capability wordt door `EnergyTrackingService` opgebouwd uit internal/external power en tijd.
 - `heating_curve_formula`, `heating_curve_ref_outdoor` en `heating_curve_ref_temp` zijn niet opgenomen als directe registerkoppeling: ze worden afgeleid uit L28/L29 of vaste referentiewaarden.
