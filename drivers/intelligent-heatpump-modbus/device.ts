@@ -492,22 +492,6 @@ class AdlarModbusDevice extends Homey.Device {
       }
     };
 
-    // Schrijft modbusVal alleen als er geen actieve externe waarde beschikbaar is.
-    const setWithExternalPriority = (cap: string, externalCap: string, modbusVal: unknown) => {
-      if (this.hasCapability(externalCap)) {
-        const externalVal = this.getCapabilityValue(externalCap);
-        if (externalVal !== null && externalVal !== undefined) {
-          const ts = this.externalDataTimestamps.get(externalCap) ?? 0;
-          const stale = Date.now() - ts > DeviceConstants.EXTERNAL_DATA_TTL_MS;
-          if (!stale) return;
-          this.setCapabilityValue(externalCap, null).catch(() => {});
-          this.externalDataTimestamps.delete(externalCap);
-          this.logger.info(`External value for ${externalCap} expired (TTL 1h), reverting to Modbus`);
-        }
-      }
-      set(cap, modbusVal);
-    };
-
     // Control
     if (from('medium')) {
       set('onoff', snap.control.on);
@@ -553,7 +537,7 @@ class AdlarModbusDevice extends Homey.Device {
       set('measure_temperature.inlet', s.inletT6?.value);
     }
     if (from('fast')) {
-      setWithExternalPriority('measure_temperature.ambient', 'adlar_external_ambient', s.ambientT1?.value);
+      set('measure_temperature.ambient', s.ambientT1?.value);
       set('measure_temperature.outer_coil', s.outerCoilT2?.value);
       set('measure_temperature.inner_coil', s.innerCoilT3?.value);
       set('measure_temperature.suction', s.suctionT4?.value);
@@ -611,6 +595,18 @@ class AdlarModbusDevice extends Homey.Device {
           this.setCapabilityValue('adlar_external_flow', null).catch(() => {});
           this.externalDataTimestamps.delete('adlar_external_flow');
           this.logger.info('External flow expired (TTL 1h), COP reverts to Modbus flow sensor');
+        }
+      }
+    }
+    // TTL-bewaking voor adlar_external_ambient (gebruikt door COP/adaptieve regeling, niet door measure_temperature.ambient)
+    if (from('fast') && this.hasCapability('adlar_external_ambient')) {
+      const extAmbient = this.getCapabilityValue('adlar_external_ambient');
+      if (extAmbient !== null && extAmbient !== undefined) {
+        const ts = this.externalDataTimestamps.get('adlar_external_ambient') ?? 0;
+        if (Date.now() - ts > DeviceConstants.EXTERNAL_DATA_TTL_MS) {
+          this.setCapabilityValue('adlar_external_ambient', null).catch(() => {});
+          this.externalDataTimestamps.delete('adlar_external_ambient');
+          this.logger.info('External ambient expired (TTL 1h), COP/adaptive control reverts to Modbus T1 sensor');
         }
       }
     }
