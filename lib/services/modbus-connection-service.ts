@@ -49,6 +49,8 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
   private service: ModbusRuntimeService<TSnapshot> | null = null;
   private connected = false;
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastConfig: ModbusConnectionConfig | null = null;
+  private reconnecting = false;
 
   private readonly createService: ModbusConnectionOptions<TSnapshot>['createService'];
   private readonly onData: (snapshot: TSnapshot) => void;
@@ -75,7 +77,22 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
    * Connect to the Modbus device using the provided config.
    */
   async connect(config: ModbusConnectionConfig): Promise<void> {
+    this.lastConfig = config;
     this.logger('ModbusConnectionService: Connecting to', config.host);
+
+    if (this.retryTimer) {
+      this.device.homey.clearTimeout(this.retryTimer);
+      this.retryTimer = null;
+    }
+
+    if (this.service) {
+      const oldService = this.service;
+      this.service = null;
+      this.connected = false;
+      await oldService.destroy().catch((err: Error) => {
+        this.logger('ModbusConnectionService: Error destroying previous service before reconnect:', err.message);
+      });
+    }
 
     const timerProvider: TimerProvider = {
       setTimeout: this.device.homey.setTimeout.bind(this.device.homey),
@@ -84,9 +101,11 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
       clearInterval: this.device.homey.clearInterval.bind(this.device.homey),
     };
 
-    this.service = this.createService({ config, timerProvider });
+    const service = this.createService({ config, timerProvider });
+    this.service = service;
 
-    this.service.on('connected', () => {
+    service.on('connected', () => {
+      if (this.service !== service) return;
       this.connected = true;
       this.logger('ModbusConnectionService: Connected');
       const superfast = config.pollSuperfastMs ?? 5_000;
@@ -97,7 +116,7 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
       const slow = config.pollSlowMs ?? 300_000;
       const staggerMs = this._firstConnect ? 300 : 0;
       this._firstConnect = false;
-      this.service!.startPolling({
+      service.startPolling({
         superfast,
         superfastAdaptive,
         superfastAdaptiveMs,
@@ -109,26 +128,31 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
       this.onConnected();
     });
 
-    this.service.on('disconnected', (reason: string) => {
+    service.on('disconnected', (reason: string) => {
+      if (this.service !== service) return;
       this.connected = false;
       this.logger('ModbusConnectionService: Disconnected:', reason);
       this.onDisconnected(reason);
     });
 
-    this.service.on('reconnecting', (attempt: number, delayMs: number) => {
+    service.on('reconnecting', (attempt: number, delayMs: number) => {
+      if (this.service !== service) return;
       this.logger(`ModbusConnectionService: Reconnect attempt #${attempt} in ${delayMs}ms`);
     });
 
-    this.service.on('data', (snapshot: TSnapshot) => {
+    service.on('data', (snapshot: TSnapshot) => {
+      if (this.service !== service) return;
       this.onData(snapshot);
     });
 
-    this.service.on('error', (err: Error, ctx: string) => {
+    service.on('error', (err: Error, ctx: string) => {
+      if (this.service !== service) return;
       this.logger(`ModbusConnectionService: Error [${ctx}]:`, err.message);
       this.onError(err, ctx);
     });
 
-    this.service.on('poll-group-succeeded', (groupName: string) => {
+    service.on('poll-group-succeeded', (groupName: string) => {
+      if (this.service !== service) return;
       this.onPollGroupSucceeded?.(groupName);
     });
 
@@ -139,13 +163,52 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
     }
 
     try {
-      await this.service.connect();
+      await service.connect();
     } catch (err) {
       this.logger('ModbusConnectionService: Initial connect failed, will retry in 30s:', (err as Error).message);
+      if (this.service === service) {
+        this.service = null;
+        this.connected = false;
+      }
+      await service.destroy().catch((destroyErr: Error) => {
+        this.logger('ModbusConnectionService: Error destroying failed service:', destroyErr.message);
+      });
       this.retryTimer = this.device.homey.setTimeout(async () => {
         this.retryTimer = null;
         await this.connect(config);
       }, 30_000);
+    }
+  }
+
+  async forceReconnect(reason: string): Promise<void> {
+    if (!this.lastConfig) {
+      this.logger('ModbusConnectionService: Cannot force reconnect without previous config');
+      return;
+    }
+    if (this.reconnecting) {
+      this.logger('ModbusConnectionService: Force reconnect already in progress');
+      return;
+    }
+
+    this.reconnecting = true;
+    this.logger(`ModbusConnectionService: Force reconnect (${reason})`);
+
+    if (this.retryTimer) {
+      this.device.homey.clearTimeout(this.retryTimer);
+      this.retryTimer = null;
+    }
+
+    const oldService = this.service;
+    this.service = null;
+    this.connected = false;
+
+    try {
+      if (oldService) {
+        await oldService.destroy();
+      }
+      await this.connect(this.lastConfig);
+    } finally {
+      this.reconnecting = false;
     }
   }
 

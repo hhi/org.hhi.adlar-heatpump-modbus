@@ -329,17 +329,19 @@ export class ModbusTcpService extends EventEmitter {
     if (this._connected) {
       this._connected = false;
       this._gracefulClose();
+    } else {
+      this.socket.destroy();
     }
     this.removeAllListeners();
   }
 
   private _gracefulClose(): void {
-    // socket.end() stuurt FIN zodat de Elfin de sessie netjes kan opruimen.
+    // socket.end() stuurt FIN zodat Modbus bridges de sessie netjes kunnen opruimen.
     // Na 1s alsnog destroy() als de remote niet antwoordt.
     try {
-      this.socket.end();
-      const t = setTimeout(() => this.socket.destroy(), 1000);
-      if (t.unref) t.unref();
+      const socket = this.socket;
+      socket.end();
+      this._timers.setTimeout(() => socket.destroy(), 1_000);
     } catch {
       this.socket.destroy();
     }
