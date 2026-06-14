@@ -344,13 +344,14 @@ function buildRows(snap) {
   // Diagnostics (ADR-042)
   if (snap.diagnostics) {
     const d = snap.diagnostics;
+    const serverNowMs = snap.serverNowMs ?? Date.now();
     const age = d.lastSuccessfulFastPollAt
-      ? Math.round((Date.now() - d.lastSuccessfulFastPollAt) / 1000) + 's geleden'
+      ? Math.round((serverNowMs - d.lastSuccessfulFastPollAt) / 1000) + 's geleden'
       : 'nooit';
     const diagRows = [
       { address: '—', name: 'Connection quality',        value: d.connectionQuality,              raw: '—', category: 'Diag', pollGroup: '—', fault: false },
       { address: '—', name: 'Fast poll failures',        value: String(d.consecutiveFastPollFailures), raw: '—', category: 'Diag', pollGroup: '—', fault: false },
-      { address: '—', name: 'Laatste fast poll',         value: age,                              raw: '—', category: 'Diag', pollGroup: '—', fault: false },
+      { address: '—', name: 'Laatste fast/superfast poll', value: age,                            raw: '—', category: 'Diag', pollGroup: '—', fault: false },
     ];
     if (d.lastErrorContext) {
       diagRows.push({ address: '—', name: 'Laatste foutcontext', value: d.lastErrorContext, raw: '—', category: 'Diag', pollGroup: '—', fault: false });
