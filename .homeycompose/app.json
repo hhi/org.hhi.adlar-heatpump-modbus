@@ -1,6 +1,6 @@
 {
   "id": "org.hhi.adlar-heatpump-modbus",
-  "version": "2.13.2",
+  "version": "2.13.3",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": ["local"],
