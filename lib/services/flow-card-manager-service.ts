@@ -41,6 +41,7 @@ interface FlowActionDevice {
   triggerCapabilityListener?: (capability: string, value: unknown, opts: Record<string, unknown>) => Promise<void>;
   getName: () => string;
   hasCapability: (capability: string) => boolean;
+  getCapabilityValue: (capability: string) => unknown;
 }
 
 type GenericFlowArgs = Record<string, unknown>;
@@ -407,6 +408,15 @@ export class FlowCardManagerService {
         return true;
       });
 
+      this.registerCapabilityAction('set_setpoint_for_mode', async (args) => {
+        const temperature = this.normalizeTemperatureArg(args, 'temperature', String(args.decimal_handling ?? 'round'));
+        const target = String(args.target ?? 'auto');
+        const capability = this.resolveSetpointCapability(target, args.device as FlowActionDevice | undefined);
+        // Range is validated per-setpoint by the device capability listeners.
+        await this.triggerSelectedDeviceCapability(args, capability, temperature);
+        return true;
+      });
+
       this.registerCapabilityAction('set_hotwater_temperature', async (args) => {
         const temperature = this.normalizeTemperatureArg(args, 'temperature', 'round');
         this.assertSetpointRange('DHW setpoint', temperature, DHW_SETPOINT_MIN_C, DHW_SETPOINT_MAX_C);
@@ -505,6 +515,57 @@ export class FlowCardManagerService {
 
   private assertHeatingSetpointRange(value: number): void {
     this.assertSetpointRange('Heating setpoint', value, HEATING_SETPOINT_MIN_C, HEATING_SETPOINT_MAX_C);
+  }
+
+  /**
+   * Resolve which space-conditioning setpoint capability a flexible setpoint
+   * action should target. Explicit choices map directly; 'auto' derives the
+   * target from the heat pump's current mode (register 0x0304 via adlar_mode).
+   *
+   * Modes: 0=cooling, 1=heating, 3=floor heating. Combined modes always pair
+   * hot water with one space mode: 4=HW+cooling, 5=HW+heating, 7=HW+floor.
+   * Hot water (2) and reserve (6) have no space-conditioning setpoint here and
+   * are rejected so the user picks heating/cooling/floor explicitly.
+   */
+  private resolveSetpointCapability(target: string, device: FlowActionDevice | undefined): string {
+    const explicitMap: Record<string, string> = {
+      heating: 'target_temperature',
+      cooling: 'target_temperature.cooling',
+      floor: 'target_temperature.floor',
+    };
+
+    if (target !== 'auto') {
+      const capability = explicitMap[target];
+      if (!capability) {
+        throw new Error(`Unsupported setpoint target: ${target}`);
+      }
+      return capability;
+    }
+
+    if (!device) {
+      throw new Error('No device selected for flow action');
+    }
+
+    const modeRaw = device.getCapabilityValue('adlar_mode');
+    const mode = Number(modeRaw);
+    if (modeRaw === null || modeRaw === undefined || !Number.isFinite(mode)) {
+      throw new Error('Cannot resolve setpoint automatically: current mode is unknown. Select heating, cooling, or floor explicitly.');
+    }
+
+    const modeToCapability: Record<number, string> = {
+      0: 'target_temperature.cooling',
+      1: 'target_temperature',
+      3: 'target_temperature.floor',
+      4: 'target_temperature.cooling',
+      5: 'target_temperature',
+      7: 'target_temperature.floor',
+    };
+
+    const capability = modeToCapability[mode];
+    if (!capability) {
+      throw new Error(`Cannot resolve setpoint automatically in mode ${mode} (e.g. hot water or reserve). Select heating, cooling, or floor explicitly.`);
+    }
+    return capability;
   }
 
   private assertSetpointRange(label: string, value: number, min: number, max: number): void {
