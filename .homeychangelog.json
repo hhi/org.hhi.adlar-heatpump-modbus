@@ -1,4 +1,8 @@
 {
+  "2.14.2": {
+    "en": "Dashboard fix: Product Type (0x0361) and Product Type ID (0x0362) are now shown as separate rows. Device Tooling No (0x0053) added to the Version section.",
+    "nl": "Dashboard correctie: Product Type (0x0361) en Product Type ID (0x0362) worden nu als aparte rijen getoond. Apparaat Tooling No (0x0053) toegevoegd aan de versie-sectie."
+  },
   "2.14.1": {
     "en": "App Store description updated. Full technical documentation is available via the source code link on the App Store page.",
     "nl": "App Store-beschrijving bijgewerkt. Volledige technische documentatie is beschikbaar via de broncode-link op de App Store-pagina."
