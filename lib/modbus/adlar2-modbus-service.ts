@@ -190,6 +190,7 @@ export interface CopSnapshot {
 export interface VersionSnapshot {
   programVersionRaw: number | null;
   programVersion: string | null;
+  deviceToolingNo: number | null;
   productType: number | null;
   productTypeId: number | null;
   protocolVersion: number | null;
@@ -801,6 +802,9 @@ export class Adlar2ModbusService extends EventEmitter {
     return {
       programVersionRaw,
       programVersion: formatPackedVersion(programVersionRaw),
+      deviceToolingNo: this.tcp.has(SENSOR_REGISTERS.deviceToolingNo.address)
+        ? this.tcp.u16(SENSOR_REGISTERS.deviceToolingNo.address)
+        : null,
       productType: this.tcp.has(VERSION_REGISTERS.productType.address)
         ? this.tcp.u16(VERSION_REGISTERS.productType.address)
         : null,

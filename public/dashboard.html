@@ -448,7 +448,9 @@ function buildRows(snap) {
   if (snap.version.programVersion) {
     const verRows = [
       { address: hex(0x0360), name: 'Firmware version',  value: snap.version.programVersion,              raw: snap.version.programVersionRaw ?? '—', category: 'Version', pollGroup: 'ONCE', fault: false },
-      { address: hex(0x0362), name: 'Product type',       value: String(snap.version.productType ?? '—'),  raw: snap.version.productTypeId ?? '—',     category: 'Version', pollGroup: 'ONCE', fault: false },
+      { address: hex(0x0053), name: 'Device tooling no',  value: String(snap.version.deviceToolingNo ?? '—'), raw: snap.version.deviceToolingNo ?? '—', category: 'Version', pollGroup: 'ONCE', fault: false },
+      { address: hex(0x0361), name: 'Product type',       value: String(snap.version.productType ?? '—'),    raw: snap.version.productType ?? '—',     category: 'Version', pollGroup: 'ONCE', fault: false },
+      { address: hex(0x0362), name: 'Product type ID',    value: String(snap.version.productTypeId ?? '—'),  raw: snap.version.productTypeId ?? '—',   category: 'Version', pollGroup: 'ONCE', fault: false },
       { address: hex(0x0363), name: 'Protocol version',   value: snap.version.protocolVersionFormatted ?? '—', raw: snap.version.protocolVersion ?? '—', category: 'Version', pollGroup: 'ONCE', fault: false },
     ];
     sections.push({ label: 'Version', rows: verRows });
