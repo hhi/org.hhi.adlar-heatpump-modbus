@@ -1,14 +1,8 @@
-# Adlar Castra Heat Pump (Modbus)
+# Adlar Castra Heat Pump Gateway
 
-This app gives Homey Pro local Modbus TCP access to an Adlar Castra / Aurora II heat pump through an Elfin EW11A or another Modbus TCP to RS485 gateway. Daily operation does not depend on cloud access.
-
-## Current Implementation Status
-
-- Pairing uses only the Modbus gateway details: IP address, TCP port (default `502`) and Modbus Unit ID (default `1`).
-- The old Tuya fields such as Device ID, Local Key and protocol version are not used in this Modbus app.
-- Polling intervals are configurable in the device settings (default superfast/fast/medium/slow: `5 s / 10 s / 30 s / 300 s`). Superfast polling can adapt to `2 s` after live value changes.
-- The current register mapping is aimed at Adlar Castra / Aurora II units that use the `R32` Modbus register map.
-- Temperature register scaling is detected automatically from the refrigerant type (P119): R32 uses x1 (°C), R290 uses x10 (deci-°C).
+This app connects the Adlar Castra or Aurora II heat pump to Homey Pro using
+a wired Modbus RS485 gateway on your local network. No cloud connection is
+needed for daily operation.
 
 ## Requirements
 
