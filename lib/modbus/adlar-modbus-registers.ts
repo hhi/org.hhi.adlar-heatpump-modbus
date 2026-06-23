@@ -512,6 +512,7 @@ export const SENSOR_REGISTERS = {
   // --- Extra sensoren ---
   deviceToolingNo: {
     address: 0x0053, unit: '', multiply: 1, name: 'Device Tooling No',
+    desc: 'Query Parameter 20: Machine tool version', min: 0, max: 120,
   },
   waterTankTemp: {
     address: 0x0054, unit: '°C', multiply: 0.1, name: 'DHW Tank Temperature',
