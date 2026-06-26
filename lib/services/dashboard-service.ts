@@ -366,10 +366,7 @@ export class DashboardService {
 
     const decodeRaw = (addr: number, raw: number | null): number | null => {
       if (raw === null) return null;
-      const meta = metaMap.get(addr);
-      const multiply = meta?.multiply ?? 1;
-      const scaleMultiply = meta?.scaleMultiply ?? 1;
-      return Math.round(raw * multiply * scaleMultiply * 1000) / 1000;
+      return Math.round(scaleRegisterValue(addr, raw, tempScale) * 1000) / 1000;
     };
 
     for (const [addr, entry] of log) {
