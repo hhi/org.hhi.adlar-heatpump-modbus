@@ -762,6 +762,14 @@ export class ServiceCoordinator {
     return this.modbusConnection.setHotWaterCurve(curve);
   }
 
+  async setCoolingCurve(curve: number): Promise<void> {
+    return this.modbusConnection.setCoolingCurve(curve);
+  }
+
+  async setFloorHeatingCurve(curve: number): Promise<void> {
+    return this.modbusConnection.setFloorHeatingCurve(curve);
+  }
+
   async setDiyHeatingCurve(k: number, b: number): Promise<void> {
     return this.modbusConnection.setDiyHeatingCurve(k, b);
   }

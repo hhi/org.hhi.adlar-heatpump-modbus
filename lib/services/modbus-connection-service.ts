@@ -252,6 +252,22 @@ export class ModbusConnectionService<TSnapshot = DataSnapshot> extends EventEmit
     await this.service.setHotWaterCurve(curve);
   }
 
+  /**
+   * Write the cooling curve to the device.
+   */
+  async setCoolingCurve(curve: number): Promise<void> {
+    if (!this.service) throw new Error('Not connected');
+    await this.service.setCoolingCurve(curve);
+  }
+
+  /**
+   * Write the floor heating curve to the device.
+   */
+  async setFloorHeatingCurve(curve: number): Promise<void> {
+    if (!this.service) throw new Error('Not connected');
+    await this.service.setFloorHeatingCurve(curve);
+  }
+
   async setDiyHeatingCurve(k: number, b: number): Promise<void> {
     if (!this.service) throw new Error('Not connected');
     await this.service.setDiyHeatingCurve(k, b);

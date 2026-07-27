@@ -18,7 +18,6 @@
     "de": "Heizkurveneinstellung einstellen",
     "fr": "Régler le paramètre de la courbe de chauffage"
   },
-  "highlight": true,
   "args": [
     {
       "type": "device",
