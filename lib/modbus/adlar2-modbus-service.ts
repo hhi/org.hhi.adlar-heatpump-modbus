@@ -525,6 +525,18 @@ export class Adlar2ModbusService extends EventEmitter {
     await this.tcp.writeSingleRegister(def.address, curve);
   }
 
+  async setCoolingCurve(curve: number): Promise<void> {
+    const def = CONTROL_REGISTERS.coolingCurve;
+    assertRange(def, curve);
+    await this.tcp.writeSingleRegister(def.address, curve);
+  }
+
+  async setFloorHeatingCurve(curve: number): Promise<void> {
+    const def = CONTROL_REGISTERS.floorHeatingCurve;
+    assertRange(def, curve);
+    await this.tcp.writeSingleRegister(def.address, curve);
+  }
+
   async setUserMode(mode: 0 | 1 | 2): Promise<void> {
     await this.tcp.writeSingleRegister(CONTROL_REGISTERS.runningMode.address, mode);
   }

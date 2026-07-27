@@ -471,6 +471,44 @@ export class FlowCardManagerService {
         return true;
       });
 
+      this.registerCapabilityAction('set_curve_for_mode', async (args) => {
+        const curveId = String(args.curve ?? 'OFF');
+        const target = this.resolveCurveTarget(String(args.target ?? 'auto'), args.device as FlowActionDevice | undefined);
+
+        if (target === 'heating') {
+          enumIdToHeatingCurve(curveId);
+          await this.triggerSelectedDeviceCapability(args, 'adlar_enum_countdown_set', curveId);
+          return true;
+        }
+        if (target === 'hot_water') {
+          enumIdToHotWaterCurve(curveId);
+          await this.triggerSelectedDeviceCapability(args, 'adlar_enum_capacity_set', curveId);
+          return true;
+        }
+
+        // Cooling/floor heating hebben nog geen capability-tegel; schrijf rechtstreeks via de coordinator.
+        const curveValue = enumIdToHeatingCurve(curveId); // zelfde 0/H1-8/L1-8 encoding als heating/cooling/floor
+        const selectedDevice = args.device as FlowActionDevice | undefined;
+        if (!selectedDevice) {
+          throw new Error('No device selected for flow action');
+        }
+        const { serviceCoordinator } = selectedDevice as unknown as {
+          serviceCoordinator?: {
+            setCoolingCurve: (curve: number) => Promise<void>;
+            setFloorHeatingCurve: (curve: number) => Promise<void>;
+          };
+        };
+        if (!serviceCoordinator) {
+          throw new Error('Service coordinator not available');
+        }
+        if (target === 'cooling') {
+          await serviceCoordinator.setCoolingCurve(curveValue);
+        } else {
+          await serviceCoordinator.setFloorHeatingCurve(curveValue);
+        }
+        return true;
+      });
+
       this.logger('FlowCardManagerService: Modbus simple action cards registered');
     } catch (error) {
       this.logger('FlowCardManagerService: Error registering Modbus simple action cards:', error);
@@ -566,6 +604,51 @@ export class FlowCardManagerService {
       throw new Error(`Cannot resolve setpoint automatically in mode ${mode} (e.g. hot water or reserve). Select heating, cooling, or floor explicitly.`);
     }
     return capability;
+  }
+
+  /**
+   * Resolve which curve target a flexible curve action should apply to.
+   * Explicit choices map directly; 'auto' derives the target from the heat
+   * pump's current mode (register 0x0304 via adlar_mode), using the same
+   * mode-to-space-mode mapping as resolveSetpointCapability: combined modes
+   * (4/5/7) always pair hot water with one space mode, so the space curve is
+   * unambiguous. Hot water (2) and reserve (6) have no space-conditioning
+   * curve here and are rejected so the user picks heating/cooling/floor/hot
+   * water explicitly.
+   */
+  private resolveCurveTarget(target: string, device: FlowActionDevice | undefined): 'heating' | 'cooling' | 'floor' | 'hot_water' {
+    const explicitTargets = ['heating', 'cooling', 'floor', 'hot_water'];
+    if (target !== 'auto') {
+      if (!explicitTargets.includes(target)) {
+        throw new Error(`Unsupported curve target: ${target}`);
+      }
+      return target as 'heating' | 'cooling' | 'floor' | 'hot_water';
+    }
+
+    if (!device) {
+      throw new Error('No device selected for flow action');
+    }
+
+    const modeRaw = device.getCapabilityValue('adlar_mode');
+    const mode = Number(modeRaw);
+    if (modeRaw === null || modeRaw === undefined || !Number.isFinite(mode)) {
+      throw new Error('Cannot resolve curve automatically: current mode is unknown. Select heating, cooling, floor, or hot water explicitly.');
+    }
+
+    const modeToTarget: Record<number, 'heating' | 'cooling' | 'floor'> = {
+      0: 'cooling',
+      1: 'heating',
+      3: 'floor',
+      4: 'cooling',
+      5: 'heating',
+      7: 'floor',
+    };
+
+    const resolved = modeToTarget[mode];
+    if (!resolved) {
+      throw new Error(`Cannot resolve curve automatically in mode ${mode} (e.g. hot water or reserve). Select heating, cooling, floor, or hot water explicitly.`);
+    }
+    return resolved;
   }
 
   private assertSetpointRange(label: string, value: number, min: number, max: number): void {

@@ -32,6 +32,8 @@ export interface ModbusRuntimeService<TSnapshot> {
   setMode(mode: number): Promise<void>;
   setHeatingCurve(curve: number): Promise<void>;
   setHotWaterCurve(curve: number): Promise<void>;
+  setCoolingCurve(curve: number): Promise<void>;
+  setFloorHeatingCurve(curve: number): Promise<void>;
   setDiyHeatingCurve(k: number, b: number): Promise<void>;
   setUserMode(mode: 0 | 1 | 2): Promise<void>;
   setExternalFlow(lpm: number | null): void;
