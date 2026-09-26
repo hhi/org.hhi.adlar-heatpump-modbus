@@ -1,4 +1,8 @@
 {
+  "2.15.1": {
+    "en": "Poll timeout disconnect patch.",
+    "nl": "Probleem met de verbindingsstatus na een poll-timeout opgelost."
+  },
   "2.15.0": {
     "en": "New flow action card 'Set curve (by mode)'. Choose whether the curve is written to heating, cooling, floor heating, or hot water, or pick Auto to follow the heat pump's current mode. In hot water or reserve mode, Auto reports an error so you select the target explicitly. The existing 'Set heating curve setting' card is unchanged.",
     "nl": "Nieuwe flow-actiekaart 'Curve instellen (per modus)'. Kies of de curve naar verwarmen, koelen, vloerverwarming of warm water wordt geschreven, of kies Auto om de huidige modus van de warmtepomp te volgen. In warmwater- of reservemodus geeft Auto een foutmelding, zodat je het doel expliciet kiest. De bestaande kaart 'Verwarmingscurve (stooklijn) instellen' blijft ongewijzigd."
