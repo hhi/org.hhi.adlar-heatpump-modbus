@@ -708,6 +708,7 @@ export class BuildingModelService {
     lastUpdateSamples: number;
     isDefault: boolean;
     blockingReason: string | null;
+    blockingReasonKey: string | null; // Locale key (building_model.blocked_*); null when not blocked or still collecting initial samples
   }> {
     const enabled = await this.device.getSetting('building_model_enabled');
 
@@ -736,14 +737,18 @@ export class BuildingModelService {
     // This is more accurate than re-checking sensors here, because it reflects
     // the actual last attempt to collect data (including power measurement check)
     let blockingReason: string | null = this.lastBlockingReason;
+    let blockingReasonKey: string | null = this.lastBlockingReasonKey;
     if (!enabled) {
       blockingReason = 'Learning disabled in settings';
+      blockingReasonKey = 'building_model.blocked_disabled';
     } else if (blockingReason === null) {
       // No blocking from collectAndLearn, but check initial samples phase
       if (indoorTemp === null) {
         blockingReason = 'No indoor temperature (external sensor flow not running)';
+        blockingReasonKey = 'building_model.blocked_no_indoor_temp';
       } else if (outdoorTemp === null || outdoorTemp === undefined) {
         blockingReason = 'No outdoor temperature (ambient sensor not available)';
+        blockingReasonKey = 'building_model.blocked_no_outdoor_temp';
       } else if (state.sampleCount < 10) {
         blockingReason = `Collecting initial samples (${state.sampleCount}/10)`;
       }
@@ -764,6 +769,7 @@ export class BuildingModelService {
       lastUpdateSamples: state.sampleCount % 10,
       isDefault,
       blockingReason,
+      blockingReasonKey,
     };
   }
 

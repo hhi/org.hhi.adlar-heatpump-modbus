@@ -74,6 +74,7 @@
     "status_learned": "LEARNING",
     "status_default": "DEFAULT",
     "status_blocked": "BLOCKED",
+    "blocked_prefix": "Blocked",
     "blocked_no_indoor_temp": "No indoor temp",
     "blocked_no_outdoor_temp": "No outdoor temp",
     "blocked_no_power": "No power data",
