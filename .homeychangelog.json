@@ -1,4 +1,8 @@
 {
+  "2.15.2": {
+    "en": "Adaptive control now follows the heat pump's mode: in floor heating modes the recommendation is based on the floor heating setpoint instead of the heating setpoint, and stays within its range (20–60°C). In cooling or hot-water-only mode, adaptive control pauses until a heating mode is active. Apply recommendations with 'Set setpoint temperature (by mode)' set to Auto. Building insights now also show why learning is blocked during cooling or hot-water-only mode ('Blocked: Not in heating mode'), during defrost ('Blocked: Defrost active') and without a COP measurement ('Blocked: No COP measurement').",
+    "nl": "Adaptieve regeling volgt nu de modus van de warmtepomp: in vloerverwarmingsmodi gaat de aanbeveling uit van het vloerverwarmings-setpoint in plaats van het verwarmings-setpoint, en blijft binnen het bereik daarvan (20–60°C). In koel- of alleen-warmwatermodus pauzeert de adaptieve regeling tot een verwarmingsmodus actief is. Pas aanbevelingen toe met 'Setpoint temperatuur instellen (per modus)' op Auto. Gebouwinzichten tonen nu ook waarom het leren geblokkeerd is in koel- of alleen-warmwatermodus ('Geblokkeerd: Niet in verwarmingsmodus'), tijdens ontdooien ('Geblokkeerd: Ontdooien actief') en zonder COP-meting ('Geblokkeerd: Geen COP-meting')."
+  },
   "2.15.1": {
     "en": "Poll timeout disconnect patch.",
     "nl": "Probleem met de verbindingsstatus na een poll-timeout opgelost."
