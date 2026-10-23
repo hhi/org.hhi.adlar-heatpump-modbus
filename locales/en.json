@@ -84,6 +84,7 @@
     "period_evening": "Evening",
     "blocked_dhw_mode": "Not in heating mode",
     "blocked_defrost": "Defrost active",
-    "blocked_no_cop": "No COP measurement"
+    "blocked_no_cop": "No COP measurement",
+    "blocked_aux_heating": "Auxiliary heating active"
   }
 }
