@@ -14,7 +14,7 @@ Module._load = function load(request, parent, isMain) {
   return originalLoad.call(this, request, parent, isMain);
 };
 
-const { ServiceCoordinator } = require('../../.homeybuild/lib/services/service-coordinator');
+const { ServiceCoordinator } = require('../../.homeybuild/lib/modbus/services/service-coordinator');
 
 function deferred() {
   let resolve;

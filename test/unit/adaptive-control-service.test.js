@@ -15,7 +15,7 @@ Module._load = function load(request, parent, isMain) {
   return originalLoad.call(this, request, parent, isMain);
 };
 
-const { AdaptiveControlService } = require('../../.homeybuild/lib/services/adaptive-control-service');
+const { AdaptiveControlService } = require('../../.homeybuild/lib/modbus/services/adaptive-control-service');
 
 function createHomey(flowEvents) {
   return {

@@ -3,20 +3,20 @@
 /* eslint-disable node/no-missing-import */
 /* eslint-disable import/extensions */
 import Homey from 'homey';
-import { TuyaErrorCategorizer } from '../error-types';
-import { calculatePreHeatDuration } from '../utils/preheat-calculator';
+import { TuyaErrorCategorizer } from '../../shared/error-types';
+import { calculatePreHeatDuration } from '../../shared/utils/preheat-calculator';
 import { CapabilityCategories, UserFlowPreferences } from '../types/shared-interfaces';
 import type { BuildingInsightsService, InsightCategory } from './building-insights-service';
 import { PerformanceReportService } from './performance-report-service';
-import { SeasonalModeCalculator } from '../seasonal-mode-calculator';
-import { CurveCalculator } from '../curve-calculator';
-import { TimeScheduleCalculator } from '../time-schedule-calculator';
+import { SeasonalModeCalculator } from '../../shared/seasonal-mode-calculator';
+import { CurveCalculator } from '../../shared/curve-calculator';
+import { TimeScheduleCalculator } from '../../shared/time-schedule-calculator';
 import {
   enumIdToHeatingCurve,
   enumIdToHotWaterCurve,
   modeToSpaceSetpointTarget,
   workModeIdToUserMode,
-} from '../modbus/adlar-enum-mappers';
+} from '../protocol/adlar-enum-mappers';
 
 /* eslint-disable camelcase */
 interface PreHeatArgs {

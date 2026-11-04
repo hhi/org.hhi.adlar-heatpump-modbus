@@ -1,8 +1,8 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable node/no-missing-import */
 /* eslint-disable import/extensions */
-import { DataSnapshot } from '../modbus/adlar2-modbus-service';
-import { MODE_OPTIONS } from '../modbus/adlar-modbus-registers';
+import { DataSnapshot } from '../protocol/adlar2-modbus-service';
+import { MODE_OPTIONS } from '../protocol/adlar-modbus-registers';
 
 const THERMAL_POWER_FACTOR_KW_PER_LPM_PER_C = 0.0698;
 const DATA_FRESH_MS = 60_000;

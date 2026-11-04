@@ -38,7 +38,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { ModbusTcpService, PollGroup } from '../lib/modbus/modbus-tcp-service';
+import { ModbusTcpService, PollGroup } from '../lib/modbus/protocol/modbus-tcp-service';
 
 // ── CLI parsing ──────────────────────────────────────────────────────────────
 

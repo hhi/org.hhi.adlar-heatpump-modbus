@@ -3,14 +3,14 @@
 /* eslint-disable node/no-missing-import */
 /* eslint-disable import/extensions */
 import Homey from 'homey';
-import { DataSnapshot } from '../modbus/adlar2-modbus-service';
-import { FAN_RPM_MULTIPLIER } from '../modbus/adlar-modbus-registers';
+import { DataSnapshot } from '../protocol/adlar2-modbus-service';
+import { FAN_RPM_MULTIPLIER } from '../protocol/adlar-modbus-registers';
 import {
   COPCalculator,
   type COPCalculationResult,
   type COPDataSources,
-} from './cop-calculator';
-import { RollingCOPCalculator, type COPDataPoint } from './rolling-cop-calculator';
+} from '../../shared/services/cop-calculator';
+import { RollingCOPCalculator, type COPDataPoint } from '../../shared/services/rolling-cop-calculator';
 import { SCOPCalculator, type COPMeasurement } from './scop-calculator';
 
 type CapabilitySetter = (capability: string, value: unknown) => void;

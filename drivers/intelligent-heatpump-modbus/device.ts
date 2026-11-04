@@ -3,9 +3,9 @@
 /* eslint-disable import/extensions */
 import os from 'os';
 import Homey from 'homey';
-import { DataSnapshot } from '../../lib/modbus/adlar2-modbus-service';
-import { Logger, LogLevel } from '../../lib/logger';
-import { ServiceCoordinator } from '../../lib/services/service-coordinator';
+import { DataSnapshot } from '../../lib/modbus/protocol/adlar2-modbus-service';
+import { Logger, LogLevel } from '../../lib/shared/logger';
+import { ServiceCoordinator } from '../../lib/modbus/services/service-coordinator';
 import {
   heatingCurveToEnumId,
   enumIdToHeatingCurve,
@@ -14,16 +14,16 @@ import {
   hotWaterCurveToEnumId,
   enumIdToHotWaterCurve,
   backwaterModeToEnumId,
-} from '../../lib/modbus/adlar-enum-mappers';
-import { RegisterChangeEntry } from '../../lib/modbus/modbus-tcp-service';
-import { FAULT_DESCRIPTIONS } from '../../lib/modbus/adlar-fault-descriptions';
-import { ModbusCOPService } from '../../lib/services/modbus-cop-service';
-import { RollingCOPCalculator } from '../../lib/services/rolling-cop-calculator';
-import { DeviceConstants } from '../../lib/constants';
+} from '../../lib/modbus/protocol/adlar-enum-mappers';
+import { RegisterChangeEntry } from '../../lib/modbus/protocol/modbus-tcp-service';
+import { FAULT_DESCRIPTIONS } from '../../lib/modbus/protocol/adlar-fault-descriptions';
+import { ModbusCOPService } from '../../lib/modbus/services/modbus-cop-service';
+import { RollingCOPCalculator } from '../../lib/shared/services/rolling-cop-calculator';
+import { DeviceConstants } from '../../lib/modbus/constants';
 import {
   LiveOperationWidgetState,
   buildLiveOperationWidgetState,
-} from '../../lib/services/widget-state-service';
+} from '../../lib/modbus/services/widget-state-service';
 
 // ============================================================================
 // CONSTANTS
@@ -428,8 +428,8 @@ class AdlarModbusDevice extends Homey.Device {
         setReadRegisterCallback(fn: (addr: number, isCoil: boolean) => Promise<number>): void;
         setWriteExpertCallback(fn: (addr: number, rawValue: number, isCoil: boolean) => Promise<void>): void;
         setDiyHeatingCurveCallback(fn: (k: number, b: number) => Promise<void>): void;
-        setGetTemperatureScaleCallback(fn: () => import('../../lib/modbus/adlar-modbus-registers').TemperatureRegisterScale): void;
-        setGetChangeLogCallback(fn: (mode?: import('../../lib/modbus/modbus-tcp-service').RegisterChangeLogMode) => Map<number, RegisterChangeEntry>): void;
+        setGetTemperatureScaleCallback(fn: () => import('../../lib/modbus/protocol/adlar-modbus-registers').TemperatureRegisterScale): void;
+        setGetChangeLogCallback(fn: (mode?: import('../../lib/modbus/protocol/modbus-tcp-service').RegisterChangeLogMode) => Map<number, RegisterChangeEntry>): void;
         setGetSnapshotCallback(fn: () => DataSnapshot | null): void;
         setGetRegisterCacheCallback(fn: () => Map<number, number>): void;
         setGetCapabilityValuesCallback(fn: () => Record<string, unknown>): void;

@@ -17,7 +17,7 @@ Module._load = function load(request, parent, isMain) {
   return originalLoad.call(this, request, parent, isMain);
 };
 
-const { BuildingModelService } = require('../../.homeybuild/lib/services/building-model-service');
+const { BuildingModelService } = require('../../.homeybuild/lib/modbus/services/building-model-service');
 
 function createHomey() {
   return {
