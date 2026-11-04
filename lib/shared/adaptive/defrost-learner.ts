@@ -19,7 +19,7 @@
  * @since 2.9.0
  */
 
-import { DeviceConstants } from '../constants';
+import { DeviceConstants } from '../../modbus/constants';
 
 /** A single observed defrost event */
 export interface DefrostEvent {

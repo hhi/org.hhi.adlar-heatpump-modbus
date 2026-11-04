@@ -5,8 +5,8 @@
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import { DataSnapshot } from '../modbus/adlar2-modbus-service';
-import { RegisterChangeEntry, RegisterChangeLogMode } from '../modbus/modbus-tcp-service';
+import { DataSnapshot } from '../protocol/adlar2-modbus-service';
+import { RegisterChangeEntry, RegisterChangeLogMode } from '../protocol/modbus-tcp-service';
 import {
   STATUS_REGISTER_MAP,
   SENSOR_REGISTERS,
@@ -44,7 +44,7 @@ import {
   encodeTemperatureRaw,
   isAdlar2TemperatureRegister,
   scaleRegisterValue,
-} from '../modbus/adlar-modbus-registers';
+} from '../protocol/adlar-modbus-registers';
 
 // ── Whitelist voor ADR-044 interactief dashboard ───────────────────────────────
 

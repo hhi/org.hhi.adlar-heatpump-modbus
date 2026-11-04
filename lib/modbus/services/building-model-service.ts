@@ -18,7 +18,7 @@ import {
   type BuildingModelConfig,
   type MeasurementData,
   type BuildingProfileType,
-} from '../adaptive/building-model-learner';
+} from '../../shared/adaptive/building-model-learner';
 import { DeviceConstants } from '../constants';
 
 interface EnergyTrackingService {

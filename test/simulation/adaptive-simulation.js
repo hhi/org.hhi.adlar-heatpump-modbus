@@ -54,9 +54,9 @@
 const {
   BuildingModelLearner,
   getDynamicPInt,
-} = require('../../.homeybuild/lib/adaptive/building-model-learner');
-const { HeatingController } = require('../../.homeybuild/lib/adaptive/heating-controller');
-const { WeightedDecisionMaker } = require('../../.homeybuild/lib/adaptive/weighted-decision-maker');
+} = require('../../.homeybuild/lib/shared/adaptive/building-model-learner');
+const { HeatingController } = require('../../.homeybuild/lib/modbus/adaptive/heating-controller');
+const { WeightedDecisionMaker } = require('../../.homeybuild/lib/modbus/adaptive/weighted-decision-maker');
 
 // ---------------------------------------------------------------------------
 // Hulpmiddelen

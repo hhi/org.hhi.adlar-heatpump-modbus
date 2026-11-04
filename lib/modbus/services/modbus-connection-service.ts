@@ -4,10 +4,10 @@
 /* eslint-disable import/extensions */
 import { EventEmitter } from 'events';
 import Homey from 'homey';
-import { DataSnapshot } from '../modbus/adlar2-modbus-service';
-import { TemperatureRegisterScale } from '../modbus/adlar-modbus-registers';
-import { RegisterChangeEntry, RegisterChangeLogMode, TimerProvider } from '../modbus/modbus-tcp-service';
-import { ModbusRuntimeService } from '../modbus/modbus-runtime-service';
+import { DataSnapshot } from '../protocol/adlar2-modbus-service';
+import { TemperatureRegisterScale } from '../protocol/adlar-modbus-registers';
+import { RegisterChangeEntry, RegisterChangeLogMode, TimerProvider } from '../protocol/modbus-tcp-service';
+import { ModbusRuntimeService } from '../protocol/modbus-runtime-service';
 
 export interface ModbusConnectionConfig {
   host: string;

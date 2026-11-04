@@ -3,7 +3,7 @@
 /* eslint-disable node/no-missing-import */
 /* eslint-disable import/extensions */
 import Homey from 'homey';
-import { DeviceConstants } from '../constants';
+import { DeviceConstants } from '../../modbus/constants';
 import { DefrostLearner } from '../adaptive/defrost-learner';
 
 /**

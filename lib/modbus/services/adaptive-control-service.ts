@@ -8,12 +8,12 @@ import { ExternalTemperatureService } from './external-temperature-service';
 import { BuildingModelService } from './building-model-service';
 import { EnergyPriceOptimizer, type PriceTrend } from '../adaptive/energy-price-optimizer';
 import { COPOptimizer } from '../adaptive/cop-optimizer';
-import { DefrostLearner } from '../adaptive/defrost-learner';
+import { DefrostLearner } from '../../shared/adaptive/defrost-learner';
 import {
   WeightedDecisionMaker, type ConfidenceMetrics, type CoastAction, type CombinedAction,
 } from '../adaptive/weighted-decision-maker';
 import { WindCorrectionService } from './wind-correction-service';
-import { WeatherForecastService, type ForecastAdvice } from './weather-forecast-service';
+import { WeatherForecastService, type ForecastAdvice } from '../../shared/services/weather-forecast-service';
 import { DeviceConstants } from '../constants';
 
 /**

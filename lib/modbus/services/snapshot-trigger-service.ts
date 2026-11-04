@@ -2,10 +2,10 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable node/no-missing-import */
 /* eslint-disable import/extensions */
-import { DataSnapshot } from '../modbus/adlar2-modbus-service';
-import { MODE_OPTIONS } from '../modbus/adlar-modbus-registers';
-import { FAULT_DESCRIPTIONS } from '../modbus/adlar-fault-descriptions';
-import { userModeToWorkModeId } from '../modbus/adlar-enum-mappers';
+import { DataSnapshot } from '../protocol/adlar2-modbus-service';
+import { MODE_OPTIONS } from '../protocol/adlar-modbus-registers';
+import { FAULT_DESCRIPTIONS } from '../protocol/adlar-fault-descriptions';
+import { userModeToWorkModeId } from '../protocol/adlar-enum-mappers';
 
 const CARD_PROFILES: Record<string, { threshold: number; stateField: string }> = {
   ambient_temperature_changed: { threshold: 0.5, stateField: 'temperature' },

@@ -3,10 +3,10 @@
 /* eslint-disable import/extensions */
 import { App } from 'homey';
 import enableDebugInspector from './app-debug';
-import { SelfHealingRegistry } from './lib/self-healing-registry';
-import { Logger, LogLevel } from './lib/logger';
-import { DashboardService } from './lib/services/dashboard-service';
-import { LiveOperationWidgetState } from './lib/services/widget-state-service';
+import { SelfHealingRegistry } from './lib/shared/self-healing-registry';
+import { Logger, LogLevel } from './lib/shared/logger';
+import { DashboardService } from './lib/modbus/services/dashboard-service';
+import { LiveOperationWidgetState } from './lib/modbus/services/widget-state-service';
 
 const DEFAULT_DASHBOARD_PORT = 8090;
 const ADLAR_DRIVER_ID = 'intelligent-heatpump-modbus';

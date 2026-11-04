@@ -3,7 +3,7 @@
 /* eslint-disable node/no-missing-import */
 /* eslint-disable import/extensions */
 import Homey from 'homey';
-import { SettingsManagerService } from './settings-manager-service';
+import { SettingsManagerService } from '../../shared/services/settings-manager-service';
 import { CapabilityHealthService } from './capability-health-service';
 import { EnergyTrackingService } from './energy-tracking-service';
 import { ModbusConnectionService, ModbusConnectionConfig } from './modbus-connection-service';
@@ -11,11 +11,11 @@ import { FlowCardManagerService } from './flow-card-manager-service';
 import { AdaptiveControlService, type ActiveSetpoint } from './adaptive-control-service';
 import { BuildingInsightsService } from './building-insights-service';
 import { SnapshotTriggerService } from './snapshot-trigger-service';
-import { Adlar2ModbusService, DataSnapshot } from '../modbus/adlar2-modbus-service';
-import { CONTROL_REGISTERS, TemperatureRegisterScale } from '../modbus/adlar-modbus-registers';
-import { modeToSpaceSetpointTarget } from '../modbus/adlar-enum-mappers';
-import { ModbusBlockError, RegisterChangeEntry, RegisterChangeLogMode } from '../modbus/modbus-tcp-service';
-import { RollingCOPCalculator } from './rolling-cop-calculator';
+import { Adlar2ModbusService, DataSnapshot } from '../protocol/adlar2-modbus-service';
+import { CONTROL_REGISTERS, TemperatureRegisterScale } from '../protocol/adlar-modbus-registers';
+import { modeToSpaceSetpointTarget } from '../protocol/adlar-enum-mappers';
+import { ModbusBlockError, RegisterChangeEntry, RegisterChangeLogMode } from '../protocol/modbus-tcp-service';
+import { RollingCOPCalculator } from '../../shared/services/rolling-cop-calculator';
 
 // ADR-042: Verbindingskwaliteit als expliciete runtime-state
 export type ConnectionQuality = 'online' | 'degraded' | 'offline';

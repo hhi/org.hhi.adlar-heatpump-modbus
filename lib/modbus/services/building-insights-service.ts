@@ -18,10 +18,10 @@
  */
 
 import Homey from 'homey';
-import { getPreHeatCategory, calculatePreHeatDuration } from '../utils/preheat-calculator';
+import { getPreHeatCategory, calculatePreHeatDuration } from '../../shared/utils/preheat-calculator';
 import type { BuildingModelService } from './building-model-service';
 import type { AdaptiveControlService } from './adaptive-control-service';
-import { BUILDING_PROFILES, type BuildingProfileType } from '../adaptive/building-model-learner';
+import { BUILDING_PROFILES, type BuildingProfileType } from '../../shared/adaptive/building-model-learner';
 
 type BuildingModelDiagnostics = Awaited<ReturnType<BuildingModelService['getDiagnosticStatus']>>;
 

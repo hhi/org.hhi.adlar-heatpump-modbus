@@ -32,7 +32,7 @@
  *   DEBUG=0               (debug logging uit)
  */
 
-import { ModbusTcpService, PollGroup } from '../lib/modbus/modbus-tcp-service';
+import { ModbusTcpService, PollGroup } from '../lib/modbus/protocol/modbus-tcp-service';
 
 // ── CLI parsing ──────────────────────────────────────────────────────────────
 
