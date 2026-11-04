@@ -176,3 +176,21 @@ test('ADR-061: BuildingModelService restores persisted state before 10 samples',
   const second = await runCollect({ store: first.device.store });
   assert.strictEqual(second.service.getLearner().getState().sampleCount, 1);
 });
+
+test('Building model updates preserve capability options and skip unchanged titles', async () => {
+  const device = createDevice();
+  let options = { title: 'Previous title', insights: false };
+  const writes = [];
+  device.hasCapability = () => true;
+  device.getCapabilityOptions = () => options;
+  device.setCapabilityOptions = async (_capability, value) => {
+    options = value;
+    writes.push(value);
+  };
+  const service = new BuildingModelService({ device, enableDynamicPInt: false, logger: () => {} });
+
+  await service.updateCapabilityIfPresent('adlar_building_tau', 20, { title: 'New title' });
+  await service.updateCapabilityIfPresent('adlar_building_tau', 21, { title: 'New title' });
+
+  assert.deepStrictEqual(writes, [{ title: 'New title', insights: false }]);
+});
