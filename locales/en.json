@@ -1,12 +1,11 @@
 {
   "pair": {
-    "enter_device_info": {
-      "title": "Enter Device Information",
-      "description": "Please enter your Tuya device credentials",
-      "device_id": "Device ID",
-      "local_key": "Local Key",
-      "ip_address": "IP Address",
-      "protocol_version": "Protocol Version",
+    "enter_modbus_info": {
+      "title": "Modbus Connection",
+      "description": "Enter the IP address and port of your Elfin EW11A or Modbus TCP gateway",
+      "host": "IP Address:",
+      "port": "TCP Port:",
+      "unit_id": "Modbus Unit ID:",
       "continue": "Continue"
     }
   },
@@ -79,12 +78,75 @@
     "blocked_no_outdoor_temp": "No outdoor temp",
     "blocked_no_power": "No power data",
     "blocked_disabled": "Disabled",
-    "period_night": "Night",
-    "period_day": "Day",
-    "period_evening": "Evening",
     "blocked_dhw_mode": "Not in heating mode",
     "blocked_defrost": "Defrost active",
     "blocked_no_cop": "No COP measurement",
+    "period_night": "Night",
+    "period_day": "Day",
+    "period_evening": "Evening",
+    "blocked_dhw_active": "Hot water heating",
     "blocked_aux_heating": "Auxiliary heating active"
+  },
+  "errors": {
+    "zone_onoff_disabled": "On/off via zone control register 2101 is experimental. Enable 'On/off via zone control (experimental)' in the device settings to use it.",
+    "silent_level2_r290_only": "Silent mode level 2 is only available on R290 heat pumps."
+  },
+  "widget": {
+    "live_operation": {
+      "locale": "en-GB",
+      "loading": "Loading live operation...",
+      "no_data": "No live data available.",
+      "no_device": "No Adlar heat pump paired.",
+      "load_failed": "Live data could not be loaded.",
+      "default_device_name": "Adlar heat pump",
+      "unknown": "Unknown",
+      "status": {
+        "fault": "Fault",
+        "defrost": "Defrost",
+        "active": "Active",
+        "standby": "Standby"
+      },
+      "connection": {
+        "online": "Online",
+        "offline": "Offline",
+        "degraded": "Degraded"
+      },
+      "delta": "Supply - return",
+      "regulation": "Control",
+      "regulation_summary": "__mode__ on __sensor__",
+      "regulation_unknown": "Control unknown",
+      "regulation_sensor": {
+        "return": "return T6",
+        "supply": "supply T7",
+        "unknown": "control sensor unknown"
+      },
+      "setpoint_deviation": "Setpoint deviation __value__ C",
+      "hysteresis_unknown": "Hysteresis unknown",
+      "hysteresis_unread": "__source__ not read yet",
+      "hysteresis_value": "__source__ hysteresis __value__C",
+      "metric": {
+        "input": "Input",
+        "output": "Output",
+        "flow": "Flow",
+        "compressor": "Compressor",
+        "cop_live": "COP live",
+        "defrost": "Defrost"
+      },
+      "yes": "Yes",
+      "no": "No",
+      "label": {
+        "supply": "Supply",
+        "return": "Return",
+        "outdoor": "Outdoor",
+        "setpoint": "Setpoint",
+        "last_poll": "Last poll"
+      },
+      "age": {
+        "now": "now",
+        "seconds": "s",
+        "minutes": "m",
+        "hours": "h"
+      }
+    }
   }
 }
