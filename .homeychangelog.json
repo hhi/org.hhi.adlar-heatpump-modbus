@@ -1,4 +1,10 @@
 {
+  "3.6.1": {
+    "en": "Brought in line with the main Adlar app 3.6.1. The condition 'Insight savings are above threshold' no longer applies, and the card 'Calculate value from time schedule' now runs on Homey time.",
+    "nl": "Gelijkgetrokken met de hoofdapp Adlar 3.6.1. De voorwaarde 'Inzicht besparing is boven drempel' is vervallen, en de kaart 'Bereken waarde uit tijdschema' loopt op Homey-tijd.",
+    "de": "An die Haupt-App Adlar 3.6.1 angeglichen. Die Bedingung 'Erkenntniseinsparungen sind über Schwellenwert' entfällt, und die Karte 'Wert aus Zeitplan berechnen' läuft nach Homey-Zeit.",
+    "fr": "Aligné sur l'application principale Adlar 3.6.1. La condition 'Les économies d'aperçu sont au-dessus du seuil' ne s'applique plus, et la carte 'Calculer la valeur à partir du planning horaire' suit l'heure du Homey."
+  },
   "2.15.3": {
     "en": "The building model now also learns while the compressor is off. Learning is only blocked for a missing COP while the compressor runs. With the compressor off and electrical power above 300 W, building insights show 'Blocked: Auxiliary heating active'.",
     "nl": "Het gebouwmodel leert nu ook terwijl de compressor uit staat. Leren wordt alleen nog geblokkeerd door een ontbrekende COP als de compressor draait. Bij stilstaande compressor en een elektrisch vermogen boven 300 W tonen gebouwinzichten 'Geblokkeerd: Bijverwarming actief'."
