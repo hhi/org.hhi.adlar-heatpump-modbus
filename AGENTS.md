@@ -29,23 +29,23 @@ This is a Homey SDK v3 app that gives Homey Pro local Modbus TCP access to Adlar
 
 2. **`drivers/intelligent-heatpump-modbus/device.ts`** — The single Homey device class (`AdlarModbusDevice`). Owns the `ServiceCoordinator` lifecycle, registers capability listeners, and exposes `applyModbusSnapshot()` which maps a `DataSnapshot` onto Homey capabilities.
 
-3. **`lib/services/service-coordinator.ts`** — Orchestrates all services: `SettingsManagerService`, `CapabilityHealthService`, `EnergyTrackingService`, `FlowCardManagerService`, and `ModbusConnectionService`. Acts as the single dependency-injection point for the device.
+3. **`lib/modbus/services/service-coordinator.ts`** — Orchestrates all services: `SettingsManagerService`, `CapabilityHealthService`, `EnergyTrackingService`, `FlowCardManagerService`, and `ModbusConnectionService`. Acts as the single dependency-injection point for the device.
 
-4. **`lib/services/modbus-connection-service.ts`** — Wraps `Adlar2ModbusService` and handles connection lifecycle events (connected, disconnected, data, error) that are forwarded back to the coordinator.
+4. **`lib/modbus/services/modbus-connection-service.ts`** — Wraps `Adlar2ModbusService` and handles connection lifecycle events (connected, disconnected, data, error) that are forwarded back to the coordinator.
 
-5. **`lib/modbus/adlar2-modbus-service.ts`** — Device-specific Modbus runtime: builds poll groups, decodes registers into a typed `DataSnapshot`, calculates COP from water flow and temperature delta, and handles write operations.
+5. **`lib/modbus/protocol/adlar2-modbus-service.ts`** — Device-specific Modbus runtime: builds poll groups, decodes registers into a typed `DataSnapshot`, calculates COP from water flow and temperature delta, and handles write operations.
 
-6. **`lib/modbus/modbus-tcp-service.ts`** — Protocol-agnostic Modbus TCP transport (jsmodbus). Handles socket lifecycle, reconnect with backoff, FC03/FC05/FC06, register cache, and the multi-tier polling engine. Contains no device-specific logic.
+6. **`lib/modbus/protocol/modbus-tcp-service.ts`** — Protocol-agnostic Modbus TCP transport (jsmodbus). Handles socket lifecycle, reconnect with backoff, FC03/FC05/FC06, register cache, and the multi-tier polling engine. Contains no device-specific logic.
 
-7. **`lib/modbus/adlar-modbus-registers.ts`** — All register metadata: addresses, scale factors, ranges, calibration curves, poll groups (`POLL_GROUP_FAST/MEDIUM/SLOW/ONCE`), and decode helpers (`decodeFaults`, `encodeTemperature`, etc.).
+7. **`lib/modbus/protocol/adlar-modbus-registers.ts`** — All register metadata: addresses, scale factors, ranges, calibration curves, poll groups (`POLL_GROUP_FAST/MEDIUM/SLOW/ONCE`), and decode helpers (`decodeFaults`, `encodeTemperature`, etc.).
 
 ### Supporting libraries
 
-- **`lib/adaptive/`** — Advanced features: `HeatingController` (PI control), `CopOptimizer`, `DefrostLearner`, `BuildingModelLearner`, `WeightedDecisionMaker`, `EnergyPriceOptimizer`.
-- **`lib/services/`** — Individual services: `CopCalculator`, `RollingCopCalculator`, `SCopCalculator`, `EnergyTrackingService`, `CapabilityHealthService`, `FlowCardManagerService`, `SettingsManagerService`, `PerformanceReportService`, `BuildingInsightsService`.
-- **`lib/logger.ts`** — Structured logger with configurable `LogLevel`. Services receive a `(msg, ...args) => void` callback — they never import Logger directly.
-- **`lib/constants.ts`** — All timing, threshold, and calculation constants (`DeviceConstants`).
-- **`lib/self-healing-registry.ts`** — App-level registry for automatic error recovery.
+- **`lib/modbus/adaptive/`, `lib/shared/adaptive/`** — Advanced features: `HeatingController` (PI control), `CopOptimizer`, `DefrostLearner`, `BuildingModelLearner`, `WeightedDecisionMaker`, `EnergyPriceOptimizer`.
+- **`lib/modbus/services/`, `lib/shared/services/`** — Individual services: `CopCalculator`, `RollingCopCalculator`, `SCopCalculator`, `EnergyTrackingService`, `CapabilityHealthService`, `FlowCardManagerService`, `SettingsManagerService`, `PerformanceReportService`, `BuildingInsightsService`.
+- **`lib/shared/logger.ts`** — Structured logger with configurable `LogLevel`. Services receive a `(msg, ...args) => void` callback — they never import Logger directly.
+- **`lib/modbus/constants.ts`** — All timing, threshold, and calculation constants (`DeviceConstants`).
+- **`lib/shared/self-healing-registry.ts`** — App-level registry for automatic error recovery.
 
 ### Homey Compose structure
 
