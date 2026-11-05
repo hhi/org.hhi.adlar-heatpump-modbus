@@ -511,8 +511,13 @@ export const SENSOR_REGISTERS = {
 
   // --- Extra sensoren ---
   deviceToolingNo: {
-    address: 0x0053, unit: '', multiply: 1, name: 'Device Tooling No',
-    desc: 'Query Parameter 20: Machine tool version', min: 0, max: 120,
+    address: 0x0053,
+    unit: '',
+    multiply: 1,
+    name: 'Device Tooling No',
+    desc: 'Query Parameter 20: Machine tool version',
+    min: 0,
+    max: 120,
   },
   waterTankTemp: {
     address: 0x0054, unit: '°C', multiply: 0.1, name: 'DHW Tank Temperature',
@@ -1356,7 +1361,10 @@ export const P_PARAMETERS = {
   // Watertemperatuur compensatie (P97, P98)
   // -------------------------------------------------------------------------
   P97_tankTempAutoCompensation: {
-    address: 0x0161, min: 0, max: 1, name: 'Tank temperature auto compensation',
+    address: 0x0161,
+    min: 0,
+    max: 1,
+    name: 'Tank temperature auto compensation',
     desc: '0=enable, 1=disable',
   },
   P98_tankTempManualCompensation: {
@@ -1439,7 +1447,10 @@ export const P_PARAMETERS = {
     address: 0x019B, min: 0, max: 9999, name: 'Compressor code (reserved)',
   },
   P156_auxEevSelection: {
-    address: 0x019C, min: 0, max: 1, name: 'Aux EEV selection',
+    address: 0x019C,
+    min: 0,
+    max: 1,
+    name: 'Aux EEV selection',
     desc: '0=enable, 1=disable',
   },
   P157_auxEevTempDiffReduce: {
@@ -1490,7 +1501,10 @@ export const P_PARAMETERS = {
   // Parameterbeveiliging (P183)
   // -------------------------------------------------------------------------
   P183_parameterPassword: {
-    address: 0x01B7, min: 0, max: 9999, name: 'Parameter password',
+    address: 0x01B7,
+    min: 0,
+    max: 9999,
+    name: 'Parameter password',
     desc: '0=disable',
   },
 
@@ -1506,100 +1520,240 @@ export const P_WORKING_CONDITIONS = {
   // -------------------------------------------------------------------------
   // Compressor frequenties (P184–P193)
   // -------------------------------------------------------------------------
-  P184_35D_compressorFreq: { address: 0x01B8, min: 0, max: 120, unit: 'Hz', name: 'Working cond 35D compressor frequency' },
-  P185_35C_compressorFreq: { address: 0x01B9, min: 0, max: 120, unit: 'Hz', name: 'Working cond 35C compressor frequency' },
-  P186_35B_compressorFreq: { address: 0x01BA, min: 0, max: 120, unit: 'Hz', name: 'Working cond 35B compressor frequency' },
-  P187_35A_compressorFreq: { address: 0x01BB, min: 0, max: 120, unit: 'Hz', name: 'Working cond 35A compressor frequency' },
-  P188_35E_compressorFreq: { address: 0x01BC, min: 0, max: 120, unit: 'Hz', name: 'Working cond 35E compressor frequency' },
-  P189_55D_compressorFreq: { address: 0x01BD, min: 0, max: 120, unit: 'Hz', name: 'Working cond 55D compressor frequency' },
-  P190_55C_compressorFreq: { address: 0x01BE, min: 0, max: 120, unit: 'Hz', name: 'Working cond 55C compressor frequency' },
-  P191_55B_compressorFreq: { address: 0x01BF, min: 0, max: 120, unit: 'Hz', name: 'Working cond 55B compressor frequency' },
-  P192_55A_compressorFreq: { address: 0x01C0, min: 0, max: 120, unit: 'Hz', name: 'Working cond 55A compressor frequency' },
-  P193_55E_compressorFreq: { address: 0x01C1, min: 0, max: 120, unit: 'Hz', name: 'Working cond 55E compressor frequency' },
+  P184_35D_compressorFreq: {
+    address: 0x01B8, min: 0, max: 120, unit: 'Hz', name: 'Working cond 35D compressor frequency',
+  },
+  P185_35C_compressorFreq: {
+    address: 0x01B9, min: 0, max: 120, unit: 'Hz', name: 'Working cond 35C compressor frequency',
+  },
+  P186_35B_compressorFreq: {
+    address: 0x01BA, min: 0, max: 120, unit: 'Hz', name: 'Working cond 35B compressor frequency',
+  },
+  P187_35A_compressorFreq: {
+    address: 0x01BB, min: 0, max: 120, unit: 'Hz', name: 'Working cond 35A compressor frequency',
+  },
+  P188_35E_compressorFreq: {
+    address: 0x01BC, min: 0, max: 120, unit: 'Hz', name: 'Working cond 35E compressor frequency',
+  },
+  P189_55D_compressorFreq: {
+    address: 0x01BD, min: 0, max: 120, unit: 'Hz', name: 'Working cond 55D compressor frequency',
+  },
+  P190_55C_compressorFreq: {
+    address: 0x01BE, min: 0, max: 120, unit: 'Hz', name: 'Working cond 55C compressor frequency',
+  },
+  P191_55B_compressorFreq: {
+    address: 0x01BF, min: 0, max: 120, unit: 'Hz', name: 'Working cond 55B compressor frequency',
+  },
+  P192_55A_compressorFreq: {
+    address: 0x01C0, min: 0, max: 120, unit: 'Hz', name: 'Working cond 55A compressor frequency',
+  },
+  P193_55E_compressorFreq: {
+    address: 0x01C1, min: 0, max: 120, unit: 'Hz', name: 'Working cond 55E compressor frequency',
+  },
 
   // -------------------------------------------------------------------------
   // Werkconditie-ijkpunten: ventilator frequenties (P194–P203)
   // -------------------------------------------------------------------------
-  P194_35D_fanFreq: { address: 0x01C2, min: 0, max: 60, unit: 'Hz', name: 'Working cond 35D fan frequency' },
-  P195_35C_fanFreq: { address: 0x01C3, min: 0, max: 60, unit: 'Hz', name: 'Working cond 35C fan frequency' },
-  P196_35B_fanFreq: { address: 0x01C4, min: 0, max: 60, unit: 'Hz', name: 'Working cond 35B fan frequency' },
-  P197_35A_fanFreq: { address: 0x01C5, min: 0, max: 60, unit: 'Hz', name: 'Working cond 35A fan frequency' },
-  P198_35E_fanFreq: { address: 0x01C6, min: 0, max: 60, unit: 'Hz', name: 'Working cond 35E fan frequency' },
-  P199_55D_fanFreq: { address: 0x01C7, min: 0, max: 60, unit: 'Hz', name: 'Working cond 55D fan frequency' },
-  P200_55C_fanFreq: { address: 0x01C8, min: 0, max: 60, unit: 'Hz', name: 'Working cond 55C fan frequency' },
-  P201_55B_fanFreq: { address: 0x01C9, min: 0, max: 60, unit: 'Hz', name: 'Working cond 55B fan frequency' },
-  P202_55A_fanFreq: { address: 0x01CA, min: 0, max: 60, unit: 'Hz', name: 'Working cond 55A fan frequency' },
-  P203_55E_fanFreq: { address: 0x01CB, min: 0, max: 60, unit: 'Hz', name: 'Working cond 55E fan frequency' },
+  P194_35D_fanFreq: {
+    address: 0x01C2, min: 0, max: 60, unit: 'Hz', name: 'Working cond 35D fan frequency',
+  },
+  P195_35C_fanFreq: {
+    address: 0x01C3, min: 0, max: 60, unit: 'Hz', name: 'Working cond 35C fan frequency',
+  },
+  P196_35B_fanFreq: {
+    address: 0x01C4, min: 0, max: 60, unit: 'Hz', name: 'Working cond 35B fan frequency',
+  },
+  P197_35A_fanFreq: {
+    address: 0x01C5, min: 0, max: 60, unit: 'Hz', name: 'Working cond 35A fan frequency',
+  },
+  P198_35E_fanFreq: {
+    address: 0x01C6, min: 0, max: 60, unit: 'Hz', name: 'Working cond 35E fan frequency',
+  },
+  P199_55D_fanFreq: {
+    address: 0x01C7, min: 0, max: 60, unit: 'Hz', name: 'Working cond 55D fan frequency',
+  },
+  P200_55C_fanFreq: {
+    address: 0x01C8, min: 0, max: 60, unit: 'Hz', name: 'Working cond 55C fan frequency',
+  },
+  P201_55B_fanFreq: {
+    address: 0x01C9, min: 0, max: 60, unit: 'Hz', name: 'Working cond 55B fan frequency',
+  },
+  P202_55A_fanFreq: {
+    address: 0x01CA, min: 0, max: 60, unit: 'Hz', name: 'Working cond 55A fan frequency',
+  },
+  P203_55E_fanFreq: {
+    address: 0x01CB, min: 0, max: 60, unit: 'Hz', name: 'Working cond 55E fan frequency',
+  },
 
   // -------------------------------------------------------------------------
   // Werkconditie-ijkpunten: hoofdklep superheat (P204–P213)
   // -------------------------------------------------------------------------
-  P204_35D_mainValveSuperheat: { address: 0x01CC, min: -10, max: 10, unit: '°C', name: 'Working cond 35D main valve superheat' },
-  P205_35C_mainValveSuperheat: { address: 0x01CD, min: -10, max: 10, unit: '°C', name: 'Working cond 35C main valve superheat' },
-  P206_35B_mainValveSuperheat: { address: 0x01CE, min: -10, max: 10, unit: '°C', name: 'Working cond 35B main valve superheat' },
-  P207_35A_mainValveSuperheat: { address: 0x01CF, min: -10, max: 10, unit: '°C', name: 'Working cond 35A main valve superheat' },
-  P208_35E_mainValveSuperheat: { address: 0x01D0, min: -10, max: 10, unit: '°C', name: 'Working cond 35E main valve superheat' },
-  P209_55D_mainValveSuperheat: { address: 0x01D1, min: -10, max: 10, unit: '°C', name: 'Working cond 55D main valve superheat' },
-  P210_55C_mainValveSuperheat: { address: 0x01D2, min: -10, max: 10, unit: '°C', name: 'Working cond 55C main valve superheat' },
-  P211_55B_mainValveSuperheat: { address: 0x01D3, min: -10, max: 10, unit: '°C', name: 'Working cond 55B main valve superheat' },
-  P212_55A_mainValveSuperheat: { address: 0x01D4, min: -10, max: 10, unit: '°C', name: 'Working cond 55A main valve superheat' },
-  P213_55E_mainValveSuperheat: { address: 0x01D5, min: -10, max: 10, unit: '°C', name: 'Working cond 55E main valve superheat' },
+  P204_35D_mainValveSuperheat: {
+    address: 0x01CC, min: -10, max: 10, unit: '°C', name: 'Working cond 35D main valve superheat',
+  },
+  P205_35C_mainValveSuperheat: {
+    address: 0x01CD, min: -10, max: 10, unit: '°C', name: 'Working cond 35C main valve superheat',
+  },
+  P206_35B_mainValveSuperheat: {
+    address: 0x01CE, min: -10, max: 10, unit: '°C', name: 'Working cond 35B main valve superheat',
+  },
+  P207_35A_mainValveSuperheat: {
+    address: 0x01CF, min: -10, max: 10, unit: '°C', name: 'Working cond 35A main valve superheat',
+  },
+  P208_35E_mainValveSuperheat: {
+    address: 0x01D0, min: -10, max: 10, unit: '°C', name: 'Working cond 35E main valve superheat',
+  },
+  P209_55D_mainValveSuperheat: {
+    address: 0x01D1, min: -10, max: 10, unit: '°C', name: 'Working cond 55D main valve superheat',
+  },
+  P210_55C_mainValveSuperheat: {
+    address: 0x01D2, min: -10, max: 10, unit: '°C', name: 'Working cond 55C main valve superheat',
+  },
+  P211_55B_mainValveSuperheat: {
+    address: 0x01D3, min: -10, max: 10, unit: '°C', name: 'Working cond 55B main valve superheat',
+  },
+  P212_55A_mainValveSuperheat: {
+    address: 0x01D4, min: -10, max: 10, unit: '°C', name: 'Working cond 55A main valve superheat',
+  },
+  P213_55E_mainValveSuperheat: {
+    address: 0x01D5, min: -10, max: 10, unit: '°C', name: 'Working cond 55E main valve superheat',
+  },
 
   // -------------------------------------------------------------------------
   // Werkconditie-ijkpunten: hoofdklep opening (P214–P223)
   // -------------------------------------------------------------------------
-  P214_35D_mainValveOpening: { address: 0x01D6, min: 0, max: 500, unit: 'P', name: 'Working cond 35D main valve opening' },
-  P215_35C_mainValveOpening: { address: 0x01D7, min: 0, max: 500, unit: 'P', name: 'Working cond 35C main valve opening' },
-  P216_35B_mainValveOpening: { address: 0x01D8, min: 0, max: 500, unit: 'P', name: 'Working cond 35B main valve opening' },
-  P217_35A_mainValveOpening: { address: 0x01D9, min: 0, max: 500, unit: 'P', name: 'Working cond 35A main valve opening' },
-  P218_35E_mainValveOpening: { address: 0x01DA, min: 0, max: 500, unit: 'P', name: 'Working cond 35E main valve opening' },
-  P219_55D_mainValveOpening: { address: 0x01DB, min: 0, max: 500, unit: 'P', name: 'Working cond 55D main valve opening' },
-  P220_55C_mainValveOpening: { address: 0x01DC, min: 0, max: 500, unit: 'P', name: 'Working cond 55C main valve opening' },
-  P221_55B_mainValveOpening: { address: 0x01DD, min: 0, max: 500, unit: 'P', name: 'Working cond 55B main valve opening' },
-  P222_55A_mainValveOpening: { address: 0x01DE, min: 0, max: 500, unit: 'P', name: 'Working cond 55A main valve opening' },
-  P223_55E_mainValveOpening: { address: 0x01DF, min: 0, max: 500, unit: 'P', name: 'Working cond 55E main valve opening' },
+  P214_35D_mainValveOpening: {
+    address: 0x01D6, min: 0, max: 500, unit: 'P', name: 'Working cond 35D main valve opening',
+  },
+  P215_35C_mainValveOpening: {
+    address: 0x01D7, min: 0, max: 500, unit: 'P', name: 'Working cond 35C main valve opening',
+  },
+  P216_35B_mainValveOpening: {
+    address: 0x01D8, min: 0, max: 500, unit: 'P', name: 'Working cond 35B main valve opening',
+  },
+  P217_35A_mainValveOpening: {
+    address: 0x01D9, min: 0, max: 500, unit: 'P', name: 'Working cond 35A main valve opening',
+  },
+  P218_35E_mainValveOpening: {
+    address: 0x01DA, min: 0, max: 500, unit: 'P', name: 'Working cond 35E main valve opening',
+  },
+  P219_55D_mainValveOpening: {
+    address: 0x01DB, min: 0, max: 500, unit: 'P', name: 'Working cond 55D main valve opening',
+  },
+  P220_55C_mainValveOpening: {
+    address: 0x01DC, min: 0, max: 500, unit: 'P', name: 'Working cond 55C main valve opening',
+  },
+  P221_55B_mainValveOpening: {
+    address: 0x01DD, min: 0, max: 500, unit: 'P', name: 'Working cond 55B main valve opening',
+  },
+  P222_55A_mainValveOpening: {
+    address: 0x01DE, min: 0, max: 500, unit: 'P', name: 'Working cond 55A main valve opening',
+  },
+  P223_55E_mainValveOpening: {
+    address: 0x01DF, min: 0, max: 500, unit: 'P', name: 'Working cond 55E main valve opening',
+  },
 
   // -------------------------------------------------------------------------
   // Werkconditie-ijkpunten: hulpklep superheat (P224–P233)
   // -------------------------------------------------------------------------
-  P224_35D_auxValveSuperheat: { address: 0x01E0, min: -10, max: 10, unit: '°C', name: 'Working cond 35D aux valve superheat' },
-  P225_35C_auxValveSuperheat: { address: 0x01E1, min: -10, max: 10, unit: '°C', name: 'Working cond 35C aux valve superheat' },
-  P226_35B_auxValveSuperheat: { address: 0x01E2, min: -10, max: 10, unit: '°C', name: 'Working cond 35B aux valve superheat' },
-  P227_35A_auxValveSuperheat: { address: 0x01E3, min: -10, max: 10, unit: '°C', name: 'Working cond 35A aux valve superheat' },
-  P228_35E_auxValveSuperheat: { address: 0x01E4, min: -10, max: 10, unit: '°C', name: 'Working cond 35E aux valve superheat' },
-  P229_55D_auxValveSuperheat: { address: 0x01E5, min: -10, max: 10, unit: '°C', name: 'Working cond 55D aux valve superheat' },
-  P230_55C_auxValveSuperheat: { address: 0x01E6, min: -10, max: 10, unit: '°C', name: 'Working cond 55C aux valve superheat' },
-  P231_55B_auxValveSuperheat: { address: 0x01E7, min: -10, max: 10, unit: '°C', name: 'Working cond 55B aux valve superheat' },
-  P232_55A_auxValveSuperheat: { address: 0x01E8, min: -10, max: 10, unit: '°C', name: 'Working cond 55A aux valve superheat' },
-  P233_55E_auxValveSuperheat: { address: 0x01E9, min: -10, max: 10, unit: '°C', name: 'Working cond 55E aux valve superheat' },
+  P224_35D_auxValveSuperheat: {
+    address: 0x01E0, min: -10, max: 10, unit: '°C', name: 'Working cond 35D aux valve superheat',
+  },
+  P225_35C_auxValveSuperheat: {
+    address: 0x01E1, min: -10, max: 10, unit: '°C', name: 'Working cond 35C aux valve superheat',
+  },
+  P226_35B_auxValveSuperheat: {
+    address: 0x01E2, min: -10, max: 10, unit: '°C', name: 'Working cond 35B aux valve superheat',
+  },
+  P227_35A_auxValveSuperheat: {
+    address: 0x01E3, min: -10, max: 10, unit: '°C', name: 'Working cond 35A aux valve superheat',
+  },
+  P228_35E_auxValveSuperheat: {
+    address: 0x01E4, min: -10, max: 10, unit: '°C', name: 'Working cond 35E aux valve superheat',
+  },
+  P229_55D_auxValveSuperheat: {
+    address: 0x01E5, min: -10, max: 10, unit: '°C', name: 'Working cond 55D aux valve superheat',
+  },
+  P230_55C_auxValveSuperheat: {
+    address: 0x01E6, min: -10, max: 10, unit: '°C', name: 'Working cond 55C aux valve superheat',
+  },
+  P231_55B_auxValveSuperheat: {
+    address: 0x01E7, min: -10, max: 10, unit: '°C', name: 'Working cond 55B aux valve superheat',
+  },
+  P232_55A_auxValveSuperheat: {
+    address: 0x01E8, min: -10, max: 10, unit: '°C', name: 'Working cond 55A aux valve superheat',
+  },
+  P233_55E_auxValveSuperheat: {
+    address: 0x01E9, min: -10, max: 10, unit: '°C', name: 'Working cond 55E aux valve superheat',
+  },
 
   // -------------------------------------------------------------------------
   // Werkconditie-ijkpunten: hulpklep opening (P234–P243)
   // -------------------------------------------------------------------------
-  P234_35D_auxValveOpening: { address: 0x01EA, min: 0, max: 500, unit: 'P', name: 'Working cond 35D aux valve opening' },
-  P235_35C_auxValveOpening: { address: 0x01EB, min: 0, max: 500, unit: 'P', name: 'Working cond 35C aux valve opening' },
-  P236_35B_auxValveOpening: { address: 0x01EC, min: 0, max: 500, unit: 'P', name: 'Working cond 35B aux valve opening' },
-  P237_35A_auxValveOpening: { address: 0x01ED, min: 0, max: 500, unit: 'P', name: 'Working cond 35A aux valve opening' },
-  P238_35E_auxValveOpening: { address: 0x01EE, min: 0, max: 500, unit: 'P', name: 'Working cond 35E aux valve opening' },
-  P239_55D_auxValveOpening: { address: 0x01EF, min: 0, max: 500, unit: 'P', name: 'Working cond 55D aux valve opening' },
-  P240_55C_auxValveOpening: { address: 0x01F0, min: 0, max: 500, unit: 'P', name: 'Working cond 55C aux valve opening' },
-  P241_55B_auxValveOpening: { address: 0x01F1, min: 0, max: 500, unit: 'P', name: 'Working cond 55B aux valve opening' },
-  P242_55A_auxValveOpening: { address: 0x01F2, min: 0, max: 500, unit: 'P', name: 'Working cond 55A aux valve opening' },
-  P243_55E_auxValveOpening: { address: 0x01F3, min: 0, max: 500, unit: 'P', name: 'Working cond 55E aux valve opening' },
+  P234_35D_auxValveOpening: {
+    address: 0x01EA, min: 0, max: 500, unit: 'P', name: 'Working cond 35D aux valve opening',
+  },
+  P235_35C_auxValveOpening: {
+    address: 0x01EB, min: 0, max: 500, unit: 'P', name: 'Working cond 35C aux valve opening',
+  },
+  P236_35B_auxValveOpening: {
+    address: 0x01EC, min: 0, max: 500, unit: 'P', name: 'Working cond 35B aux valve opening',
+  },
+  P237_35A_auxValveOpening: {
+    address: 0x01ED, min: 0, max: 500, unit: 'P', name: 'Working cond 35A aux valve opening',
+  },
+  P238_35E_auxValveOpening: {
+    address: 0x01EE, min: 0, max: 500, unit: 'P', name: 'Working cond 35E aux valve opening',
+  },
+  P239_55D_auxValveOpening: {
+    address: 0x01EF, min: 0, max: 500, unit: 'P', name: 'Working cond 55D aux valve opening',
+  },
+  P240_55C_auxValveOpening: {
+    address: 0x01F0, min: 0, max: 500, unit: 'P', name: 'Working cond 55C aux valve opening',
+  },
+  P241_55B_auxValveOpening: {
+    address: 0x01F1, min: 0, max: 500, unit: 'P', name: 'Working cond 55B aux valve opening',
+  },
+  P242_55A_auxValveOpening: {
+    address: 0x01F2, min: 0, max: 500, unit: 'P', name: 'Working cond 55A aux valve opening',
+  },
+  P243_55E_auxValveOpening: {
+    address: 0x01F3, min: 0, max: 500, unit: 'P', name: 'Working cond 55E aux valve opening',
+  },
 
   // -------------------------------------------------------------------------
   // Werkconditie-ijkpunten: waterflow & rated targets (P244–P253)
   // -------------------------------------------------------------------------
-  P244_35lowWaterFlow: { address: 0x01F4, min: 0, max: 100, unit: 'L/min', name: 'Working cond 35 low water target flow' },
-  P245_55highWaterFlow: { address: 0x01F5, min: 0, max: 100, unit: 'L/min', name: 'Working cond 55 high water target flow' },
-  P246_35ratedFanFreq: { address: 0x01F6, min: 0, max: 60, unit: 'Hz', name: 'Working cond 35 rated fan frequency' },
-  P247_35ratedMainValveOpening: { address: 0x01F7, min: 0, max: 500, unit: 'P', name: 'Working cond 35 rated main valve opening' },
-  P248_55ratedFanFreq: { address: 0x01F8, min: 0, max: 60, unit: 'Hz', name: 'Working cond 55 rated fan frequency' },
-  P249_55ratedMainValveOpening: { address: 0x01F9, min: 0, max: 500, unit: 'P', name: 'Working cond 55 rated main valve opening' },
-  P250_35ratedMainValveSuperheat: { address: 0x01FA, min: -10, max: 10, unit: '°C', name: 'Working cond 35 rated main valve superheat' },
-  P251_pfcShutdownCurrent: { address: 0x01FB, min: 0, max: 50, unit: 'A', name: 'Working cond PFC shutdown current' },
-  P252_55ratedMainValveSuperheat: { address: 0x01FC, min: -10, max: 10, unit: '°C', name: 'Working cond 55 rated main valve superheat' },
-  P253_pfcTurnOnCurrent: { address: 0x01FD, min: 0, max: 50, unit: 'A', name: 'Working cond PFC turn-on current' },
+  P244_35lowWaterFlow: {
+    address: 0x01F4, min: 0, max: 100, unit: 'L/min', name: 'Working cond 35 low water target flow',
+  },
+  P245_55highWaterFlow: {
+    address: 0x01F5, min: 0, max: 100, unit: 'L/min', name: 'Working cond 55 high water target flow',
+  },
+  P246_35ratedFanFreq: {
+    address: 0x01F6, min: 0, max: 60, unit: 'Hz', name: 'Working cond 35 rated fan frequency',
+  },
+  P247_35ratedMainValveOpening: {
+    address: 0x01F7, min: 0, max: 500, unit: 'P', name: 'Working cond 35 rated main valve opening',
+  },
+  P248_55ratedFanFreq: {
+    address: 0x01F8, min: 0, max: 60, unit: 'Hz', name: 'Working cond 55 rated fan frequency',
+  },
+  P249_55ratedMainValveOpening: {
+    address: 0x01F9, min: 0, max: 500, unit: 'P', name: 'Working cond 55 rated main valve opening',
+  },
+  P250_35ratedMainValveSuperheat: {
+    address: 0x01FA, min: -10, max: 10, unit: '°C', name: 'Working cond 35 rated main valve superheat',
+  },
+  P251_pfcShutdownCurrent: {
+    address: 0x01FB, min: 0, max: 50, unit: 'A', name: 'Working cond PFC shutdown current',
+  },
+  P252_55ratedMainValveSuperheat: {
+    address: 0x01FC, min: -10, max: 10, unit: '°C', name: 'Working cond 55 rated main valve superheat',
+  },
+  P253_pfcTurnOnCurrent: {
+    address: 0x01FD, min: 0, max: 50, unit: 'A', name: 'Working cond PFC turn-on current',
+  },
 
 } as const;
 
@@ -1612,7 +1766,10 @@ export const P_PARAMETERS_EXTRA = {
   // Vier-weg klep & moduswissel (P102)
   // -------------------------------------------------------------------------
   P102_fourWayValveMode: {
-    address: 0x0166, min: 0, max: 1, name: 'Four-way valve control mode',
+    address: 0x0166,
+    min: 0,
+    max: 1,
+    name: 'Four-way valve control mode',
     desc: '0=cooling power on, 1=heating power on',
   },
 
@@ -1620,7 +1777,10 @@ export const P_PARAMETERS_EXTRA = {
   // Ventilatormodule (P133)
   // -------------------------------------------------------------------------
   P133_fanModule: {
-    address: 0x0185, min: 0, max: 1, name: 'Fan module',
+    address: 0x0185,
+    min: 0,
+    max: 1,
+    name: 'Fan module',
     desc: '0=integral module, 1=individual module',
   },
 
@@ -1659,7 +1819,10 @@ export const P_PARAMETERS_EXTRA = {
   // Koeling antibevriezing (P147–P149)
   // -------------------------------------------------------------------------
   P147_coolingAntifreezeMode: {
-    address: 0x0193, min: 0, max: 2, name: 'Cooling antifreeze mode',
+    address: 0x0193,
+    min: 0,
+    max: 2,
+    name: 'Cooling antifreeze mode',
     desc: '0=low pressure, 1=temp, 2=low pressure + temp',
   },
   P148_coolingAntifreezeTemp: {
@@ -1683,7 +1846,10 @@ export const P_PARAMETERS_EXTRA = {
   // Dubbele zone & mengklep (P257–P259)
   // -------------------------------------------------------------------------
   P257_dualZoneSelection: {
-    address: 0x0201, min: 0, max: 2, name: 'Dual temperature zone selection',
+    address: 0x0201,
+    min: 0,
+    max: 2,
+    name: 'Dual temperature zone selection',
     desc: '0=auto, 1=manual, 2=disable',
   },
   P258_mixingValveCycle: {
@@ -1697,7 +1863,10 @@ export const P_PARAMETERS_EXTRA = {
   // Vloerverwarming testmodus (P262)
   // -------------------------------------------------------------------------
   P262_floorHeatingTestMode: {
-    address: 0x0206, min: 0, max: 1, name: 'Floor heating test mode selection',
+    address: 0x0206,
+    min: 0,
+    max: 1,
+    name: 'Floor heating test mode selection',
     desc: '0=Enable, 1=Disable',
   },
 
@@ -2221,8 +2390,12 @@ export const POLL_GROUP_MEDIUM = {
   interval: 30_000,
   reads: [
     { start: 0x0002, count: 8, label: 'Fault State 13 + Sys1 Faults (0x020x09)' }, // v2.2: was 38
-    { start: 0x0019, count: 8, label: 'Relay 1-4 + Switch 1-4 (0x190x20)', optional: true as const }, // v2.2: was 68
-    { start: 0x0072, count: 12, label: 'Aux/Buffer/Grid/Zone', optional: true as const },
+    {
+      start: 0x0019, count: 8, label: 'Relay 1-4 + Switch 1-4 (0x190x20)', optional: true as const,
+    }, // v2.2: was 68
+    {
+      start: 0x0072, count: 12, label: 'Aux/Buffer/Grid/Zone', optional: true as const,
+    },
     { start: 0x0300, count: 14, label: 'Control 0x300–0x30D' },
     { start: 0x0313, count: 7, label: 'Curves & Zone 0x0313–0x0319' }, // verplaatst van SLOW: max 40s feedback na write
     { start: 0x01FF, count: 2, label: 'P255/P256 Smart Grid' }, // verplaatst van SLOW: max 40s feedback na write
@@ -2241,7 +2414,7 @@ export const POLL_GROUP_SLOW = {
   interval: 300_000,
   reads: [
     {
-      start: 0x00FA, count: 6, label: 'Active heating/DHW/cooling limits', optional: true as const,
+      start: 0x00FA, count: 6, label: 'Actieve verwarmings-/tapwater-/koellimieten', optional: true as const,
     },
     { start: 0x0174, count: 5, label: 'P116P120 (temp ctrl, antifreeze, refrigerant)' },
     { start: 0x011E, count: 1, label: 'P30 defrost mode' },
@@ -2253,7 +2426,9 @@ export const POLL_GROUP_SLOW = {
     { start: 0x011B, count: 1, label: 'P27 Floor heating Hysteresis return diff' },
     { start: 0x0160, count: 1, label: 'P96 DHW differential value' },
     { start: 0x01A4, count: 1, label: 'P164 energy level control' },
-    { start: 0x0813, count: 7, label: 'L30L36 energieboekhouding', optional: true as const }, // v2.2
+    {
+      start: 0x0813, count: 7, label: 'L30L36 energieboekhouding', optional: true as const,
+    }, // v2.2
   ],
 } as const;
 
@@ -2265,7 +2440,9 @@ export const POLL_GROUP_ONCE = { // v2.2
   interval: 0, // Eenmalig
   reads: [
     { start: 0x0053, count: 1, label: 'Device Tooling No (0x53)' },
-    { start: 0x0360, count: 4, label: 'Version Info (0x3600x363)', optional: true as const },
+    {
+      start: 0x0360, count: 4, label: 'Version Info (0x3600x363)', optional: true as const,
+    },
     { start: 0x0100, count: 11, label: 'P00P10 Protection switches' },
     { start: 0x010B, count: 6, label: 'P11–P16 Protection values' },
     { start: 0x0111, count: 9, label: 'P17–P25 Fan speeds & temp protections' },
@@ -2305,11 +2482,15 @@ export const POLL_GROUP_ONCE = { // v2.2
     { start: 0x01AE, count: 1, label: 'P174 Powerful mode duration' },
     { start: 0x01AF, count: 6, label: 'P175–P180 Defrost timing & powerful mode' },
     { start: 0x01B5, count: 2, label: 'P181–P182 Defrost selection & pipe heating' },
-    { start: 0x01B7, count: 71, label: 'P183–P253 Werkconditie-ijkpunten', optional: true as const },
+    {
+      start: 0x01B7, count: 71, label: 'P183–P253 Werkconditie-ijkpunten', optional: true as const,
+    },
     { start: 0x01FE, count: 1, label: 'P254 Heating medium' },
     { start: 0x0201, count: 3, label: 'P257–P259 Dual zone & mixing valve' },
     { start: 0x0204, count: 3, label: 'P260–P262 Dual zone extra params' },
-    { start: 0x0800, count: 11, label: 'L01–L21 DHW & sterilization settings', optional: true as const },
+    {
+      start: 0x0800, count: 11, label: 'L01–L21 DHW & sterilization settings', optional: true as const,
+    },
   ],
 } as const;
 

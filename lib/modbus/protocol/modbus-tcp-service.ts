@@ -24,10 +24,10 @@ import { EventEmitter } from 'events';
 // ============================================================================
 
 export type ModbusErrorCode =
-  | 'unsupported'   // Illegal Data Address (Modbus exception 0x02)
-  | 'protocol'      // Illegal Data Value (Modbus exception 0x03)
-  | 'timeout'       // Request timeout
-  | 'disconnect'    // Socket-level close/reset
+  | 'unsupported' // Illegal Data Address (Modbus exception 0x02)
+  | 'protocol' // Illegal Data Value (Modbus exception 0x03)
+  | 'timeout' // Request timeout
+  | 'disconnect' // Socket-level close/reset
   | 'unknown';
 
 export class ModbusBlockError extends Error {
@@ -46,8 +46,8 @@ export class ModbusBlockError extends Error {
 function classifyError(err: Error): ModbusErrorCode {
   const msg = err.message.toLowerCase();
   if (msg.includes('illegal data address')) return 'unsupported';
-  if (msg.includes('illegal data value'))   return 'protocol';
-  if (msg.includes('timeout'))              return 'timeout';
+  if (msg.includes('illegal data value')) return 'protocol';
+  if (msg.includes('timeout')) return 'timeout';
   if (msg.includes('connection closed') || msg.includes('econnreset')) return 'disconnect';
   return 'unknown';
 }
@@ -127,7 +127,7 @@ export interface PollBlock {
   start: number;
   count: number;
   label: string;
-  optional?: true;   // Afwezig = required
+  optional?: true; // Afwezig = required
 }
 
 export interface PollGroup {
@@ -339,7 +339,7 @@ export class ModbusTcpService extends EventEmitter {
     // socket.end() stuurt FIN zodat Modbus bridges de sessie netjes kunnen opruimen.
     // Na 1s alsnog destroy() als de remote niet antwoordt.
     try {
-      const socket = this.socket;
+      const { socket } = this;
       socket.end();
       this._timers.setTimeout(() => socket.destroy(), 1_000);
     } catch {
@@ -772,8 +772,11 @@ export class ModbusTcpService extends EventEmitter {
         );
         this.emit('error', blockError, `poll:${group.name}:block:0x${blk.start.toString(16)}`);
 
-        if (blk.optional) { optionalFailed = true; }
-        else               { requiredFailed = true; }
+        if (blk.optional) {
+          optionalFailed = true;
+        } else {
+          requiredFailed = true;
+        }
       }
     }
 

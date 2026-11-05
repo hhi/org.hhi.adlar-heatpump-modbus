@@ -59,7 +59,7 @@ export class SnapshotTriggerService {
     this._detectInletOutletChange('inlet', snap.sensors.inletT6?.value, 'inlet_temperature_changed', 'inlet_temperature_value_changed', trigger);
     this._detectInletOutletChange('outlet', snap.sensors.outletT7?.value, 'outlet_temperature_changed', 'outlet_temperature_value_changed', trigger);
 
-    const mode = snap.control.mode;
+    const { mode } = snap.control;
     if (this._lastHeatingMode !== null && mode !== this._lastHeatingMode) {
       trigger('heating_mode_changed',
         {
