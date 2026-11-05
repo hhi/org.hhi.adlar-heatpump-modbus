@@ -19,7 +19,11 @@ import {
   type MeasurementData,
   type BuildingProfileType,
 } from '../../shared/adaptive/building-model-learner';
+import { isTransientBlockingKey, shouldShowBlocked } from '../../shared/adaptive/building-model-blocking';
+import { HeatingPowerHistory } from '../../shared/adaptive/heating-power-history';
+import type { PreHeatConditions } from '../../shared/utils/preheat-calculator';
 import { DeviceConstants } from '../constants';
+import { getSolarHour, getZonedHour, resolveHomeyTimezone } from '../../shared/utils/time-format';
 
 interface EnergyTrackingService {
   getCurrentPowerMeasurement(): { value: number } | null;
@@ -70,6 +74,15 @@ export class BuildingModelService {
   private lastBlockingReason: string | null = null;
   // Locale key for the blocking reason (used in Tau title)
   private lastBlockingReasonKey: string | null = null;
+  // v3.4.3: consecutive cycles without an accepted sample (reset by an accepted sample);
+  // insights show a transient blocking reason only once this streak persists
+  private blockingStreak = 0;
+  // ADR-062 A6: confidence at the previous capability update (null until initialised)
+  private lastConfidence: number | null = null;
+  private static readonly MILESTONE_STORE_KEY = 'building_model_milestone_70';
+  /** G14: hourly mean thermal power of the past week, for the pre-heat estimate */
+  private static readonly POWER_HISTORY_STORE_KEY = 'preheat_power_history';
+  private powerHistory = new HeatingPowerHistory();
 
   constructor(config: BuildingModelServiceConfig) {
     this.device = config.device;
@@ -89,6 +102,7 @@ export class BuildingModelService {
       minSamplesForConfidence: 288, // 24 hours @ 5min intervals
       buildingProfile: config.buildingProfile || 'average', // Default to average building
       enableDynamicPInt: config.enableDynamicPInt ?? true, // Enable by default
+      timeZone: resolveHomeyTimezone(this.device.homey), // ADR-062 F2: P_int windows in local time
       logger: this.logger,
     };
 
@@ -107,17 +121,33 @@ export class BuildingModelService {
     // Restore state from device store
     const storedState = await this.device.getStoreValue('building_model_state');
     if (storedState) {
-      this.learner.restoreState(storedState);
-      const restoredModel = this.learner.getModel();
-      const restoredState = this.learner.getState();
-      this.logger(
-        'BuildingModelService: Restored state from storage '
-        + `(samples=${restoredState.sampleCount}, confidence=${restoredModel.confidence.toFixed(0)}%, `
-        + `C=${restoredModel.C.toFixed(1)}, UA=${restoredModel.UA.toFixed(3)}, tau=${restoredModel.tau.toFixed(1)}h)`,
-      );
+      // ADR-062 §2.5: the learner reports the outcome explicitly (also for a state with 0 samples)
+      const sampleCountBefore = (storedState.sampleCount as number) ?? 0;
+      const result = this.learner.restoreState(storedState);
+      if (result.restored) {
+        const model = this.learner.getModel();
+        this.logger(
+          `BuildingModelService: ✅ State RESTORED from store — ${this.learner.getState().sampleCount} samples, `
+          + `confidence ${model.confidence.toFixed(0)}%, C=${model.C.toFixed(1)} kWh/°C, UA=${model.UA.toFixed(3)} kW/°C, `
+          + `τ=${model.tau.toFixed(1)}h${result.covarianceProjected ? ' (P projected)' : ''}`,
+        );
+      } else {
+        this.logger(
+          `BuildingModelService: ⚠️ State REJECTED on restore (was ${sampleCountBefore} samples): `
+          + `${result.reasons.join('; ')} — learning restarts from profile defaults`,
+        );
+      }
     } else {
-      this.logger('BuildingModelService: No stored building_model_state found - starting from profile defaults');
+      this.logger('BuildingModelService: ℹ️ No persisted state found — fresh start from profile defaults');
     }
+
+    // G14: the power history is separate from the learner and survives a model reset
+    if (this.powerHistory.restoreState(await this.device.getStoreValue(BuildingModelService.POWER_HISTORY_STORE_KEY))) {
+      this.logger(`BuildingModelService: Power history restored — ${this.powerHistory.getHourCount()} hours`);
+    }
+
+    // ADR-062 A6: a restored model above 70% does not fire the milestone again
+    this.lastConfidence = this.learner.getModel().confidence;
 
     // Update capabilities with current model
     await this.updateModelCapabilities();
@@ -126,6 +156,10 @@ export class BuildingModelService {
     await this.updateDiagnosticsCapability();
 
     // Start periodic updates (every 5 minutes)
+    // ADR-062 A7: a repeated initialize() replaces the running interval instead of adding one
+    if (this.updateInterval) {
+      this.device.homey.clearInterval(this.updateInterval);
+    }
     this.updateInterval = this.device.homey.setInterval(
       () => this.collectAndLearn().catch((err) => this.logger('Learning error:', err)),
       this.UPDATE_INTERVAL_MS,
@@ -140,6 +174,7 @@ export class BuildingModelService {
   private async collectAndLearn(): Promise<void> {
     // Heartbeat log - fires every 5 minutes to verify timer is running
     this.logger('BuildingModelService: Timer tick - collecting data...');
+    let accepted = false;
 
     try {
       // Check if building model learning is enabled
@@ -273,6 +308,13 @@ export class BuildingModelService {
 
       // Add measurement to learner
       this.learner.addMeasurement(measurement);
+      accepted = true;
+
+      // G14: an hour completed in the power history is persisted (not every sample)
+      const heatPumpPower = HeatingPowerHistory.thermalPowerKw(powerElectric, compressorOn === false ? null : cop);
+      if (this.powerHistory.addSample(measurement.timestamp, heatPumpPower)) {
+        await this.persistPowerHistory();
+      }
 
       // Clear blocking reason - data is flowing successfully
       this.lastBlockingReason = null;
@@ -298,6 +340,12 @@ export class BuildingModelService {
       }
     } catch (error) {
       this.logger('BuildingModelService: Error during learning:', error);
+    } finally {
+      // ADR-062 B2: a sample that did not reach the learner breaks the dT/dt window
+      if (!accepted) this.learner.interruptWindow();
+      // v3.4.3: count consecutive blocked cycles; an accepted sample ends the streak
+      if (accepted) this.blockingStreak = 0;
+      else if (this.lastBlockingReasonKey !== null) this.blockingStreak++;
     }
   }
 
@@ -356,11 +404,11 @@ export class BuildingModelService {
 
     // g: solar gain factor (v2.9.6 - seasonal multiplier removed, astronomical estimation encodes seasonality)
     const now = new Date();
-    const hour = now.getHours();
+    const hour = Math.floor(getZonedHour(now, resolveHomeyTimezone(this.device.homey))); // ADR-062 F2
 
     // Get localized short month name using browser's locale
     const lang = this.device.homey.i18n.getLanguage();
-    const monthName = now.toLocaleDateString(lang, { month: 'short' });
+    const monthName = now.toLocaleDateString(lang, { month: 'short', timeZone: resolveHomeyTimezone(this.device.homey) });
     await this.updateCapabilityIfPresent('adlar_building_g', model.g, {
       title: `${this.device.homey.__('building_model.solar_gain_title')} (${monthName})`,
     });
@@ -389,8 +437,12 @@ export class BuildingModelService {
       + `confidence=${model.confidence.toFixed(0)}%`,
     );
 
-    // Trigger milestone flow card at 70% confidence
-    if (model.confidence >= 70 && model.confidence < 75) {
+    // ADR-062 A6: fire once when the confidence crosses 70%; the flag is cleared by a reset or soft reset
+    const previousConfidence = this.lastConfidence;
+    this.lastConfidence = model.confidence;
+    if (previousConfidence !== null && previousConfidence < 70 && model.confidence >= 70
+      && !this.device.getStoreValue(BuildingModelService.MILESTONE_STORE_KEY)) {
+      await this.device.setStoreValue(BuildingModelService.MILESTONE_STORE_KEY, true);
       await this.device.homey.flow
         .getDeviceTriggerCard('learning_milestone_reached')
         .trigger(this.device, {
@@ -484,12 +536,68 @@ export class BuildingModelService {
     await this.device.setCapabilityOptions(capability, { ...current, ...patch });
   }
 
+  /** ADR-062 A6: a reset or soft reset makes the 70% milestone fire again on the next crossing. */
+  private async _clearMilestone(): Promise<void> {
+    this.lastConfidence = this.learner.getModel().confidence;
+    await this.device.setStoreValue(BuildingModelService.MILESTONE_STORE_KEY, false);
+  }
+
+  /**
+   * ADR-062 A5: changed learning settings take effect directly, with the values from newSettings.
+   * A change of dynamic P_int soft-resets (θ[3] changes meaning), unless the profile changes in the
+   * same save: the ServiceCoordinator soft-resets for that afterwards.
+   */
+  public async applyLearningSettings(newSettings: Record<string, unknown>, changedKeys: string[]): Promise<void> {
+    if (changedKeys.includes('building_model_forgetting_factor')) {
+      this.learner.setForgettingFactor((newSettings.building_model_forgetting_factor as number | null) ?? 0.999);
+    }
+    if (changedKeys.includes('enable_dynamic_pint')) {
+      const enabled = (newSettings.enable_dynamic_pint as boolean | null) ?? true;
+      const profile = ((newSettings.building_profile as BuildingProfileType | null)
+        ?? this.device.getSetting('building_profile') ?? 'average') as BuildingProfileType;
+      const ownReset = !changedKeys.includes('building_profile');
+      if (this.learner.setDynamicPInt(enabled, profile, ownReset)) {
+        this.logger(`BuildingModelService: dynamic P_int ${enabled ? 'on' : 'off'}${ownReset ? ' — soft reset' : ''}`);
+        if (ownReset) await this._clearMilestone();
+        await this.persistState();
+        await this.updateModelCapabilities();
+      }
+    }
+  }
+
   /**
    * Persist learner state to device store
    */
   private async persistState(): Promise<void> {
     const state = this.learner.getState();
     await this.device.setStoreValue('building_model_state', state);
+  }
+
+  /**
+   * G14: persist the power history; a failure is logged and never blocks learning
+   */
+  private async persistPowerHistory(): Promise<void> {
+    try {
+      await this.device.setStoreValue(BuildingModelService.POWER_HISTORY_STORE_KEY, this.powerHistory.getState());
+    } catch (error) {
+      this.logger('BuildingModelService: ⚠️ Failed to persist power history:', error);
+    }
+  }
+
+  /**
+   * G14 (ADR-062 B7): conditions for the physical pre-heat estimate, or null while the power
+   * history holds less than a day or no outdoor temperature is available
+   */
+  public getPreHeatConditions(): PreHeatConditions | null {
+    const maxHeatingPowerKw = this.powerHistory.getMaxHourlyMeanKw(Date.now());
+    if (maxHeatingPowerKw === null) return null;
+    // @ts-expect-error - Accessing MyDevice.getOutdoorTemperatureWithFallback() (not in Homey.Device base type)
+    const outdoorTemp = this.device.getOutdoorTemperatureWithFallback() as number | null;
+    if (outdoorTemp === null || outdoorTemp === undefined) return null;
+    const model = this.learner.getModel();
+    return {
+      UA: model.UA, pInt: model.pInt, outdoorTemp, maxHeatingPowerKw,
+    };
   }
 
   /**
@@ -548,7 +656,7 @@ export class BuildingModelService {
     // v2.6.0: Apply g and pInt corrections to thermal prediction
     // g = solar gain coefficient (kW per kW/m² radiation)
     // pInt = internal gains (kW from occupants/appliances)
-    const hour = new Date().getHours();
+    const hour = Math.floor(getZonedHour(new Date(), resolveHomeyTimezone(this.device.homey))); // ADR-062 F2
 
     // Time-based pInt multiplier — ADR-056: zelfde vensters als het leren (getPIntMultiplier),
     // voorheen week dit advies af (17–22u) van het leervenster (18–23u)
@@ -731,7 +839,9 @@ export class BuildingModelService {
 
     // Priority 4: Astronomical estimation (last fallback - location & season aware)
     const nowDate = new Date();
-    const hour = nowDate.getHours() + nowDate.getMinutes() / 60;
+    // ADR-062 F3: mean solar time from the longitude (solar noon ≈ 12:00), not UTC or the wall clock
+    const lon = (this.device.getSetting('forecast_location_lon') as number | null) ?? 4.90;
+    const hour = getSolarHour(nowDate, lon);
     const lat = (this.device.getSetting('forecast_location_lat') as number) ?? 52.37;
     const dayOfYear = this.getDayOfYear(nowDate);
     const radiation = this.estimateSolarRadiation(hour, lat, dayOfYear);
@@ -758,6 +868,9 @@ export class BuildingModelService {
     isDefault: boolean;
     blockingReason: string | null;
     blockingReasonKey: string | null; // Locale key (building_model.blocked_*); null when not blocked or still collecting initial samples
+    predictionRmse24h: number | null; // ADR-062 B6: RMSE of the prediction error (°C/h) over 24 h; diagnostic only
+    blockingStreak: number; // v3.4.3: consecutive cycles without an accepted sample
+    blockingTransient: boolean; // v3.4.3: blocking reason belongs to normal operation (no COP, defrost, hot water, aux heating)
   }> {
     const enabled = await this.device.getSetting('building_model_enabled');
 
@@ -819,6 +932,9 @@ export class BuildingModelService {
       isDefault,
       blockingReason,
       blockingReasonKey,
+      predictionRmse24h: this.learner.getPredictionRmse24h(),
+      blockingStreak: this.blockingStreak,
+      blockingTransient: isTransientBlockingKey(blockingReasonKey),
     };
   }
 
@@ -832,12 +948,15 @@ export class BuildingModelService {
     const model = this.learner.getModel();
 
     // Determine learning status
+    // v3.4.3: a blocking reason counts only when insights would show it (transient reasons
+    // only once they persist), and 'converged' requires the insights confidence threshold
+    const minConfidence = (this.device.getSetting('insights_min_confidence') as number | null) ?? 70;
     let learningStatus: string;
     if (!status.enabled) {
       learningStatus = 'disabled';
-    } else if (status.blockingReason) {
+    } else if (shouldShowBlocked(status)) {
       learningStatus = 'insufficient_data';
-    } else if (status.isDefault) {
+    } else if (status.isDefault || status.confidence < minConfidence) {
       learningStatus = 'learning';
     } else {
       learningStatus = 'converged';
@@ -903,7 +1022,7 @@ export class BuildingModelService {
 
     return {
       timestamp: Date.now(),
-      timestampReadable: new Date().toLocaleString('nl-NL'),
+      timestampReadable: new Date().toLocaleString('nl-NL', { timeZone: resolveHomeyTimezone(this.device.homey) }),
       enabled: status.enabled,
       status: learningStatus,
       dataAvailability: {
@@ -917,6 +1036,8 @@ export class BuildingModelService {
         confidence: status.confidence,
         isDefault: status.isDefault,
         blockingReason: status.blockingReason,
+        blockingStreak: status.blockingStreak,
+        blockingTransient: status.blockingTransient,
         nextUpdateIn: {
           samples: 10 - status.lastUpdateSamples,
           minutes: (10 - status.lastUpdateSamples) * 5,
@@ -963,6 +1084,7 @@ export class BuildingModelService {
         consecutiveReverts: excitation.consecutiveReverts,
         totalReverts: excitation.totalReverts,
         rateLimitActivations: excitation.rateLimitActivations,
+        boundedSteps: excitation.boundedSteps, // ADR-062 B12
       },
       validation: {
         parametersRealistic: warnings.length === 0,
@@ -1092,6 +1214,7 @@ export class BuildingModelService {
 
       // Perform soft reset on learner
       this.learner.softReset(newProfile);
+      await this._clearMilestone(); // ADR-062 A6
 
       // Log new values after soft reset
       const newModel = this.learner.getModel();
@@ -1123,7 +1246,11 @@ export class BuildingModelService {
    * Reset building model - reinitialize learner with building profile defaults
    * Clears all learned parameters and restarts learning from scratch
    */
-  public async reset(): Promise<void> {
+  public async reset(overrides: {
+    buildingProfile?: BuildingProfileType;
+    enableDynamicPInt?: boolean;
+    forgettingFactor?: number;
+  } = {}): Promise<void> {
     this.logger('BuildingModelService: Resetting to building profile defaults...');
 
     try {
@@ -1140,9 +1267,10 @@ export class BuildingModelService {
       this.logger('═══════════════════════════════════════');
 
       // Get current settings for building profile and features
-      const buildingProfile = this.device.getSetting('building_profile') || 'average';
-      const enableDynamicPInt = this.device.getSetting('enable_dynamic_pint') ?? true;
-      const forgettingFactor = this.device.getSetting('building_model_forgetting_factor') ?? 0.999;
+      // ADR-062 A5: values from the settings being saved win over the stored ones
+      const buildingProfile = overrides.buildingProfile ?? this.device.getSetting('building_profile') ?? 'average';
+      const enableDynamicPInt = overrides.enableDynamicPInt ?? this.device.getSetting('enable_dynamic_pint') ?? true;
+      const forgettingFactor = overrides.forgettingFactor ?? this.device.getSetting('building_model_forgetting_factor') ?? 0.999;
 
       // Create new learner instance with building profile defaults (no restored state)
       const learnerConfig: BuildingModelConfig = {
@@ -1151,10 +1279,12 @@ export class BuildingModelService {
         minSamplesForConfidence: 288, // 24 hours @ 5min intervals
         buildingProfile, // Will use profile defaults
         enableDynamicPInt,
+        timeZone: resolveHomeyTimezone(this.device.homey), // ADR-062 F2
         logger: this.logger,
       };
 
       this.learner = new BuildingModelLearner(learnerConfig);
+      await this._clearMilestone(); // ADR-062 A6
 
       // Log new default values
       const newModel = this.learner.getModel();
@@ -1195,6 +1325,7 @@ export class BuildingModelService {
     } catch (error) {
       this.logger('BuildingModelService: Failed to persist final state:', error);
     }
+    await this.persistPowerHistory();
 
     // Cleanup timers (ADR-056: via Homey-timerbeheer, conform conventie)
     if (this.updateInterval) {

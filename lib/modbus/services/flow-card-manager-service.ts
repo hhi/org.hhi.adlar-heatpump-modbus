@@ -4,13 +4,16 @@
 /* eslint-disable import/extensions */
 import Homey from 'homey';
 import { TuyaErrorCategorizer } from '../../shared/error-types';
-import { calculatePreHeatDuration } from '../../shared/utils/preheat-calculator';
+import { estimatePreHeatDuration } from '../../shared/utils/preheat-calculator';
 import { CapabilityCategories, UserFlowPreferences } from '../types/shared-interfaces';
 import type { BuildingInsightsService, InsightCategory } from './building-insights-service';
 import { PerformanceReportService } from './performance-report-service';
 import { SeasonalModeCalculator } from '../../shared/seasonal-mode-calculator';
 import { CurveCalculator } from '../../shared/curve-calculator';
 import { TimeScheduleCalculator } from '../../shared/time-schedule-calculator';
+import {
+  formatDateTimeMinutes, formatHourMinute, nextLocalTime, resolveHomeyTimezone,
+} from '../../shared/utils/time-format';
 import {
   enumIdToHeatingCurve,
   enumIdToHotWaterCurve,
@@ -148,13 +151,7 @@ export class FlowCardManagerService {
   }
 
   private formatDiagnosticTimestamp(date: Date = new Date()): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-
-    return `${year}-${month}-${day} ${hours}:${minutes}`;
+    return formatDateTimeMinutes(date, resolveHomeyTimezone(this.device.homey));
   }
 
   /**
@@ -1045,7 +1042,9 @@ export class FlowCardManagerService {
             getAdaptiveControl: () => {
               getEnergyPriceOptimizer: () => {
                 getCurrentPrice: (timestamp: number) => { price: number; category: string } | null;
-                getPriceStatistics: () => { avg: number; sampleSize: number } | null;
+                getDeviationFromAverage: (timestamp: number, minSamples?: number) => {
+                  current: number; average: number; deviationPercent: number; sampleSize: number;
+                } | null;
               } | null;
             } | null;
           };
@@ -1071,26 +1070,19 @@ export class FlowCardManagerService {
         const margin = args.margin || 10;
         const now = Date.now();
 
-        const currentPriceData = energyOptimizer.getCurrentPrice(now);
-        if (!currentPriceData) {
+        if (!energyOptimizer.getCurrentPrice(now)) {
           this.logger('FlowCardManagerService: No current price available');
           return false;
         }
 
-        const priceStats = energyOptimizer.getPriceStatistics();
-        if (!priceStats || priceStats.sampleSize < 6) {
-          this.logger('FlowCardManagerService: Insufficient price data for daily average', {
-            sampleSize: priceStats?.sampleSize || 0,
-            required: 6,
-          });
+        // v3.4.1: current and average both as effective price; no division by an average near zero
+        const deviation = energyOptimizer.getDeviationFromAverage(now, 6);
+        if (!deviation) {
+          this.logger('FlowCardManagerService: Insufficient price data for daily average', { required: 6 });
           return false;
         }
 
-        const currentPrice = currentPriceData.price;
-        const dailyAverage = priceStats.avg;
-
-        // Calculate percentage deviation from average
-        const deviationPercent = ((currentPrice - dailyAverage) / dailyAverage) * 100;
+        const { current: currentPrice, average: dailyAverage, deviationPercent } = deviation;
         const absDeviationPercent = Math.abs(deviationPercent);
 
         // Check if deviation meets the margin requirement
@@ -1245,24 +1237,26 @@ export class FlowCardManagerService {
           };
         }
 
-        // Use central helper for empirical pre-heat time calculation
-        const durationHours = calculatePreHeatDuration(tau, tempDelta);
+        // G14 (ADR-062 B7): estimate from the measured heating power, empirical classes as fallback
+        const durationHours = estimatePreHeatDuration(
+          tau,
+          indoorTemp,
+          args.target_indoor_temp,
+          buildingModelService.getPreHeatConditions?.() ?? null,
+        );
 
         // Validate result is reasonable
         if (!Number.isFinite(durationHours) || durationHours < 0) {
           throw new Error('Unable to calculate pre-heat time');
         }
 
-        // Calculate start time
-        const targetTime = new Date();
-        targetTime.setHours(targetHour, targetMinute, 0, 0);
-        if (targetTime <= new Date()) {
-          // Target is in the past, assume next day
-          targetTime.setDate(targetTime.getDate() + 1);
-        }
+        // Calculate start time in Homey's timezone (the app process runs in UTC).
+        // A target time that has already passed today means the next day.
+        const timeZone = resolveHomeyTimezone(this.device.homey);
+        const targetTime = nextLocalTime(targetHour, targetMinute, timeZone);
 
         const startTime = new Date(targetTime.getTime() - durationHours * 3600 * 1000);
-        const startTimeStr = `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}`;
+        const startTimeStr = formatHourMinute(startTime, timeZone);
 
         // Calculate suggested setpoint boost based on duration
         const suggestedBoost = Math.min(3.0, Math.max(1.0, tempDelta * 0.5));
@@ -1595,7 +1589,7 @@ export class FlowCardManagerService {
       const calculateTimeBasedListener = calculateTimeBasedCard.registerRunListener(async (args) => {
         this.logger('FlowCardManagerService: Calculate time-based value action triggered', { args });
 
-        const resultValue = TimeScheduleCalculator.evaluate(args.schedule);
+        const resultValue = TimeScheduleCalculator.evaluate(args.schedule, new Date(), resolveHomeyTimezone(this.device.homey));
 
         this.logger(`FlowCardManagerService: Time schedule result: ${resultValue}`);
 
@@ -1999,6 +1993,9 @@ export class FlowCardManagerService {
       this.logger(`FlowCardManagerService: External energy prices updated: ${priceCount} hours received`);
 
       if (this.device.hasCapability('energy_prices_data')) {
+        // Hour labels in Homey's timezone (the app process runs in UTC)
+        const timeZone = resolveHomeyTimezone(this.device.homey);
+
         // Build rich JSON schedule from EnergyPriceOptimizer data
         const priceDataArray = energyOptimizer.getPriceData();
         const cheapestBlock = energyOptimizer.findCheapestBlock(4); // 4-hour block
@@ -2007,7 +2004,7 @@ export class FlowCardManagerService {
         // Build per-hour schedule with category and advice
         const schedule = priceDataArray.map((pd: { timestamp: number; price: number; category: string }) => {
           const hourDate = new Date(pd.timestamp);
-          const hourStr = `${hourDate.getHours().toString().padStart(2, '0')}:00`;
+          const hourStr = formatHourMinute(hourDate, timeZone);
 
           // Determine advice based on category
           let advice = 'maintain';
@@ -2029,16 +2026,16 @@ export class FlowCardManagerService {
         const summary: Record<string, unknown> = {};
         if (cheapestBlock) {
           summary.cheapestBlock = {
-            start: `${cheapestBlock.startTime.getHours().toString().padStart(2, '0')}:00`,
-            end: `${cheapestBlock.endTime.getHours().toString().padStart(2, '0')}:00`,
+            start: formatHourMinute(cheapestBlock.startTime, timeZone),
+            end: formatHourMinute(cheapestBlock.endTime, timeZone),
             avgPrice: Math.round(cheapestBlock.avgPrice * 10000) / 10000,
             hours: cheapestBlock.totalHours,
           };
         }
         if (expensiveBlock) {
           summary.expensiveBlock = {
-            start: `${expensiveBlock.startTime.getHours().toString().padStart(2, '0')}:00`,
-            end: `${expensiveBlock.endTime.getHours().toString().padStart(2, '0')}:00`,
+            start: formatHourMinute(expensiveBlock.startTime, timeZone),
+            end: formatHourMinute(expensiveBlock.endTime, timeZone),
             avgPrice: Math.round(expensiveBlock.avgPrice * 10000) / 10000,
             hours: expensiveBlock.totalHours,
           };

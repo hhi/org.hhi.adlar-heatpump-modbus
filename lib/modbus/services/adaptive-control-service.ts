@@ -3,17 +3,41 @@
 /* eslint-disable node/no-missing-import */
 /* eslint-disable import/extensions */
 import Homey from 'homey';
-import { HeatingController, SensorData } from '../adaptive/heating-controller';
+import { HeatingController, SensorData, type ControllerAction } from '../adaptive/heating-controller';
 import { ExternalTemperatureService } from './external-temperature-service';
 import { BuildingModelService } from './building-model-service';
+import { BUILDING_PROFILES, type BuildingProfileType } from '../../shared/adaptive/building-model-learner';
 import { EnergyPriceOptimizer, type PriceTrend } from '../adaptive/energy-price-optimizer';
 import { COPOptimizer } from '../adaptive/cop-optimizer';
 import { DefrostLearner } from '../../shared/adaptive/defrost-learner';
+import {
+  APP_CURVE_DEFAULTS,
+  POSITIONAL_DEFAULTS,
+  PositionalPIController,
+  resolveBasis,
+  curvePresetFor,
+  fixedCurveFor,
+  basisFeedforward,
+  roomTargetShift,
+  resolveControlParams,
+  type ControlMode,
+  type ControlParams,
+  type CurveBasis,
+  type IntegralPauseReason,
+  type PositionalPIStep,
+} from '../../shared/adaptive/positional-pi-controller';
+import {
+  resolveEffectiveRange,
+  resolveMaxSetpoint,
+  type EffectiveSetpointRange,
+  type WaterTempLimits,
+} from '../../shared/adaptive/setpoint-range';
 import {
   WeightedDecisionMaker, type ConfidenceMetrics, type CoastAction, type CombinedAction,
 } from '../adaptive/weighted-decision-maker';
 import { WindCorrectionService } from './wind-correction-service';
 import { WeatherForecastService, type ForecastAdvice } from '../../shared/services/weather-forecast-service';
+import { formatHourMinute, resolveHomeyTimezone, startOfLocalDay } from '../../shared/utils/time-format';
 import { DeviceConstants } from '../constants';
 
 /**
@@ -49,6 +73,7 @@ export interface ActiveSetpoint {
   min: number; // °C, lower bound accepted by the setpoint
   max: number; // °C, upper bound accepted by the setpoint
   label: string; // For logging, e.g. 'heating setpoint 0x0301'
+  heatPumpLimits?: WaterTempLimits | null; // Heating limits read from the heat pump, null when unknown
 }
 
 /**
@@ -57,10 +82,22 @@ export interface ActiveSetpoint {
  */
 export type ActiveSetpointResolver = () => ActiveSetpoint | null;
 
+/**
+ * ADR-065: the heat pump's own heating curve at the given outdoor temperature (°C), null when not usable,
+ * 'pending' while its registers have not been read yet after a (re)start.
+ */
+export type HeatPumpCurveResolver = (outdoorTemp: number | null) => number | null | 'pending';
+
+/** G16: the heat pump's DIY curve as app-curve values; null when not usable, 'pending' before it was read. */
+export type DiyAppCurveResolver = () => { atMinus15: number; atPlus15: number } | null | 'pending';
+
 export interface AdaptiveControlServiceConfig {
   device: Homey.Device;
   logger?: (message: string, ...args: unknown[]) => void;
   resolveActiveSetpoint?: ActiveSetpointResolver; // Default: always target_temperature
+  resolveHeatPumpCurve?: HeatPumpCurveResolver; // ADR-065: default none (basis falls back to the app curve or flat)
+  resolvePauseReason?: () => IntegralPauseReason | null; // ADR-065: defrost / hot water pause the integral
+  resolveDiyAppCurve?: DiyAppCurveResolver; // G16: default none (the DIY choice then changes nothing)
 }
 
 export interface AdaptiveControlStatus {
@@ -137,6 +174,19 @@ export class AdaptiveControlService {
   private activeSetpoint: ActiveSetpoint | null = null; // Setpoint used in the current control cycle
   private lastSetpointCapability: string | null = null; // Detects a switch between setpoints (e.g. heating ↔ floor heating)
 
+  // ADR-065: positional PI on top of the heating curve
+  private readonly resolveHeatPumpCurve: HeatPumpCurveResolver;
+  private readonly resolvePauseReason: () => IntegralPauseReason | null;
+  private readonly resolveDiyAppCurve: DiyAppCurveResolver;
+  private positionalPI = new PositionalPIController(POSITIONAL_DEFAULTS);
+  private lastRawRecommendation: number | null = null; // Before rounding/clamping, for the at-limit anti-windup rule
+  private lastPositionalStep: PositionalPIStep | null = null;
+  private lastBasis: CurveBasis | null = null;
+  private lastTargetShift = 0; // ADR-065 O14: room-target shift from price and COP in the last cycle (°C)
+  private lastFeedforward = 0; // ADR-065 O16: the basis following that shift (°C)
+  private flatBasis: number | null = null; // Setpoint when the positional mode started (basis fallback)
+  private lastControlMode: ControlMode | null = null;
+
   // Energy price tracking (for change detection and flow card triggers)
   private lastPriceCategory: string | null = null; // Track category changes
   private lastDailyCostCheck: number = 0; // Rate limit daily cost checks
@@ -151,6 +201,10 @@ export class AdaptiveControlService {
   private readonly STORE_KEY_PI_HISTORY = 'adaptive_pi_history';
   private readonly STORE_KEY_ENABLED = 'adaptive_control_enabled';
   private readonly STORE_KEY_ACCUMULATED_ADJUSTMENT = 'adaptive_accumulated_adjustment';
+  private readonly STORE_KEY_POSITIONAL_INTEGRAL = 'adaptive_positional_integral'; // ADR-065
+  private readonly STORE_KEY_FLAT_BASIS = 'adaptive_positional_flat_basis'; // ADR-065
+  private readonly STORE_KEY_CONTROL_MODE = 'adaptive_control_mode_last'; // ADR-065: detects a mode switch across restarts
+  private readonly STORE_KEY_CURVE_USER_SET = 'adaptive_curve_user_set'; // ADR-065: the user set the app curve himself
   private readonly STORE_KEY_LAST_TARGET = 'adaptive_last_target'; // v2.5.1: Store last known target_temperature for capability sync
 
   /**
@@ -166,6 +220,9 @@ export class AdaptiveControlService {
       max: DeviceConstants.ADAPTIVE_MAX_SETPOINT,
       label: 'setpoint (target_temperature)',
     }));
+    this.resolveHeatPumpCurve = config.resolveHeatPumpCurve ?? (() => null);
+    this.resolvePauseReason = config.resolvePauseReason ?? (() => null);
+    this.resolveDiyAppCurve = config.resolveDiyAppCurve ?? (() => null);
 
     // Initialize Component 1: Heating Controller (PI control)
     this.heatingController = new HeatingController({
@@ -207,7 +264,7 @@ export class AdaptiveControlService {
       targetCOP: 3.5,
       strategy: 'balanced',
       minSupplyTemp: this._getMinSetpoint(),
-      maxSupplyTemp: 55,
+      maxSupplyTemp: Math.min(55, this._getMaxSetpoint()),
       historySize: 1000,
       logger: this.logger,
       // v2.6.1: Callback to update cop_optimizer_diagnostics capability
@@ -347,6 +404,7 @@ export class AdaptiveControlService {
 
       // Restore PI controller history from device store
       await this.restorePIHistory();
+      await this._restorePositionalState();
 
       // Always start weather forecast — used as TTL fallback for wind/temp/solar even without forecast sensors
       this.weatherForecast.startUpdates();
@@ -398,7 +456,14 @@ export class AdaptiveControlService {
       const storedPrices = await this.device.getStoreValue('external_energy_prices');
       if (storedPrices && typeof storedPrices === 'object') {
         try {
-          this.energyOptimizer.setExternalPrices(storedPrices);
+          // v3.4.1: the offsets are relative to the moment of receipt, not to this restart
+          const receivedAt = await this.device.getStoreValue('external_energy_prices_timestamp');
+          if (typeof receivedAt === 'number' && Number.isFinite(receivedAt)) {
+            this.energyOptimizer.setExternalPrices(storedPrices, receivedAt);
+          } else {
+            this.logger('AdaptiveControlService: Stored energy prices have no receipt time - restoring relative to now');
+            this.energyOptimizer.setExternalPrices(storedPrices);
+          }
 
           // Also update capabilities immediately based on these restored prices
           await this.updateEnergyPriceCapabilities();
@@ -579,14 +644,170 @@ export class AdaptiveControlService {
     return (this.device.getSetting('adaptive_min_setpoint') as number | null) ?? 18;
   }
 
+  /** Maximum water temperature setting, never above DeviceConstants.ADAPTIVE_MAX_SETPOINT. */
+  private _getMaxSetpoint(): number {
+    return resolveMaxSetpoint(
+      this.device.getSetting('adaptive_max_setpoint') as number | null,
+      DeviceConstants.ADAPTIVE_MAX_SETPOINT,
+    );
+  }
+
   /**
-   * Clamp a recommendation to the minimum water temperature setting, the adaptive maximum,
-   * and the range accepted by the active setpoint (e.g. floor heating 20–60°C).
+   * Effective recommendation range: the range accepted by the active setpoint (e.g. floor heating 20–60°C),
+   * the heat pump's own heating limits and the minimum/maximum water temperature settings.
    */
+  private _effectiveRange(): EffectiveSetpointRange {
+    return resolveEffectiveRange(
+      { min: this.activeSetpoint?.min ?? -Infinity, max: this.activeSetpoint?.max ?? Infinity },
+      this.activeSetpoint?.heatPumpLimits ?? null,
+      { min: this._getMinSetpoint(), max: this._getMaxSetpoint() },
+    );
+  }
+
+  /** Clamp a recommendation to the effective range. */
   private _clampRecommendation(value: number): number {
-    const lower = Math.max(this._getMinSetpoint(), this.activeSetpoint?.min ?? -Infinity);
-    const upper = Math.min(DeviceConstants.ADAPTIVE_MAX_SETPOINT, this.activeSetpoint?.max ?? Infinity);
-    return Math.max(lower, Math.min(upper, value));
+    const { min, max } = this._effectiveRange();
+    return Math.max(min, Math.min(max, value));
+  }
+
+  // =========================================================================
+  // ADR-065: Positional PI helpers
+  // =========================================================================
+
+  /** Control mode, emitter preset and the effective Kp, Ti and coast switch (ADR-065 D8). */
+  private _getControlParams(): ControlParams {
+    return resolveControlParams({
+      adaptive_control_mode: this.device.getSetting('adaptive_control_mode'),
+      adaptive_pos_kp: this.device.getSetting('adaptive_pos_kp'),
+      adaptive_pos_ti: this.device.getSetting('adaptive_pos_ti'),
+      adaptive_coast_enabled: this.device.getSetting('adaptive_coast_enabled'),
+    });
+  }
+
+  /** Restores the integral, the flat basis and the last control mode after a restart. */
+  private async _restorePositionalState(): Promise<void> {
+    const integral = await this.device.getStoreValue(this.STORE_KEY_POSITIONAL_INTEGRAL);
+    if (typeof integral === 'number') this.positionalPI.restoreIntegral(integral);
+    const flat = await this.device.getStoreValue(this.STORE_KEY_FLAT_BASIS);
+    this.flatBasis = typeof flat === 'number' ? flat : null;
+    const mode = await this.device.getStoreValue(this.STORE_KEY_CONTROL_MODE);
+    this.lastControlMode = mode === 'positional' || mode === 'classic' ? mode : null;
+  }
+
+  /**
+   * ADR-065 O5: a switch between classic and positional starts clean — accumulator and integral at 0,
+   * change detection restarted; entering positional stores the current setpoint as flat basis.
+   */
+  private async _handleControlMode(mode: ControlMode, currentSetpoint: number): Promise<void> {
+    if (mode === 'positional' && this.flatBasis === null) {
+      this.flatBasis = currentSetpoint;
+      await this.device.setStoreValue(this.STORE_KEY_FLAT_BASIS, currentSetpoint);
+    }
+    if (this.lastControlMode === mode) return;
+    if (this.lastControlMode !== null) {
+      this.accumulatedAdjustment = 0;
+      await this.device.setStoreValue(this.STORE_KEY_ACCUMULATED_ADJUSTMENT, 0);
+      this.positionalPI.reset();
+      await this.device.setStoreValue(this.STORE_KEY_POSITIONAL_INTEGRAL, 0);
+      this.lastRawRecommendation = null;
+      this.lastRecommendedTemp = undefined;
+      if (mode === 'positional') {
+        this.flatBasis = currentSetpoint;
+        await this.device.setStoreValue(this.STORE_KEY_FLAT_BASIS, currentSetpoint);
+      }
+      this.logger(`AdaptiveControlService: control mode ${this.lastControlMode} → ${mode} — accumulator and integral reset`);
+    }
+    this.lastControlMode = mode;
+    await this.device.setStoreValue(this.STORE_KEY_CONTROL_MODE, mode);
+  }
+
+  /** App-curve values for the fixed-curve list: a fixed curve (G15) or the heat pump's DIY curve (G16). */
+  private _fixedCurveFrom(curveId: unknown): { atMinus15: number; atPlus15: number } | null {
+    if (curveId !== 'diy') return fixedCurveFor(curveId);
+    const diyCurve = this.resolveDiyAppCurve();
+    return diyCurve === 'pending' ? null : diyCurve;
+  }
+
+  /**
+   * Basis of the positional advice: heat pump curve, app curve or flat (ADR-065 D1/O2).
+   * Null while the heat pump curve is chosen but not read yet: the cycle waits instead of falling back.
+   */
+  private async _resolvePositionalBasis(currentSetpoint: number): Promise<CurveBasis | null> {
+    const outdoorTemp = await this.getEffectiveOutdoorTemp();
+    const curveSource = this.device.getSetting('adaptive_curve_source') === 'auto' ? 'auto' : 'app';
+    const heatPumpCurve = curveSource === 'auto' ? this.resolveHeatPumpCurve(outdoorTemp) : null;
+    if (heatPumpCurve === 'pending') return null;
+    const basis = resolveBasis({
+      curveSource,
+      heatPumpCurve,
+      appCurve: this._appCurve(),
+      outdoorTemp,
+      flatBasis: this.flatBasis,
+    }) ?? { value: currentSetpoint, source: 'flat' };
+    this.lastBasis = basis;
+    return basis;
+  }
+
+  /**
+   * One positional PI cycle (ADR-065 D2/D3). The output is divided by the comfort anchor so that the
+   * decision maker's comfort share equals the PI output; coast and the optimizers keep their weighting.
+   */
+  private async _positionalHeatingAction(error: number, currentSetpoint: number): Promise<ControllerAction> {
+    const pause: IntegralPauseReason | null = this._coastActive ? 'coast' : this.resolvePauseReason();
+    const step = this.positionalPI.step({
+      error,
+      currentSetpoint,
+      lastRecommendation: this.lastRecommendedTemp ?? null,
+      lastRawRecommendation: this.lastRawRecommendation,
+      range: this._effectiveRange(),
+      pause,
+    });
+    this.lastPositionalStep = step;
+    await this.device.setStoreValue(this.STORE_KEY_POSITIONAL_INTEGRAL, step.i);
+    return {
+      temperatureAdjustment: step.u / this.decisionMaker.getComfortAnchor(),
+      reason: `Positional PI: P ${step.p.toFixed(2)} + I ${step.i.toFixed(2)} = ${step.u.toFixed(2)}°C`
+        + `${step.holdReason ? ` (integral held: ${step.holdReason})` : ''}`,
+      priority: 'medium',
+      controller: 'heating',
+    };
+  }
+
+  /** The app curve from the settings (°C at −15 °C and +15 °C outdoor). */
+  private _appCurve(): { atMinus15: number; atPlus15: number } {
+    return {
+      atMinus15: (this.device.getSetting('adaptive_curve_at_minus15') as number | null) ?? APP_CURVE_DEFAULTS.atMinus15,
+      atPlus15: (this.device.getSetting('adaptive_curve_at_plus15') as number | null) ?? APP_CURVE_DEFAULTS.atPlus15,
+    };
+  }
+
+  /** Positional recommendation: basis + correction, rounded and clamped to the effective range. */
+  private _positionalRecommendation(basis: CurveBasis, correction: number): number {
+    this.lastRawRecommendation = basis.value + correction;
+    return this._clampRecommendation(Math.round(this.lastRawRecommendation));
+  }
+
+  /** Control mode, emitter, parameters and the positional terms for adaptive_control_diagnostics (ADR-065 O8). */
+  private _getControlDiagnostics(): Record<string, unknown> {
+    const control = this._getControlParams();
+    const step = this.lastPositionalStep;
+    return {
+      mode: control.mode,
+      emitter: control.emitter,
+      source: control.source,
+      coastEnabled: control.coastEnabled,
+      ...(control.mode === 'positional' ? {
+        kp: control.kp,
+        tiHours: control.tiHours,
+        basis: this.lastBasis ? { value: Number(this.lastBasis.value.toFixed(1)), source: this.lastBasis.source } : null,
+        p: step ? Number(step.p.toFixed(2)) : null,
+        i: step ? Number(step.i.toFixed(2)) : null,
+        u: step ? Number(step.u.toFixed(2)) : null,
+        integralHold: step?.holdReason ?? null,
+        targetShift: Number(this.lastTargetShift.toFixed(2)),
+        feedforward: Number(this.lastFeedforward.toFixed(2)),
+      } : {}),
+    };
   }
 
   // =========================================================================
@@ -672,7 +893,7 @@ export class AdaptiveControlService {
    * ADR-057: Retourneert ook dropRate en dropRateMultiplier zodat _buildCoastAction()
    * gegarandeerd dezelfde waarden toont als hier gebruikt zijn.
    */
-  private _computeCoastAdjustment(currentSetpoint: number): {
+  private _computeCoastAdjustment(reference: number, applyStepLimit = true): {
     adj: number; outletTemp: number | null; dropRate: number; dropRateMultiplier: number;
   } {
     const outletTemp = this.device.getCapabilityValue('measure_temperature.outlet') as number | null;
@@ -688,13 +909,16 @@ export class AdaptiveControlService {
     this._recordOutletTemp(outletTemp);
 
     const offset = (this.device.getSetting('adaptive_cooldown_offset') as number | null) ?? 1.0;
-    const rawAdjustment = (outletTemp - offset) - currentSetpoint;
+    const rawAdjustment = (outletTemp - offset) - reference;
 
     // Guard: coast delta must always be negative.
     const baseAdjustment = Math.min(0, rawAdjustment);
 
     // ADR-047b: Stap-limiet — voorkomt agressieve eerste aanpassing.
-    const clampedAdjustment = Math.max(AdaptiveControlService.COAST_STEP_LIMIT, baseAdjustment);
+    // ADR-065 D6: the positional advice is absolute, so no step limit there
+    const clampedAdjustment = applyStepLimit
+      ? Math.max(AdaptiveControlService.COAST_STEP_LIMIT, baseAdjustment)
+      : baseAdjustment;
 
     // ADR-040B: Schaal coast-correctie op basis van outlet-dalingsnelheid (leading indicator).
     // Snel dalend (outletDropRate << 0): installatie reageert goed → verminder coast druk.
@@ -818,11 +1042,22 @@ export class AdaptiveControlService {
         return;
       }
 
+      // ADR-065: control mode (classic / positional) and emitter preset
+      const control = this._getControlParams();
+      const positional = control.mode === 'positional';
+      await this._handleControlMode(control.mode, currentSetpoint);
+      this.positionalPI.setParams({ kp: control.kp, tiHours: control.tiHours });
+      const basis = positional ? await this._resolvePositionalBasis(currentSetpoint) : null;
+      if (positional && basis === null) {
+        this.logger('AdaptiveControlService: heat pump curve not read yet after start, skipping cycle');
+        return;
+      }
+
       // ADR-059 W1 (referentieproject): Settlement-on-observation — when setpoint-register 0x0301 moved towards
       // our last recommendation since the previous cycle, the user flow has applied it and
       // the applied delta is settled against the accumulator. Changes that do NOT
       // land near the recommendation (within 1°C) are treated as manual and left alone.
-      if (this.lastObservedSetpoint !== null && currentSetpoint !== this.lastObservedSetpoint) {
+      if (!positional && this.lastObservedSetpoint !== null && currentSetpoint !== this.lastObservedSetpoint) {
         const appliedDelta = currentSetpoint - this.lastObservedSetpoint;
         const matchesRecommendation = this.lastRecommendedTemp !== undefined
           && Math.abs(currentSetpoint - this.lastRecommendedTemp) <= 1.0;
@@ -846,9 +1081,21 @@ export class AdaptiveControlService {
       this._recordIndoorTemp(indoorTemp);
 
       // ADR-047b: Stap 2 — Compute coastAdj vóór exit-checks (zachte exit heeft coastAdj nodig)
+      // ADR-065 D6: in the positional mode coast is relative to basis + PI output, without step limit
+      const coastReference = basis
+        ? basis.value + this.lastFeedforward + this.positionalPI.output(desiredIndoorTemp + this.lastTargetShift - indoorTemp)
+        : currentSetpoint;
       const {
         adj: coastAdj, outletTemp: outletTempForCoast, dropRate: coastDropRate, dropRateMultiplier: coastDropRateMultiplier,
-      } = this._computeCoastAdjustment(currentSetpoint);
+      } = this._computeCoastAdjustment(coastReference, !positional);
+
+      // ADR-065 D8: coast switched off (radiator preset or adaptive_coast_enabled) ends an active coast
+      if (!control.coastEnabled && this._coastActive) {
+        this._coastActive = false;
+        this._cooldownCycleCount = 0;
+        this._coastCycleCount = 0;
+        this.logger('AdaptiveControl: coast disabled for this control setting — coast ended');
+      }
 
       // ADR-047b: Stap 3 — Harde exit (bestaand)
       if (this._coastActive && this._isCooldownExitCondition(indoorTemp, desiredIndoorTemp)) {
@@ -897,7 +1144,7 @@ export class AdaptiveControlService {
       }
 
       // ADR-047b: Stap 6 — Activatie NA alle exits (exit in deze cyclus blokkeert heractivatie)
-      if (!this._coastActive) {
+      if (!this._coastActive && control.coastEnabled) {
         this._coastActive = this._isCooldownConfirmed(indoorTemp, desiredIndoorTemp);
         if (this._coastActive) {
           this._coastCycleCount = 0; // herstart watchdog-teller bij nieuwe activatie
@@ -926,7 +1173,9 @@ export class AdaptiveControlService {
         timestamp: Date.now(),
       };
 
-      const heatingAction = await this.heatingController.calculateAction(sensorData);
+      // ADR-065: the positional PI replaces the incremental PI and its dead zone (D2–D4). It runs after
+      // the optimizers, which shift its room target (O14).
+      let heatingAction: ControllerAction | null = positional ? null : await this.heatingController.calculateAction(sensorData);
 
       // Step 4B: Component 3 - Energy Price Optimizer (if enabled)
       let priceAction = null;
@@ -965,8 +1214,14 @@ export class AdaptiveControlService {
           if (outdoorTemp === null) {
             this.logger('AdaptiveControlService: No outdoor temperature available — skipping COP optimizer this cycle');
           } else {
-            // COP optimizer uses current warmtepomp setpoint for efficiency calculation
-            copAction = this.copOptimizer.calculateAction(currentCOP, dailyCOP, outdoorTemp, currentSetpoint);
+            // v3.5.1: adlar_cop 0 means no valid measurement (compressor off, outlier, not calculated yet),
+            // not a very low COP — skip the advice; an unknown daily COP falls back to the current COP
+            if (currentCOP > 0) {
+              // COP optimizer uses current warmtepomp setpoint for efficiency calculation
+              copAction = this.copOptimizer.calculateAction(currentCOP, dailyCOP > 0 ? dailyCOP : currentCOP, outdoorTemp, currentSetpoint);
+            } else {
+              this.logger('AdaptiveControlService: No valid COP measurement — skipping COP optimizer this cycle');
+            }
 
             // Collect COP measurement for learning
             const compressorFreq = (this.device.getCapabilityValue('measure_frequency.compressor_freq') as number) || 0;
@@ -1022,7 +1277,12 @@ export class AdaptiveControlService {
         );
 
         // Step 5B: Building Model Integration
-        const buildingModel = this.buildingModel.getLearner().getModel();
+        // ADR-062 A4: the learned parameters only from 50% confidence, below that the profile values
+        const learned = this.buildingModel.getLearner().getModel();
+        const profileKey = (this.device.getSetting('building_profile') || 'average') as BuildingProfileType;
+        const buildingModel = buildingDiagnostics.confidence >= 50
+          ? learned
+          : (BUILDING_PROFILES[profileKey] ?? BUILDING_PROFILES.average);
         const tau = buildingModel.UA > 0 ? buildingModel.C / buildingModel.UA : 0;
 
         this.heatingController.setThermalInertia(tau);
@@ -1080,14 +1340,31 @@ export class AdaptiveControlService {
       }
 
       // Step 6: Combine actions using Weighted Decision Maker with 5-way weighting (v2.10.0: coast added)
+      // ADR-065 O14/O16 (3.6.0): in the positional mode price and COP shift the room target instead of the
+      // recommendation, so the integral does not work them away, and the basis follows that shift. The
+      // thermal component does not take part; its weight goes to price and COP.
+      const decisionMetrics: ConfidenceMetrics = positional ? { ...confidenceMetrics, thermalExcluded: true } : confidenceMetrics;
+      if (positional && basis) {
+        const optimizers = this.decisionMaker.combineActionsWithThermal(null, copAction, priceAction, null, decisionMetrics, coastAction);
+        this.lastTargetShift = roomTargetShift(optimizers.breakdown);
+        this.lastFeedforward = basisFeedforward(this.lastTargetShift, basis, this._appCurve());
+        heatingAction = await this._positionalHeatingAction(desiredIndoorTemp + this.lastTargetShift - indoorTemp, currentSetpoint);
+      }
       const combinedAction = this.decisionMaker.combineActionsWithThermal(
         heatingAction,
         copAction,
         priceAction,
-        thermalAction,
-        confidenceMetrics,
+        positional ? null : thermalAction,
+        decisionMetrics,
         coastAction,
       );
+      if (positional) {
+        // The optimizers act through the room target: replace their share by the basis feed-forward
+        combinedAction.finalAdjustment += this.lastFeedforward - combinedAction.breakdown.efficiency - combinedAction.breakdown.cost;
+        combinedAction.reasoning.push(
+          `Room target shift (price/COP): ${this.lastTargetShift.toFixed(2)}°C, basis follows ${this.lastFeedforward.toFixed(2)}°C`,
+        );
+      }
 
       // ADR-059 W3 (referentieproject): Wind correction as unweighted additive term —
       // independent of building model confidence and the weight normalization above
@@ -1124,16 +1401,25 @@ export class AdaptiveControlService {
       // the accumulator. Small contributions (COP/price/thermal at ~±0.1°C) now build up
       // across cycles instead of vanishing in per-cycle rounding. Clamped so ignored
       // recommendations cannot cause unbounded build-up.
-      this.accumulatedAdjustment += combinedAction.finalAdjustment;
-      this.accumulatedAdjustment = Math.max(
-        -AdaptiveControlService.ACCUMULATOR_CLAMP,
-        Math.min(AdaptiveControlService.ACCUMULATOR_CLAMP, this.accumulatedAdjustment),
-      );
-      await this.device.setStoreValue(this.STORE_KEY_ACCUMULATED_ADJUSTMENT, this.accumulatedAdjustment);
-      this.logger('AdaptiveControlService: Accumulator updated', {
-        cycleAdjustment: combinedAction.finalAdjustment.toFixed(2),
-        accumulated: this.accumulatedAdjustment.toFixed(2),
-      });
+      // ADR-065 D5: the positional mode does not use the accumulator
+      if (!positional) {
+        this.accumulatedAdjustment += combinedAction.finalAdjustment;
+        this.accumulatedAdjustment = Math.max(
+          -AdaptiveControlService.ACCUMULATOR_CLAMP,
+          Math.min(AdaptiveControlService.ACCUMULATOR_CLAMP, this.accumulatedAdjustment),
+        );
+        await this.device.setStoreValue(this.STORE_KEY_ACCUMULATED_ADJUSTMENT, this.accumulatedAdjustment);
+        this.logger('AdaptiveControlService: Accumulator updated', {
+          cycleAdjustment: combinedAction.finalAdjustment.toFixed(2),
+          accumulated: this.accumulatedAdjustment.toFixed(2),
+        });
+      }
+
+      // Step 6.4: Recommendation. Classic (ADR-059 W1): setpoint + round(accumulator).
+      // Positional (ADR-065 D1): basis + correction, rounded and clamped.
+      const recommendedTemp = basis
+        ? this._positionalRecommendation(basis, combinedAction.finalAdjustment)
+        : this._clampRecommendation(currentSetpoint + Math.round(this.accumulatedAdjustment));
 
       // Step 6.5: Update diagnostic capability with weighted decision breakdown
       await this.updateDiagnosticsCapability(combinedAction);
@@ -1142,15 +1428,12 @@ export class AdaptiveControlService {
       // This fires EVERY cycle with full breakdown for monitoring/logging purposes
       await this.triggerSimulationUpdate(
         currentSetpoint,
+        recommendedTemp,
         combinedAction,
         confidenceMetrics,
       );
 
       // Step 7: Change detection — trigger only when recommendation changes or PI sees comfort deviation
-      // ADR-059 W1 (referentieproject): finalAdjustment is already accrued above —
-      // recommendation is round(accumulator)
-      const integerAdjustment = Math.round(this.accumulatedAdjustment);
-      const recommendedTemp = this._clampRecommendation(currentSetpoint + integerAdjustment);
 
       // Initialize on current setpoint so first run only triggers on real deviation (ADR-020)
       if (this.lastRecommendedTemp === undefined) {
@@ -1158,7 +1441,8 @@ export class AdaptiveControlService {
       }
 
       const recommendationChanged = recommendedTemp !== this.lastRecommendedTemp;
-      const significantAction = heatingAction !== null;
+      // ADR-065: the positional advice is a position — re-trigger only when it changes
+      const significantAction = !positional && heatingAction !== null;
 
       this.logger(
         'AdaptiveControlService: Recommendation check — '
@@ -1171,7 +1455,7 @@ export class AdaptiveControlService {
 
         // v2.5.1 Fix: Always update adlar_simulated_target to current setpoint to prevent stale values
         // Without this, the capability could retain an old value from a previous session
-        this.simulatedTargetTemp = currentSetpoint;
+        this.simulatedTargetTemp = positional ? recommendedTemp : currentSetpoint;
         if (this.device.hasCapability('adlar_simulated_target')) {
           await this.device.setCapabilityValue('adlar_simulated_target', this.simulatedTargetTemp);
         }
@@ -1306,14 +1590,12 @@ export class AdaptiveControlService {
    */
   private async triggerSimulationUpdate(
     currentSetpoint: number,
+    simulatedTarget: number,
     combinedAction: CombinedAction,
     confidenceMetrics: ConfidenceMetrics,
   ): Promise<void> {
     try {
-      // Calculate simulated target (what the system recommends)
-      // ADR-059 W1 (referentieproject): zelfde berekening als in executeControlCycle()
-      const integerAdjustment = Math.round(this.accumulatedAdjustment);
-      const simulatedTarget = this._clampRecommendation(currentSetpoint + integerAdjustment);
+      // simulatedTarget: the recommendation of this cycle (classic or positional, see executeControlCycle)
       const delta = simulatedTarget - currentSetpoint;
 
       const trigger = this.device.homey.flow.getDeviceTriggerCard('adaptive_simulation_update');
@@ -1344,7 +1626,7 @@ export class AdaptiveControlService {
 
   /**
    * Get effective outdoor temperature with TTL-based source priority:
-   * 1. Flow card (adlar_external_ambient) — if received within 2 hours
+   * 1. Flow card (adlar_external_ambient) — if received within 1 hour
    * 2. Open-Meteo current hour — already fetched, no extra API cost
    * 3. Heat pump internal sensor — last resort
    *
@@ -1650,6 +1932,8 @@ export class AdaptiveControlService {
     // Also reset accumulator when resetting PI history
     this.accumulatedAdjustment = 0;
     await this.device.setStoreValue(this.STORE_KEY_ACCUMULATED_ADJUSTMENT, 0);
+    this.positionalPI.reset();
+    await this.device.setStoreValue(this.STORE_KEY_POSITIONAL_INTEGRAL, 0);
 
     this.logger('AdaptiveControlService: PI history and accumulator reset');
   }
@@ -1764,6 +2048,18 @@ export class AdaptiveControlService {
       this.copOptimizer.updateMinSupplyTemp(newMinSetpoint);
     }
 
+    // Handle adaptive_max_setpoint changes (range check against the minimum is done in the device)
+    if (changedKeys.includes('adaptive_max_setpoint')) {
+      const newMaxSetpoint = resolveMaxSetpoint(
+        newSettings.adaptive_max_setpoint as number | null,
+        DeviceConstants.ADAPTIVE_MAX_SETPOINT,
+      );
+      this.logger('AdaptiveControlService: Max setpoint changed', {
+        newValue: `${newMaxSetpoint}°C`,
+      });
+      this.copOptimizer.updateMaxSupplyTemp(Math.min(55, newMaxSetpoint));
+    }
+
     // Handle energy price settings changes
     if (changedKeys.includes('price_calculation_mode')) {
       const mode = newSettings.price_calculation_mode as 'market' | 'market_plus' | 'all_in';
@@ -1813,6 +2109,42 @@ export class AdaptiveControlService {
       this.copOptimizer.updateStrategy(strategy ?? 'balanced');
     }
 
+    // ADR-065: prefill the app curve with the starting values of the chosen positional mode, unless the
+    // user set the curve himself (store flag). A curve change in the same save counts as his own.
+    // G15: a chosen fixed curve fills both fields once and the list returns to "—".
+    // G16: the same for the heat pump's DIY curve (L28/L29); the device rejects the save when it is not usable.
+    const fixedCurve = changedKeys.includes('adaptive_curve_fixed') ? this._fixedCurveFrom(newSettings.adaptive_curve_fixed) : null;
+    if (fixedCurve) {
+      await this.device.setStoreValue(this.STORE_KEY_CURVE_USER_SET, true);
+      // Defer setSettings to avoid race condition with onSettings() still pending
+      this.device.homey.setTimeout(() => {
+        this.device.setSettings({
+          adaptive_curve_at_minus15: fixedCurve.atMinus15,
+          adaptive_curve_at_plus15: fixedCurve.atPlus15,
+          adaptive_curve_fixed: 'none',
+        })
+          .then(() => this.logger(`AdaptiveControlService: app curve set from fixed curve ${String(newSettings.adaptive_curve_fixed)} (${fixedCurve.atMinus15} / ${fixedCurve.atPlus15} °C)`))
+          .catch((err: unknown) => this.device.error('Failed to set the app curve from a fixed curve:', err));
+      }, DeviceConstants.SETTINGS_DEFER_DELAY_MS);
+    } else if (changedKeys.includes('adaptive_curve_at_minus15') || changedKeys.includes('adaptive_curve_at_plus15')) {
+      await this.device.setStoreValue(this.STORE_KEY_CURVE_USER_SET, true);
+    } else if (changedKeys.includes('adaptive_control_mode') && !this.device.getStoreValue(this.STORE_KEY_CURVE_USER_SET)) {
+      const preset = curvePresetFor(newSettings.adaptive_control_mode);
+      if (preset) {
+        // Defer setSettings to avoid race condition with onSettings() still pending
+        this.device.homey.setTimeout(() => {
+          this.device.setSettings({ adaptive_curve_at_minus15: preset.atMinus15, adaptive_curve_at_plus15: preset.atPlus15 })
+            .then(() => this.logger(`AdaptiveControlService: app curve prefilled (${preset.atMinus15} / ${preset.atPlus15} °C)`))
+            .catch((err: unknown) => this.device.error('Failed to prefill the app curve:', err));
+        }, DeviceConstants.SETTINGS_DEFER_DELAY_MS);
+      }
+    }
+
+    // ADR-062 A5: learning settings take effect directly (values from newSettings)
+    if (changedKeys.includes('building_model_forgetting_factor') || changedKeys.includes('enable_dynamic_pint')) {
+      await this.buildingModel.applyLearningSettings(newSettings, changedKeys);
+    }
+
     // Handle building model reset toggle
     if (changedKeys.includes('reset_building_model')) {
       const shouldReset = newSettings.reset_building_model as boolean;
@@ -1820,7 +2152,11 @@ export class AdaptiveControlService {
         this.logger('AdaptiveControlService: Building model reset requested via settings');
         try {
           // Execute reset
-          await this.buildingModel.reset();
+          await this.buildingModel.reset({
+            buildingProfile: newSettings.building_profile as BuildingProfileType | undefined,
+            enableDynamicPInt: newSettings.enable_dynamic_pint as boolean | undefined,
+            forgettingFactor: newSettings.building_model_forgetting_factor as number | undefined,
+          });
           this.logger('✅ Building model reset complete');
         } catch (error) {
           this.device.error('❌ Building model reset failed:', error);
@@ -1915,6 +2251,8 @@ export class AdaptiveControlService {
           },
           configuration: copDiag.configuration,
         },
+        setpointRange: this._getSetpointRangeDiagnostics(),
+        control: this._getControlDiagnostics(),
         buildingModel: await this.getBuildingModelDiagnostics(),
       };
 
@@ -1929,6 +2267,14 @@ export class AdaptiveControlService {
       this.device.error('⚠️ Failed to update diagnostic capability:', error);
       // Non-critical: don't throw, just log warning
     }
+  }
+
+  /** Effective recommendation range and the layer that determines each bound, for adaptive_control_diagnostics. */
+  private _getSetpointRangeDiagnostics(): EffectiveSetpointRange & { heatPump: WaterTempLimits | null } {
+    return {
+      ...this._effectiveRange(),
+      heatPump: this.activeSetpoint?.heatPumpLimits ?? null,
+    };
   }
 
   /**
@@ -2212,9 +2558,8 @@ export class AdaptiveControlService {
         const blockHours = (await this.device.getSetting('adaptive_price_block_hours')) || 4;
         const cheapestBlock = this.energyOptimizer.findCheapestBlock(blockHours);
         if (cheapestBlock) {
-          const formatTime = (date: Date) => {
-            return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-          };
+          const timeZone = resolveHomeyTimezone(this.device.homey);
+          const formatTime = (date: Date) => formatHourMinute(date, timeZone);
           // v2.7.8: Show full block range (e.g., "01:00-05:00") instead of just start time
           await this.device.setCapabilityValue('adlar_cheapest_block_start',
             `${formatTime(cheapestBlock.startTime)}-${formatTime(cheapestBlock.endTime)}`);
@@ -2287,8 +2632,9 @@ export class AdaptiveControlService {
   private async checkDailyCostThreshold(): Promise<void> {
     try {
       const now = Date.now();
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+      // Start of today in Homey's timezone (the app process runs in UTC)
+      const timeZone = resolveHomeyTimezone(this.device.homey);
+      const today = startOfLocalDay(new Date(now), timeZone);
 
       // Reset trigger flag at midnight
       if (now - today.getTime() < this.controlIntervalMs) {
@@ -2307,7 +2653,7 @@ export class AdaptiveControlService {
         return; // No consumption data available
       }
 
-      const dailyCost = this.energyOptimizer.calculateDailyCost(dailyConsumption);
+      const dailyCost = this.energyOptimizer.calculateDailyCost(dailyConsumption, timeZone);
 
       // Check against user-defined threshold (default €10)
       const costThreshold = (await this.device.getSetting('daily_cost_threshold')) || 10;
@@ -2424,9 +2770,8 @@ export class AdaptiveControlService {
 
         if (isInBlock && isNewBlock) {
           // Format times as HH:MM
-          const formatTime = (date: Date) => {
-            return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-          };
+          const timeZone = resolveHomeyTimezone(this.device.homey);
+          const formatTime = (date: Date) => formatHourMinute(date, timeZone);
 
           this.logger(
             `💰 Cheapest ${blockHours}-hour block started: ${formatTime(cheapestBlock.startTime)} - ${formatTime(cheapestBlock.endTime)} `
@@ -2463,9 +2808,8 @@ export class AdaptiveControlService {
         const isNewWarning = this.lastExpensiveBlockWarning !== blockStart;
 
         if (isWarningTime && isNewWarning) {
-          const formatTime = (date: Date) => {
-            return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-          };
+          const timeZone = resolveHomeyTimezone(this.device.homey);
+          const formatTime = (date: Date) => formatHourMinute(date, timeZone);
 
           this.logger(
             `⚠️ Expensive period approaching: starts at ${formatTime(expensiveBlock.startTime)} `
