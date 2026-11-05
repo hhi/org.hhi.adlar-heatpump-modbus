@@ -1,0 +1,206 @@
+/**
+ * Time formatting in Homey's configured timezone
+ *
+ * The Homey app process runs in UTC, so Date.getHours() returns UTC hours.
+ * Times shown to the user (capabilities, flow tokens, JSON data) must use
+ * the timezone configured on the Homey instead.
+ *
+ * @module lib/shared/utils/time-format
+ */
+
+/**
+ * Minimal shape of the Homey instance needed to resolve the timezone
+ */
+export interface HomeyClockProvider {
+  clock: {
+    getTimezone(): string;
+  };
+}
+
+/**
+ * Resolve Homey's configured timezone, falling back to the process timezone
+ */
+export function resolveHomeyTimezone(homey: HomeyClockProvider): string {
+  return homey?.clock?.getTimezone?.() || Intl.DateTimeFormat().resolvedOptions().timeZone;
+}
+
+/**
+ * Format a date as "HH:MM" (24-hour clock) in the given timezone
+ *
+ * @example formatHourMinute(new Date('2026-10-24T18:00:00Z'), 'Europe/Amsterdam') // "20:00"
+ */
+export function formatHourMinute(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+    timeZone,
+  }).formatToParts(date);
+
+  const hour = parts.find((p) => p.type === 'hour')?.value ?? '00';
+  const minute = parts.find((p) => p.type === 'minute')?.value ?? '00';
+  return `${hour}:${minute}`;
+}
+
+/**
+ * Format a date as "D-Mon HH:MM" in the given timezone, for the connection status
+ *
+ * @example formatDayMonthTime(new Date('2026-10-31T23:30:00Z'), 'Europe/Amsterdam') // "1-Nov 00:30"
+ */
+export function formatDayMonthTime(date: Date, timeZone: string): string {
+  const day = new Intl.DateTimeFormat('en-US', { day: 'numeric', timeZone }).format(date);
+  const month = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone }).format(date);
+  return `${day}-${month} ${formatHourMinute(date, timeZone)}`;
+}
+
+/**
+ * Wall-clock date and time of an instant in a timezone (month is 1-12)
+ */
+interface ZonedParts {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+}
+
+function getZonedParts(date: Date, timeZone: string): ZonedParts {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+    timeZone,
+  }).formatToParts(date);
+
+  const get = (type: Intl.DateTimeFormatPartTypes): number => Number(parts.find((p) => p.type === type)?.value ?? 0);
+  return {
+    year: get('year'),
+    month: get('month'),
+    day: get('day'),
+    hour: get('hour'),
+    minute: get('minute'),
+    second: get('second'),
+  };
+}
+
+/**
+ * Format a date as "YYYY-MM-DD HH:MM" in the given timezone, for the "last received" diagnostics
+ *
+ * @example formatDateTimeMinutes(new Date('2026-11-02T16:45:00Z'), 'Europe/Amsterdam') // "2026-11-02 17:45"
+ */
+export function formatDateTimeMinutes(date: Date, timeZone: string): string {
+  const p = getZonedParts(date, timeZone);
+  const pad = (n: number): string => String(n).padStart(2, '0');
+  return `${p.year}-${pad(p.month)}-${pad(p.day)} ${pad(p.hour)}:${pad(p.minute)}`;
+}
+
+/**
+ * Wall-clock minutes since midnight of an instant in the given timezone (0-1439)
+ *
+ * @example getZonedMinuteOfDay(new Date('2026-11-02T05:30:00Z'), 'Europe/Amsterdam') // 390 (06:30)
+ */
+export function getZonedMinuteOfDay(date: Date, timeZone: string): number {
+  const p = getZonedParts(date, timeZone);
+  return p.hour * 60 + p.minute;
+}
+
+/**
+ * Wall-clock calendar date of an instant in the given timezone (month is 1-12)
+ */
+export function getZonedDate(date: Date, timeZone: string): { year: number; month: number; day: number } {
+  const p = getZonedParts(date, timeZone);
+  return { year: p.year, month: p.month, day: p.day };
+}
+
+/**
+ * Offset of the timezone from UTC at the given instant, in milliseconds (e.g. +7200000 for CEST)
+ */
+function getTimezoneOffsetMs(date: Date, timeZone: string): number {
+  const p = getZonedParts(date, timeZone);
+  const wallAsUtc = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+  const instant = Math.floor(date.getTime() / 1000) * 1000;
+  return wallAsUtc - instant;
+}
+
+/**
+ * Convert a wall-clock time in the given timezone to an instant
+ *
+ * Day (and month) overflow is normalised, so day + 1 gives the next calendar day.
+ * A time that does not exist (spring-forward gap) resolves to the time after the gap;
+ * an ambiguous time (fall-back) resolves to its second occurrence.
+ *
+ * @param month - 1-12
+ * @example zonedTimeToUtc(2026, 10, 24, 7, 0, 'Europe/Amsterdam') // 2026-10-24T05:00:00Z
+ */
+export function zonedTimeToUtc(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  timeZone: string,
+): Date {
+  const wallAsUtc = Date.UTC(year, month - 1, day, hour, minute);
+  // Two passes: the offset at the first guess corrects for a DST change between both instants
+  const firstGuess = wallAsUtc - getTimezoneOffsetMs(new Date(wallAsUtc), timeZone);
+  return new Date(wallAsUtc - getTimezoneOffsetMs(new Date(firstGuess), timeZone));
+}
+
+/**
+ * Start (00:00) of the local day that contains the given instant
+ *
+ * @example startOfLocalDay(new Date('2026-10-24T23:30:00Z'), 'Europe/Amsterdam') // 2026-10-24T22:00:00Z
+ */
+export function startOfLocalDay(date: Date, timeZone: string): Date {
+  const p = getZonedParts(date, timeZone);
+  return zonedTimeToUtc(p.year, p.month, p.day, 0, 0, timeZone);
+}
+
+/**
+ * First local midnight strictly after the given instant
+ *
+ * @example nextLocalMidnight(new Date('2026-10-24T18:00:00Z'), 'Europe/Amsterdam') // 2026-10-24T22:00:00Z
+ */
+export function nextLocalMidnight(date: Date, timeZone: string): Date {
+  const p = getZonedParts(date, timeZone);
+  return zonedTimeToUtc(p.year, p.month, p.day + 1, 0, 0, timeZone);
+}
+
+/**
+ * Next occurrence of a local wall-clock time (HH:MM) strictly after the given instant
+ *
+ * @example nextLocalTime(7, 0, 'Europe/Amsterdam', new Date('2026-10-24T18:00:00Z')) // 2026-10-25T06:00:00Z
+ */
+export function nextLocalTime(hour: number, minute: number, timeZone: string, now: Date = new Date()): Date {
+  const p = getZonedParts(now, timeZone);
+  const today = zonedTimeToUtc(p.year, p.month, p.day, hour, minute, timeZone);
+  if (today.getTime() > now.getTime()) {
+    return today;
+  }
+  return zonedTimeToUtc(p.year, p.month, p.day + 1, hour, minute, timeZone);
+}
+
+/**
+ * Wall-clock hour of an instant in the given timezone, as a fraction (14.5 = 14:30)
+ *
+ * @example getZonedHour(new Date('2026-10-24T18:30:00Z'), 'Europe/Amsterdam') // 20.5
+ */
+export function getZonedHour(date: Date, timeZone: string): number {
+  const p = getZonedParts(date, timeZone);
+  return p.hour + p.minute / 60;
+}
+
+/**
+ * Mean solar time in hours at a longitude (solar noon ≈ 12.0); the equation of time is ignored
+ *
+ * @example getSolarHour(new Date('2026-10-24T11:40:00Z'), 5) // 12.0
+ */
+export function getSolarHour(date: Date, longitude: number): number {
+  const utc = date.getUTCHours() + date.getUTCMinutes() / 60;
+  return (((utc + longitude / 15) % 24) + 24) % 24;
+}

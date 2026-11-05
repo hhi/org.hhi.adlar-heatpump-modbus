@@ -40,6 +40,7 @@ import {
   scaleRegisterValue,
   validateRefrigerant,
 } from './adlar-modbus-registers';
+import { plausibleHeatingLimits, type WaterTempLimits } from '../../shared/adaptive/setpoint-range';
 
 interface CalibrationPoint {
   raw: number;
@@ -160,6 +161,8 @@ export interface ControlSnapshot {
   dhwReturnDiffC: number | null;
   hotWaterHeatSourceReturnDiffC: number | null;
   heatingHeatSourceReturnDiffC: number | null;
+  /** Active heating limits 0x00FB..0x00FA computed by the controller; null when not read or implausible. */
+  heatingLimits: WaterTempLimits | null;
 }
 
 export type PowerSource = 'unit-direct' | 'unit-derived' | 'ac-derived' | 'none';
@@ -643,13 +646,17 @@ export class Adlar2ModbusService extends EventEmitter {
     const status2 = this.tcp.u16(STATUS_REGISTER_MAP.runningStatus2.address);
     const compFreq = this.readScaledValue(SENSOR_REGISTERS.compressorRunningFreq);
 
+    const compressorOn = compFreq > 0;
+
     return {
-      running: !!(status1 & STATUS_1_BITS.MACHINE_RUN),
+      // R16: some firmware never sets MACHINE_RUN (bit 14), not even with the
+      // compressor running. Fall back to the compressor so the status stays usable.
+      running: !!(status1 & STATUS_1_BITS.MACHINE_RUN) || compressorOn,
       waiting: !!(status1 & STATUS_1_BITS.MACHINE_WAIT),
       defrosting: !!(status1 & STATUS_1_BITS.SYSTEM_DEFROST),
       antifreeze: !!(status1 & STATUS_1_BITS.PRIMARY_ANTIFREEZE) || !!(status1 & STATUS_1_BITS.SECONDARY_ANTIFREEZE),
       sterilization: !!(status2 & STATUS_2_BITS.HIGH_TEMP_STERILIZATION),
-      compressorOn: compFreq > 0,
+      compressorOn,
       faultAlarm: !!(status1 & STATUS_1_BITS.FAULT_ALARM),
       faultShutdown: !!(status1 & STATUS_1_BITS.FAULT_SHUTDOWN),
       activeFaults: decodeFaults(
@@ -695,6 +702,10 @@ export class Adlar2ModbusService extends EventEmitter {
       dhwReturnDiffC: optionalScaled(P_PARAMETERS.P96_hotWaterReturnDiff),
       hotWaterHeatSourceReturnDiffC: optionalScaled(P_PARAMETERS.P151_returnDiffHwSource),
       heatingHeatSourceReturnDiffC: optionalScaled(P_PARAMETERS.P152_returnDiffHeatSource),
+      heatingLimits: plausibleHeatingLimits(
+        optionalScaled(SENSOR_REGISTERS.heatingTempLowerLimit),
+        optionalScaled(SENSOR_REGISTERS.heatingTempUpperLimit),
+      ),
     };
   }
 

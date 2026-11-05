@@ -16,6 +16,10 @@ import { CONTROL_REGISTERS, TemperatureRegisterScale } from '../protocol/adlar-m
 import { modeToSpaceSetpointTarget } from '../protocol/adlar-enum-mappers';
 import { ModbusBlockError, RegisterChangeEntry, RegisterChangeLogMode } from '../protocol/modbus-tcp-service';
 import { RollingCOPCalculator } from '../../shared/services/rolling-cop-calculator';
+import { type BuildingProfileType } from '../../shared/adaptive/building-model-learner';
+import { formatDayMonthTime, nextLocalMidnight, resolveHomeyTimezone } from '../../shared/utils/time-format';
+import { isExternalValueFresh } from '../../shared/utils/external-value-age';
+import { diyCurveToAppCurve } from '../../shared/adaptive/positional-pi-controller';
 
 // ADR-042: Verbindingskwaliteit als expliciete runtime-state
 export type ConnectionQuality = 'online' | 'degraded' | 'offline';
@@ -69,6 +73,7 @@ export class ServiceCoordinator {
   private _lastErrorContext: string | null = null;
   private _errorCountByContext = new Map<string, number>();
   private _latestSnapshot: DataSnapshot | null = null;
+  private _diyPolled = false; // ADR-065: the medium poll group (DIY curve L27–L29) has been read since start
 
   // Dashboard snapshot callback (ADR-041a)
   private readonly onSnapshot?: (snapshot: DataSnapshot) => void;
@@ -102,6 +107,31 @@ export class ServiceCoordinator {
    * heating modes (1/5) → 0x0301, floor heating modes (3/7) → 0x0303.
    * Cooling, hot water only, reserve or an unknown mode → null (control cycles pause).
    */
+  /**
+   * ADR-065 O2: the DIY heating curve k·(T1 + 15) + b (L28/L29) at the heat pump's own ambient sensor T1,
+   * or at the app's outdoor temperature when T1 is unknown. Only while the DIY switch (0x0810) is on DIY
+   * and k is negative: otherwise L28/L29 hold leftover values, and the basis falls back to the app curve.
+   * The setpoint holds on the heating curve selection 0x0314 alone, so the DIY switch may stay on.
+   * 'pending' until the DIY registers have been read after a start, so the first cycle does not fall back.
+   */
+  private _resolveHeatPumpCurve(outdoorTemp: number | null): number | null | 'pending' {
+    const diy = this._latestSnapshot?.diy;
+    if (!diy && !this._diyPolled) return 'pending';
+    if (!diy?.active || !(diy.slopeK < 0)) return null;
+    const ambient = this._latestSnapshot?.sensors.ambientT1?.value ?? outdoorTemp;
+    return ambient !== null && ambient !== undefined ? diy.calcSetpoint(ambient) : null;
+  }
+
+  /**
+   * G16: the DIY heating curve (L28/L29) as app-curve values, regardless of the DIY switch L27:
+   * null when not usable (not supported, k not negative, outside the app curve), 'pending' until read.
+   */
+  getDiyAppCurve(): { atMinus15: number; atPlus15: number } | null | 'pending' {
+    const diy = this._latestSnapshot?.diy;
+    if (!diy) return this._diyPolled ? null : 'pending';
+    return diyCurveToAppCurve(diy.slopeK, diy.interceptB);
+  }
+
   private _resolveAdaptiveSetpoint(): ActiveSetpoint | null {
     const modeRaw = this.device.getCapabilityValue('adlar_mode');
     const mode = Number(modeRaw);
@@ -113,13 +143,21 @@ export class ServiceCoordinator {
     if (target === 'heating') {
       const reg = CONTROL_REGISTERS.tempSetHeating;
       return {
-        capability: 'target_temperature', min: reg.min, max: reg.max, label: 'heating setpoint 0x0301',
+        capability: 'target_temperature',
+        min: reg.min,
+        max: reg.max,
+        label: 'heating setpoint 0x0301',
+        heatPumpLimits: this._latestSnapshot?.control.heatingLimits ?? null,
       };
     }
     if (target === 'floor') {
       const reg = CONTROL_REGISTERS.tempSetFloorHeating;
       return {
-        capability: 'target_temperature.floor', min: reg.min, max: reg.max, label: 'floor heating setpoint 0x0303',
+        capability: 'target_temperature.floor',
+        min: reg.min,
+        max: reg.max,
+        label: 'floor heating setpoint 0x0303',
+        heatPumpLimits: this._latestSnapshot?.control.heatingLimits ?? null,
       };
     }
     return null;
@@ -137,6 +175,9 @@ export class ServiceCoordinator {
     this.adaptiveControl = new AdaptiveControlService({
       ...opts,
       resolveActiveSetpoint: () => this._resolveAdaptiveSetpoint(),
+      resolveHeatPumpCurve: (outdoorTemp) => this._resolveHeatPumpCurve(outdoorTemp),
+      resolveDiyAppCurve: () => this.getDiyAppCurve(),
+      resolvePauseReason: () => (this._latestSnapshot?.status.defrosting ? 'defrost' : null),
     });
 
     this.buildingInsights = new BuildingInsightsService({
@@ -327,14 +368,14 @@ export class ServiceCoordinator {
     const outdoorTemp = await this.device.getStoreValue('external_outdoor_temp') as number | null;
     const outdoorTs = await this.device.getStoreValue('external_outdoor_temp_timestamp') as number | null;
     if (typeof outdoorTemp === 'number') {
-      const age = outdoorTs ? Date.now() - outdoorTs : null;
-      if (age === null || age <= TEMP_TTL_MS) {
+      if (isExternalValueFresh(outdoorTs, Date.now(), TEMP_TTL_MS)) {
         if (this.device.hasCapability('adlar_external_ambient')) {
           await this.device.setCapabilityValue('adlar_external_ambient', outdoorTemp);
         }
         this.logger(`ServiceCoordinator: Restored external outdoor temp: ${outdoorTemp}°C`);
       } else {
-        this.logger(`ServiceCoordinator: External outdoor temp too old (${Math.round(age / 60000)}min) — skipped`);
+        const ageText = typeof outdoorTs === 'number' ? `${Math.round((Date.now() - outdoorTs) / 60000)}min` : 'unknown age';
+        this.logger(`ServiceCoordinator: External outdoor temp too old (${ageText}) — skipped`);
       }
     }
 
@@ -383,19 +424,25 @@ export class ServiceCoordinator {
     }, 60_000);
   }
 
-  private _scheduleDailyDisconnectReset(): void {
+  /**
+   * Reset the daily disconnect count at local midnight (Homey timezone)
+   *
+   * @param from - Instant to plan from; after a reset this is the midnight that just passed
+   */
+  private _scheduleDailyDisconnectReset(from: Date = new Date()): void {
     if (this._disconnectDailyResetTimer) {
       this.device.homey.clearTimeout(this._disconnectDailyResetTimer);
     }
-    const now = new Date();
-    const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime();
+    const midnight = nextLocalMidnight(from, resolveHomeyTimezone(this.device.homey));
+    const msUntilMidnight = Math.max(0, midnight.getTime() - Date.now());
     this._disconnectDailyResetTimer = this.device.homey.setTimeout(() => {
       this._disconnectDailyResetTimer = null;
       if (this.device.hasCapability('adlar_daily_disconnect_count')) {
         this.device.setCapabilityValue('adlar_daily_disconnect_count', 0).catch(() => {});
         this.logger('ServiceCoordinator: Daily disconnect count reset at midnight');
       }
-      this._scheduleDailyDisconnectReset();
+      // Plan from this midnight, so a timer firing a few ms early cannot pick the same midnight again
+      this._scheduleDailyDisconnectReset(midnight);
     }, msUntilMidnight);
   }
 
@@ -484,6 +531,7 @@ export class ServiceCoordinator {
       lastErrorContext: this._lastErrorContext,
     };
     this._latestSnapshot = snapshot;
+    if (sourcePollGroup === 'medium') this._diyPolled = true;
 
     // Forward naar dashboard (ADR-041a)
     this.onSnapshot?.(snapshot);
@@ -541,11 +589,7 @@ export class ServiceCoordinator {
   private _setConnectionCapabilities(connected: boolean, reason: string | null): void {
     this._visibleConnectionConnected = connected;
 
-    const now = new Date();
-    const day = now.getDate();
-    const month = now.toLocaleString('en-US', { month: 'short' });
-    const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    const timestamp = `${day}-${month} ${time}`;
+    const timestamp = formatDayMonthTime(new Date(), resolveHomeyTimezone(this.device.homey));
     const status = connected ? `Connected: ${timestamp}` : `Disconnected: ${timestamp}${reason ? ` (${reason})` : ''}`;
 
     if (this.device.hasCapability('adlar_connection_active')) {
@@ -749,6 +793,23 @@ export class ServiceCoordinator {
     }
     if (this.adaptiveControl) {
       await this.adaptiveControl.onSettings(oldSettings, newSettings, changedKeys);
+
+      // Building profile change → soft reset the building model (same as the Tuya coordinator).
+      // Runs after adaptiveControl.onSettings(), so a reset in the same save is followed by the new profile.
+      if (changedKeys.includes('building_profile')) {
+        const newProfile = newSettings.building_profile as BuildingProfileType;
+        try {
+          await this.adaptiveControl.getBuildingModelService().softReset(newProfile);
+          this.logger('ServiceCoordinator: Building model soft-reset for new profile:', newProfile);
+          if (this.buildingInsights) {
+            // Replace stale "switch to X" advice by the profile-aware verification message
+            await this.buildingInsights.evaluateInsights();
+            this.logger('ServiceCoordinator: Building insights re-evaluated after profile change');
+          }
+        } catch (error) {
+          this.logger('ServiceCoordinator: Building model soft-reset failed (non-critical)', error);
+        }
+      }
     }
     if (this.buildingInsights) {
       await this.buildingInsights.onSettingsChanged(newSettings).catch((error) => {
