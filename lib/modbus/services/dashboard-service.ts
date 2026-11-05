@@ -2,6 +2,11 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable node/no-missing-import */
 /* eslint-disable import/extensions */
+/* eslint-disable no-use-before-define -- de helperfuncties (buildRegisterBlocks,
+   _pollGroupsForAddress, _serializeBits, _scaleMultiplyForDef, _isTemperatureDef,
+   _parameterIdFromKey) staan bewust onderaan het bestand: de HTTP-routes bovenaan
+   lezen dan als inhoudsopgave. Function declarations worden gehoist, dus dit is
+   correct. Herschikken zou een bestand van 1100 regels omgooien zonder winst. */
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
@@ -48,6 +53,8 @@ import {
 
 // ── Whitelist voor ADR-044 interactief dashboard ───────────────────────────────
 
+const DASHBOARD_API_BUILD = '2026-08-04-json-errors-v2';
+
 interface WritableRegisterMeta {
   address: number;
   min: number;
@@ -59,11 +66,21 @@ interface WritableRegisterMeta {
 }
 
 const WRITABLE_REGISTERS: Record<string, WritableRegisterMeta> = {
-  tempSetHeating:  { address: CONTROL_REGISTERS.tempSetHeating.address,  min: 15, max: 60, multiply: 0.1, name: 'Verwarming setpoint',                  capability: 'target_temperature', temperature: true },
-  tempSetHotWater: { address: CONTROL_REGISTERS.tempSetHotWater.address, min: 20, max: 75, multiply: 0.1, name: 'Tapwater setpoint',                    capability: 'target_temperature.dhw', temperature: true },
-  tempSetCooling:  { address: CONTROL_REGISTERS.tempSetCooling.address,  min: 7,  max: 25, multiply: 0.1, name: 'Koeling setpoint',                     capability: 'target_temperature.cooling', temperature: true },
-  mainSwitch:      { address: CONTROL_REGISTERS.mainSwitch.address,      min: 0,  max: 1,  multiply: 1,   name: 'Hoofdschakelaar (0=uit, 1=aan)' },
-  runningMode:     { address: CONTROL_REGISTERS.runningMode.address,     min: 0,  max: 2,  multiply: 1,   name: 'Gebruikersmodus (0=Standaard, 1=Krachtig, 2=Stil)' },
+  tempSetHeating: {
+    address: CONTROL_REGISTERS.tempSetHeating.address, min: 15, max: 60, multiply: 0.1, name: 'Verwarming setpoint', capability: 'target_temperature', temperature: true,
+  },
+  tempSetHotWater: {
+    address: CONTROL_REGISTERS.tempSetHotWater.address, min: 20, max: 75, multiply: 0.1, name: 'Tapwater setpoint', capability: 'target_temperature.dhw', temperature: true,
+  },
+  tempSetCooling: {
+    address: CONTROL_REGISTERS.tempSetCooling.address, min: 7, max: 25, multiply: 0.1, name: 'Koeling setpoint', capability: 'target_temperature.cooling', temperature: true,
+  },
+  mainSwitch: {
+    address: CONTROL_REGISTERS.mainSwitch.address, min: 0, max: 1, multiply: 1, name: 'Hoofdschakelaar (0=uit, 1=aan)',
+  },
+  runningMode: {
+    address: CONTROL_REGISTERS.runningMode.address, min: 0, max: 2, multiply: 1, name: 'Gebruikersmodus (0=Standaard, 1=Krachtig, 2=Stil)',
+  },
 };
 
 // ── Registermetadata types voor ADR-046 expertdashboard ───────────────────────
@@ -212,7 +229,7 @@ export class DashboardService {
       this._handleRequest(req, res).catch((err: Error) => {
         this.logger('DashboardService: Onverwachte fout:', err.stack ?? err.message);
         if (!res.headersSent) {
-          this._jsonError(res, 500, err.message || 'Internal Server Error');
+          this._jsonError(res, 500, err.message || 'Interne serverfout');
         }
       });
     });
@@ -226,7 +243,7 @@ export class DashboardService {
     });
 
     this.server.listen(this.port, () => {
-      this.logger(`DashboardService: Gestart op http://localhost:${this.port}/`);
+      this.logger(`DashboardService: Gestart op http://localhost:${this.port}/ (API-fouten retourneren JSON)`);
     });
   }
 
@@ -369,7 +386,7 @@ export class DashboardService {
     };
 
     for (const [addr, entry] of log) {
-      const intervals = entry.intervals;
+      const { intervals } = entry;
       const avgInterval = intervals.length > 0
         ? Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length)
         : null;
@@ -467,8 +484,12 @@ export class DashboardService {
 
     for (const [id, value] of Object.entries(values)) {
       if (value === null || value === undefined) continue;
-      const m = meta.get(id) ?? { title: id, unit: '', icon: '', type: 'string' };
-      entries.push({ id, title: m.title, unit: m.unit, icon: m.icon, type: m.type, value });
+      const m = meta.get(id) ?? {
+        title: id, unit: '', icon: '', type: 'string',
+      };
+      entries.push({
+        id, title: m.title, unit: m.unit, icon: m.icon, type: m.type, value,
+      });
     }
 
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -509,7 +530,9 @@ export class DashboardService {
           || '';
         const icon = (def.icon as string) || '';
         const type = (def.type as string) || 'string';
-        map.set(id, { title, unit, icon, type });
+        map.set(id, {
+          title, unit, icon, type,
+        });
       }
 
       // Verrijk met capabilitiesOptions uit de driverdefinitie (titel/eenheid-overrides)
@@ -517,7 +540,9 @@ export class DashboardService {
       for (const driver of drivers) {
         const opts = (driver.capabilitiesOptions ?? {}) as Record<string, Record<string, unknown>>;
         for (const [id, opt] of Object.entries(opts)) {
-          const existing = map.get(id) ?? { title: id, unit: '', icon: '', type: 'number' };
+          const existing = map.get(id) ?? {
+            title: id, unit: '', icon: '', type: 'number',
+          };
           const title = (opt.title as Record<string, string>)?.en
             || (opt.title as Record<string, string>)?.nl
             || existing.title;
@@ -531,21 +556,21 @@ export class DashboardService {
 
     // Standaard Homey-capabilities zonder eigen compose-bestand
     const HOMEY_DEFAULTS: Record<string, { title: string; unit: string; type: string }> = {
-      'onoff':                       { title: 'On/Off',                  unit: '',    type: 'boolean' },
-      'alarm_generic':               { title: 'Alarm',                   unit: '',    type: 'boolean' },
-      'measure_power':               { title: 'Power',                   unit: 'W',   type: 'number'  },
-      'measure_voltage':             { title: 'Voltage',                 unit: 'V',   type: 'number'  },
-      'measure_current':             { title: 'Current',                 unit: 'A',   type: 'number'  },
-      'meter_power':                 { title: 'Energy',                  unit: 'kWh', type: 'number'  },
-      'measure_water':               { title: 'Water Flow',              unit: 'L/min',type:'number'  },
-      'target_temperature':          { title: 'Heating Setpoint',        unit: '°C',  type: 'number'  },
-      'target_temperature.cooling':  { title: 'Cooling Setpoint',        unit: '°C',  type: 'number'  },
-      'target_temperature.dhw':      { title: 'DHW Setpoint',            unit: '°C',  type: 'number'  },
-      'target_temperature.floor':    { title: 'Floor Heating Setpoint',  unit: '°C',  type: 'number'  },
-      'target_temperature.indoor':   { title: 'Desired Indoor Temp',     unit: '°C',  type: 'number'  },
-      'measure_temperature.outlet':  { title: 'Water Outlet Temp (T7)',  unit: '°C',  type: 'number'  },
-      'measure_temperature.inlet':   { title: 'Water Inlet Temp (T6)',   unit: '°C',  type: 'number'  },
-      'measure_temperature.ambient': { title: 'Ambient Temp (T1)',       unit: '°C',  type: 'number'  },
+      onoff: { title: 'On/Off', unit: '', type: 'boolean' },
+      alarm_generic: { title: 'Alarm', unit: '', type: 'boolean' },
+      measure_power: { title: 'Power', unit: 'W', type: 'number' },
+      measure_voltage: { title: 'Voltage', unit: 'V', type: 'number' },
+      measure_current: { title: 'Current', unit: 'A', type: 'number' },
+      meter_power: { title: 'Energy', unit: 'kWh', type: 'number' },
+      measure_water: { title: 'Water Flow', unit: 'L/min', type: 'number' },
+      target_temperature: { title: 'Heating Setpoint', unit: '°C', type: 'number' },
+      'target_temperature.cooling': { title: 'Cooling Setpoint', unit: '°C', type: 'number' },
+      'target_temperature.dhw': { title: 'DHW Setpoint', unit: '°C', type: 'number' },
+      'target_temperature.floor': { title: 'Floor Heating Setpoint', unit: '°C', type: 'number' },
+      'target_temperature.indoor': { title: 'Desired Indoor Temp', unit: '°C', type: 'number' },
+      'measure_temperature.outlet': { title: 'Water Outlet Temp (T7)', unit: '°C', type: 'number' },
+      'measure_temperature.inlet': { title: 'Water Inlet Temp (T6)', unit: '°C', type: 'number' },
+      'measure_temperature.ambient': { title: 'Ambient Temp (T1)', unit: '°C', type: 'number' },
     };
     for (const [id, def] of Object.entries(HOMEY_DEFAULTS)) {
       if (!map.has(id)) map.set(id, { icon: '', ...def });
@@ -554,7 +579,7 @@ export class DashboardService {
     // Vervang resterende ID-fallbacks door leesbare tekst
     for (const [id, meta] of map.entries()) {
       if (meta.title === id) {
-        const readable = id.replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        const readable = id.replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
         map.set(id, { ...meta, title: readable });
       }
     }
@@ -616,10 +641,10 @@ export class DashboardService {
     const map = new Map<number, string>();
     const groups = [
       { name: 'superfast', reads: POLL_GROUP_SUPERFAST.reads },
-      { name: 'fast',      reads: POLL_GROUP_FAST.reads },
-      { name: 'medium',    reads: POLL_GROUP_MEDIUM.reads },
-      { name: 'slow',      reads: POLL_GROUP_SLOW.reads },
-      { name: 'once',      reads: POLL_GROUP_ONCE.reads },
+      { name: 'fast', reads: POLL_GROUP_FAST.reads },
+      { name: 'medium', reads: POLL_GROUP_MEDIUM.reads },
+      { name: 'slow', reads: POLL_GROUP_SLOW.reads },
+      { name: 'once', reads: POLL_GROUP_ONCE.reads },
     ];
     for (const group of groups) {
       for (const block of group.reads) {
@@ -634,8 +659,8 @@ export class DashboardService {
 
   private _recommendPollGroup(avgMs: number | null): string {
     if (avgMs === null) return '?';
-    if (avgMs < 10_000)  return 'superfast';
-    if (avgMs < 30_000)  return 'fast';
+    if (avgMs < 10_000) return 'superfast';
+    if (avgMs < 30_000) return 'fast';
     if (avgMs < 300_000) return 'medium';
     if (avgMs < 1_800_000) return 'slow';
     return 'once';
@@ -664,6 +689,7 @@ export class DashboardService {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('X-Adlar-Dashboard-Build', DASHBOARD_API_BUILD);
   }
 
   private _serveFile(res: http.ServerResponse, filename: string): Promise<void> {
@@ -708,9 +734,15 @@ export class DashboardService {
   private _readBody(req: http.IncomingMessage): Promise<unknown> {
     return new Promise((resolve, reject) => {
       let body = '';
-      req.on('data', (chunk: Buffer) => { body += chunk.toString(); });
+      req.on('data', (chunk: Buffer) => {
+        body += chunk.toString();
+      });
       req.on('end', () => {
-        try { resolve(JSON.parse(body)); } catch { reject(new Error('Ongeldige JSON body')); }
+        try {
+          resolve(JSON.parse(body));
+        } catch {
+          reject(new Error('Ongeldige JSON body'));
+        }
       });
       req.on('error', reject);
     });
@@ -735,7 +767,9 @@ export class DashboardService {
     }
 
     let body: unknown;
-    try { body = await this._readBody(req); } catch {
+    try {
+      body = await this._readBody(req);
+    } catch {
       this._jsonError(res, 400, 'Ongeldige JSON body');
       return;
     }
@@ -784,7 +818,9 @@ export class DashboardService {
     }
 
     let body: unknown;
-    try { body = await this._readBody(req); } catch {
+    try {
+      body = await this._readBody(req);
+    } catch {
       this._jsonError(res, 400, 'Ongeldige JSON body');
       return;
     }
@@ -819,7 +855,9 @@ export class DashboardService {
     }
 
     let body: unknown;
-    try { body = await this._readBody(req); } catch {
+    try {
+      body = await this._readBody(req);
+    } catch {
       this._jsonError(res, 400, 'Ongeldige JSON body');
       return;
     }
@@ -858,7 +896,9 @@ export class DashboardService {
     }
 
     let body: unknown;
-    try { body = await this._readBody(req); } catch {
+    try {
+      body = await this._readBody(req);
+    } catch {
       this._jsonError(res, 400, 'Ongeldige JSON body');
       return;
     }
@@ -873,11 +913,11 @@ export class DashboardService {
       return;
     }
     if (slope < -5.0 || slope > 0.0) {
-      this._jsonError(res, 400, `slope buiten bereik: min=-5.0, max=0.0`);
+      this._jsonError(res, 400, 'slope buiten bereik: min=-5.0, max=0.0');
       return;
     }
     if (intercept < 30 || intercept > 80) {
-      this._jsonError(res, 400, `intercept buiten bereik: min=30, max=80`);
+      this._jsonError(res, 400, 'intercept buiten bereik: min=30, max=80');
       return;
     }
 
@@ -1121,7 +1161,7 @@ function _parameterIdFromKey(key: string): string | undefined {
 }
 
 function _serializeBits(def: unknown): Record<string, number> | undefined {
-  const bits = (def as { bits?: Record<string, number> }).bits;
+  const { bits } = def as { bits?: Record<string, number> };
   if (!bits) return undefined;
   return Object.fromEntries(
     Object.entries(bits).map(([k, v]) => [k, Number(v)]),
@@ -1143,6 +1183,7 @@ function _scaleMultiplyForDef(def: unknown, tempScale: TemperatureRegisterScale)
 
 // Bits-constanten worden geïmporteerd zodat de compiler ze als gebruikt beschouwt
 // (ze zijn indirect gebruikt via STATUS_REGISTER_MAP en USER_COMMANDS_REGISTERS)
+// eslint-disable-next-line no-void -- bewuste no-op om de imports als 'gebruikt' te markeren
 void [
   STATUS_1_BITS, STATUS_2_BITS, FAULT_1_BITS, FAULT_2_BITS, FAULT_3_BITS,
   SYS1_FAULT_1_BITS, SYS1_FAULT_2_BITS, SYS1_DRIVE_FAULT_1_BITS,
