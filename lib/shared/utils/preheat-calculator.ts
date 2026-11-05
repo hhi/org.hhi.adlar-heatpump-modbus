@@ -9,7 +9,7 @@
  * - building-insights-service.ts (detectPreHeatingInsights)
  * - building-insights-service.ts (triggerPreHeatRecommendation)
  *
- * @module lib/shared/utils/preheat-calculator
+ * @module lib/utils/preheat-calculator
  * @version 2.7.6
  */
 

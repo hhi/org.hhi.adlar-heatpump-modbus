@@ -64,7 +64,8 @@ const DHW_SETPOINT_MAX_C = 75;
 const INDOOR_TARGET_MIN_C = 15;
 const INDOOR_TARGET_MAX_C = 25;
 
-const THRESHOLD_TRIGGER_CARDS: Array<{
+/** Exported for the SnapshotTriggerService contract test: state must carry each stateField. */
+export const THRESHOLD_TRIGGER_CARDS: Array<{
   cardId: string;
   thresholdArg: string;
   stateField: string;
@@ -1550,7 +1551,7 @@ export class FlowCardManagerService {
         // eslint-disable-next-line camelcase
         const referenceTemp = args.reference_temp as number; // L29: supply temp at -15°C
         // eslint-disable-next-line camelcase
-        const slopeGrade = args.slope_grade as number;        // L28: slope per 10°C
+        const slopeGrade = args.slope_grade as number; // L28: slope per 10°C
 
         // Adlar Custom curve: slope = slopeGrade / 10, intercept from reference point
         // Formula: y = slope * x + intercept

@@ -701,9 +701,9 @@ export class Adlar2ModbusService extends EventEmitter {
   private buildPower(): PowerSnapshot {
     const unitVoltageV = this.readScaledValue(SENSOR_REGISTERS.deviceInputVoltage);
     const unitCurrentA = this.readScaledValue(SENSOR_REGISTERS.deviceInputCurrent);
-    const unitPowerKw  = this.readScaledValue(SENSOR_REGISTERS.deviceInputPower);
-    const acVoltageV   = this.readScaledValue(SENSOR_REGISTERS.acInputVoltage);
-    const acCurrentA   = this.readScaledValue(SENSOR_REGISTERS.acInputCurrent); // kalibratie al toegepast
+    const unitPowerKw = this.readScaledValue(SENSOR_REGISTERS.deviceInputPower);
+    const acVoltageV = this.readScaledValue(SENSOR_REGISTERS.acInputVoltage);
+    const acCurrentA = this.readScaledValue(SENSOR_REGISTERS.acInputCurrent); // kalibratie al toegepast
 
     let inputPowerKw: number;
     let inputVoltageV: number;
@@ -712,39 +712,39 @@ export class Adlar2ModbusService extends EventEmitter {
     let powerSource: PowerSource;
 
     if (unitPowerKw > 0) {
-      powerSource    = 'unit-direct';
-      inputPowerKw   = unitPowerKw;
-      inputVoltageV  = unitVoltageV > 0 ? unitVoltageV : acVoltageV;
-      inputCurrentA  = unitCurrentA > 0 ? unitCurrentA : acCurrentA;
+      powerSource = 'unit-direct';
+      inputPowerKw = unitPowerKw;
+      inputVoltageV = unitVoltageV > 0 ? unitVoltageV : acVoltageV;
+      inputCurrentA = unitCurrentA > 0 ? unitCurrentA : acCurrentA;
       derivedPowerKw = unitPowerKw;
     } else if (unitVoltageV > 0 && unitCurrentA > 0) {
-      powerSource    = 'unit-derived';
-      inputVoltageV  = unitVoltageV;
-      inputCurrentA  = unitCurrentA;
+      powerSource = 'unit-derived';
+      inputVoltageV = unitVoltageV;
+      inputCurrentA = unitCurrentA;
       derivedPowerKw = (unitVoltageV * unitCurrentA) / 1000;
-      inputPowerKw   = derivedPowerKw;
+      inputPowerKw = derivedPowerKw;
     } else if (acVoltageV > 0 && acCurrentA > 0) {
-      powerSource    = 'ac-derived';
-      inputVoltageV  = acVoltageV;
-      inputCurrentA  = acCurrentA;
+      powerSource = 'ac-derived';
+      inputVoltageV = acVoltageV;
+      inputCurrentA = acCurrentA;
       derivedPowerKw = (acVoltageV * acCurrentA) / 1000;
-      inputPowerKw   = derivedPowerKw;
+      inputPowerKw = derivedPowerKw;
     } else {
-      powerSource    = 'none';
-      inputPowerKw   = 0;
-      inputVoltageV  = 0;
-      inputCurrentA  = 0;
+      powerSource = 'none';
+      inputPowerKw = 0;
+      inputVoltageV = 0;
+      inputCurrentA = 0;
       derivedPowerKw = 0;
     }
 
     return {
-      inputPowerKw:   +inputPowerKw.toFixed(3),
-      inputCurrentA:  +inputCurrentA.toFixed(2),
-      inputVoltageV:  +inputVoltageV.toFixed(1),
+      inputPowerKw: +inputPowerKw.toFixed(3),
+      inputCurrentA: +inputCurrentA.toFixed(2),
+      inputVoltageV: +inputVoltageV.toFixed(1),
       totalEnergyKwh: this.tcp.u16(SENSOR_REGISTERS.totalEnergyConsumption.address),
       derivedPowerKw: +derivedPowerKw.toFixed(3),
-      acVoltageV:     +acVoltageV.toFixed(1),
-      acCurrentA:     +acCurrentA.toFixed(2),
+      acVoltageV: +acVoltageV.toFixed(1),
+      acCurrentA: +acCurrentA.toFixed(2),
       powerSource,
     };
   }
