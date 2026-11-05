@@ -167,6 +167,86 @@ class MyApp extends App {
     }
   }
 
+  private scopedFeature(featureName: string, args?: unknown): string {
+    const driverId = (args as { device?: { driver?: { id?: string } } } | undefined)
+      ?.device?.driver?.id;
+    return driverId ? `${featureName}:${driverId}` : featureName;
+  }
+
+  /**
+   * Run listeners for the daily and monthly COP cards: the condition and threshold in the card
+   * decide whether a flow starts. Registered once per app, not per device.
+   */
+  private registerCopTriggerRunListeners(): void {
+    // Daily COP Efficiency Changed
+    const dailyCOPCard = this.homey.flow.getDeviceTriggerCard('daily_cop_efficiency_changed');
+    dailyCOPCard.registerRunListener(async (args, state) => {
+      const featureName = 'daily_cop_efficiency_changed';
+      try {
+        if (!this.selfHealing.isFeatureEnabled(this.scopedFeature(featureName, args))) return true;
+
+        if (!state?.condition || typeof state?.cop_value !== 'number') {
+          this.error(`${featureName}: Invalid state`, { state });
+          this.selfHealing.trackError(this.scopedFeature(featureName, args), { error: 'Invalid state', state });
+          return false;
+        }
+        if (!args?.condition || typeof args?.threshold !== 'number') {
+          this.error(`${featureName}: Invalid args`, { args });
+          this.selfHealing.trackError(this.scopedFeature(featureName, args), { error: 'Invalid args', args });
+          return false;
+        }
+
+        const userCondition = args.condition;
+        const userThreshold = args.threshold;
+        const currentCOP = state.cop_value;
+        const triggerCondition = state.condition;
+
+        if (userCondition === 'above') {
+          return triggerCondition === 'above' && currentCOP >= userThreshold;
+        }
+        return triggerCondition === 'below' && currentCOP <= userThreshold;
+      } catch (error) {
+        this.error(`${featureName} runListener error:`, error);
+        this.selfHealing.trackError(this.scopedFeature(featureName, args), { error });
+        return false;
+      }
+    });
+
+    // Monthly COP Efficiency Changed
+    const monthlyCOPCard = this.homey.flow.getDeviceTriggerCard('monthly_cop_efficiency_changed');
+    monthlyCOPCard.registerRunListener(async (args, state) => {
+      const featureName = 'monthly_cop_efficiency_changed';
+      try {
+        if (!this.selfHealing.isFeatureEnabled(this.scopedFeature(featureName, args))) return true;
+
+        if (!state?.condition || typeof state?.cop_value !== 'number') {
+          this.error(`${featureName}: Invalid state`, { state });
+          this.selfHealing.trackError(this.scopedFeature(featureName, args), { error: 'Invalid state', state });
+          return false;
+        }
+        if (!args?.condition || typeof args?.threshold !== 'number') {
+          this.error(`${featureName}: Invalid args`, { args });
+          this.selfHealing.trackError(this.scopedFeature(featureName, args), { error: 'Invalid args', args });
+          return false;
+        }
+
+        const userCondition = args.condition;
+        const userThreshold = args.threshold;
+        const currentCOP = state.cop_value;
+        const triggerCondition = state.condition;
+
+        if (userCondition === 'above') {
+          return triggerCondition === 'above' && currentCOP >= userThreshold;
+        }
+        return triggerCondition === 'below' && currentCOP <= userThreshold;
+      } catch (error) {
+        this.error(`${featureName} runListener error:`, error);
+        this.selfHealing.trackError(this.scopedFeature(featureName, args), { error });
+        return false;
+      }
+    });
+  }
+
   async onInit() {
     const logLevel = process.env.DEBUG === '1' ? LogLevel.DEBUG : LogLevel.ERROR;
     this.logger = new Logger(
@@ -203,6 +283,8 @@ class MyApp extends App {
         excerpt: 'Adlar Modbus: Critical error — please restart',
       }).catch(() => {});
     });
+
+    this.registerCopTriggerRunListeners();
 
     await this.setDashboardPort(DEFAULT_DASHBOARD_PORT);
 
