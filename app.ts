@@ -6,10 +6,13 @@ import enableDebugInspector from './app-debug';
 import { SelfHealingRegistry } from './lib/shared/self-healing-registry';
 import { Logger, LogLevel } from './lib/shared/logger';
 import { DashboardService } from './lib/modbus/services/dashboard-service';
-import { LiveOperationWidgetState } from './lib/modbus/services/widget-state-service';
+import { LiveOperationWidgetState as ModbusLiveOperationWidgetState } from './lib/modbus/services/widget-state-service';
+import { LiveOperationWidgetEmptyState } from './lib/shared/widget-state-common';
 
 const DEFAULT_DASHBOARD_PORT = 8090;
 const ADLAR_DRIVER_ID = 'intelligent-heatpump-modbus';
+
+type LiveOperationWidgetState = ModbusLiveOperationWidgetState | LiveOperationWidgetEmptyState;
 
 interface LiveOperationWidgetDevice {
   getData(): unknown;
@@ -35,55 +38,7 @@ class MyApp extends App {
   getAdlarLiveOperationWidgetState(deviceId?: string): LiveOperationWidgetState {
     const devices = this._getAdlarDevices();
     if (devices.length === 0) {
-      return {
-        ok: false,
-        message: 'Geen Adlar warmtepomp gekoppeld.',
-        device: { name: '' },
-        status: {
-          running: false,
-          compressorOn: false,
-          defrosting: false,
-          mode: 'Unknown',
-          faultActive: '',
-          connectionStatus: 'unknown',
-          connectionLabel: 'Unknown',
-        },
-        temperatures: {
-          outletC: null,
-          inletC: null,
-          ambientC: null,
-          dhwC: null,
-          bufferC: null,
-        },
-        process: {
-          deltaTC: null,
-          flowLpm: null,
-          electricalPowerKw: null,
-          thermalPowerKw: null,
-          compressorHz: null,
-          liveCopEstimate: null,
-          capabilityCop: null,
-          flowSource: 'none',
-          powerSource: 'none',
-        },
-        regulation: {
-          mode: 'Unknown',
-          sensor: 'regelbron onbekend',
-          hysteresisC: null,
-          hysteresisSource: '-',
-          hysteresisText: 'Hysterese onbekend',
-          activeSetpointC: null,
-          activeSetpointText: 'Setpoint onbekend',
-          setpointDeviationC: null,
-          summary: 'Regeling onbekend',
-        },
-        data: {
-          timestamp: null,
-          ageMs: null,
-          freshness: 'no_data',
-          sourcePollGroup: null,
-        },
-      };
+      return { ok: false, messageCode: 'no_device' };
     }
 
     const device = this._findAdlarDevice(devices, deviceId) ?? devices[0];

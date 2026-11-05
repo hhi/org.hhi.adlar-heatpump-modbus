@@ -1,0 +1,152 @@
+{
+  "pair": {
+    "enter_modbus_info": {
+      "title": "Connexion Modbus",
+      "description": "Saisissez l'adresse IP et le port de votre Elfin EW11A ou de votre passerelle Modbus TCP",
+      "host": "Adresse IP :",
+      "port": "Port TCP :",
+      "unit_id": "ID d'unité Modbus :",
+      "continue": "Continuer"
+    }
+  },
+  "cop_method": {
+    "direct_thermal": "Thermique Direct",
+    "power_module": "Module de Puissance",
+    "power_estimation": "Estimation de Puissance",
+    "refrigerant_circuit": "Circuit Frigorifique",
+    "carnot_estimation": "Estimation de Carnot",
+    "valve_correlation": "Corrélation de Vanne",
+    "temperature_difference": "Différence de Température",
+    "insufficient_data": "!"
+  },
+  "cop_method_description": {
+    "direct_thermal": "Calcul thermique direct utilisant le débit d'eau et la différence de température (précision ±5%)",
+    "power_module": "Estimation du module de puissance utilisant des capteurs internes et validation externe (précision ±8%)",
+    "power_estimation": "Estimation de consommation électrique utilisant les données du compresseur et du ventilateur (précision ±10%)",
+    "refrigerant_circuit": "Analyse du circuit frigorifique utilisant des capteurs de pression et température (précision ±12%)",
+    "carnot_estimation": "Estimation basée sur Carnot utilisant la fréquence du compresseur et température ambiante (précision ±15%)",
+    "valve_correlation": "Corrélation de position de vanne utilisant les données de vanne d'expansion (précision ±20%)",
+    "temperature_difference": "Estimation de différence de température utilisant des relations empiriques (précision ±30%)",
+    "insufficient_data": "Données insuffisantes disponibles pour toute méthode de calcul COP"
+  },
+  "scop_status": {
+    "initializing": "Initialisation...",
+    "collecting": "Collecte de données",
+    "insufficient_data": "7+ jours de données nécessaires",
+    "calculating": "Calcul en cours..."
+  },
+  "trend_descriptions": {
+    "strong_improvement": "Forte Amélioration d'Efficacité",
+    "moderate_improvement": "Amélioration d'Efficacité Modérée",
+    "slight_improvement": "Légère Amélioration d'Efficacité",
+    "significant_decline": "Baisse d'Efficacité Importante",
+    "moderate_decline": "Baisse d'Efficacité Modérée",
+    "slight_decline": "Légère Baisse d'Efficacité",
+    "stable": "Performance Stable"
+  },
+  "cop_diagnostics": {
+    "no_power_measurement": "Aucune Donnée de Puissance",
+    "no_thermal_measurement": "Aucune Donnée Thermique",
+    "no_water_flow": "Aucune Donnée de Débit",
+    "no_temperature_difference": "Aucun Delta de Température",
+    "no_compressor_data": "Aucune Donnée de Compresseur",
+    "insufficient_sensor_data": "Multiples Défaillances",
+    "enable_power_monitoring": "Activer la Surveillance de Puissance",
+    "check_temperature_sensors": "Vérifier les Capteurs de Température",
+    "check_flow_sensor": "Vérifier le Capteur de Débit",
+    "check_compressor_communication": "Vérifier la Liaison Compresseur",
+    "check_multiple_sensors": "Vérifier Tous les Capteurs"
+  },
+  "COP calculation disabled": "Calcul COP désactivé",
+  "connection_status": {
+    "connected": "Connecté",
+    "disconnected": "Déconnecté",
+    "reconnecting": "Reconnexion",
+    "error": "Erreur"
+  },
+  "building_model": {
+    "thermal_mass_title": "ML Masse Thermique",
+    "heat_loss_title": "ML Perte de Chaleur",
+    "time_constant_title": "ML Constante de Temps",
+    "solar_gain_title": "ML Facteur de Gain Solaire",
+    "internal_gains_title": "ML Gains Internes",
+    "status_learned": "EN APPRENTISSAGE",
+    "status_default": "PAR DÉFAUT",
+    "status_blocked": "BLOQUÉ",
+    "blocked_prefix": "Blocked",
+    "blocked_no_indoor_temp": "Pas de temp int",
+    "blocked_no_outdoor_temp": "Pas de temp ext",
+    "blocked_no_power": "Pas de puissance",
+    "blocked_disabled": "Désactivé",
+    "blocked_dhw_mode": "Pas en mode chauffage",
+    "blocked_defrost": "Dégivrage actif",
+    "blocked_no_cop": "Pas de mesure COP",
+    "period_night": "Nuit",
+    "period_day": "Jour",
+    "period_evening": "Soir",
+    "blocked_dhw_active": "Production d'eau chaude",
+    "blocked_aux_heating": "Auxiliary heating active"
+  },
+  "errors": {
+    "zone_onoff_disabled": "La marche/arrêt via le registre de zone 2101 est expérimentale. Activez 'Marche/arrêt via la commande de zone (expérimental)' dans les paramètres de l'appareil pour l'utiliser.",
+    "silent_level2_r290_only": "Le mode silencieux niveau 2 n'est disponible que sur les pompes à chaleur R290."
+  },
+  "widget": {
+    "live_operation": {
+      "locale": "fr-FR",
+      "loading": "Chargement du fonctionnement en direct...",
+      "no_data": "Aucune donnée en direct disponible.",
+      "no_device": "Aucune pompe à chaleur Adlar associée.",
+      "load_failed": "Les données en direct n'ont pas pu être chargées.",
+      "default_device_name": "Pompe à chaleur Adlar",
+      "unknown": "Inconnu",
+      "status": {
+        "fault": "Défaut",
+        "defrost": "Dégivrage",
+        "active": "Actif",
+        "standby": "Veille"
+      },
+      "connection": {
+        "online": "En ligne",
+        "offline": "Hors ligne",
+        "degraded": "Dégradée"
+      },
+      "delta": "Départ - retour",
+      "regulation": "Régulation",
+      "regulation_summary": "__mode__ sur __sensor__",
+      "regulation_unknown": "Régulation inconnue",
+      "regulation_sensor": {
+        "return": "retour T6",
+        "supply": "départ T7",
+        "unknown": "sonde de régulation inconnue"
+      },
+      "setpoint_deviation": "Écart de consigne __value__ C",
+      "hysteresis_unknown": "Hystérésis inconnue",
+      "hysteresis_unread": "__source__ pas encore lu",
+      "hysteresis_value": "__source__ hystérésis __value__C",
+      "metric": {
+        "input": "Absorbée",
+        "output": "Fournie",
+        "flow": "Débit",
+        "compressor": "Compresseur",
+        "cop_live": "COP direct",
+        "defrost": "Dégivrage"
+      },
+      "yes": "Oui",
+      "no": "Non",
+      "label": {
+        "supply": "Départ",
+        "return": "Retour",
+        "outdoor": "Extérieur",
+        "setpoint": "Consigne",
+        "last_poll": "Dernière lecture"
+      },
+      "age": {
+        "now": "à l'instant",
+        "seconds": "s",
+        "minutes": "min",
+        "hours": "h"
+      }
+    }
+  }
+}

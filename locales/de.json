@@ -1,0 +1,152 @@
+{
+  "pair": {
+    "enter_modbus_info": {
+      "title": "Modbus-Verbindung",
+      "description": "Geben Sie die IP-Adresse und den Port Ihres Elfin EW11A oder Modbus-TCP-Gateways ein",
+      "host": "IP-Adresse:",
+      "port": "TCP-Port:",
+      "unit_id": "Modbus-Unit-ID:",
+      "continue": "Weiter"
+    }
+  },
+  "cop_method": {
+    "direct_thermal": "Direkt Thermisch",
+    "power_module": "Leistungsmodul",
+    "power_estimation": "Leistungsschätzung",
+    "refrigerant_circuit": "Kältemittelkreislauf",
+    "carnot_estimation": "Carnot-Schätzung",
+    "valve_correlation": "Ventil-Korrelation",
+    "temperature_difference": "Temperaturdifferenz",
+    "insufficient_data": "!"
+  },
+  "cop_method_description": {
+    "direct_thermal": "Direkte thermische Berechnung mit Wasserdurchfluss und Temperaturdifferenz (±5% Genauigkeit)",
+    "power_module": "Leistungsmodul-Schätzung mit internen Sensoren und externer Validierung (±8% Genauigkeit)",
+    "power_estimation": "Stromverbrauchsschätzung mit Kompressor- und Lüfterdaten (±10% Genauigkeit)",
+    "refrigerant_circuit": "Kältemittelkreislauf-Analyse mit Druck- und Temperatursensoren (±12% Genauigkeit)",
+    "carnot_estimation": "Carnot-basierte Schätzung mit Kompressorfrequenz und Umgebungstemperatur (±15% Genauigkeit)",
+    "valve_correlation": "Ventilpositions-Korrelation mit Expansionsventildaten (±20% Genauigkeit)",
+    "temperature_difference": "Temperaturdifferenz-Schätzung mit empirischen Beziehungen (±30% Genauigkeit)",
+    "insufficient_data": "Unzureichende Daten für jede COP-Berechnungsmethode verfügbar"
+  },
+  "scop_status": {
+    "initializing": "Initialisierung...",
+    "collecting": "Daten sammeln",
+    "insufficient_data": "7+ Tage Daten erforderlich",
+    "calculating": "Berechnung..."
+  },
+  "trend_descriptions": {
+    "strong_improvement": "Starke Effizienzsteigerung",
+    "moderate_improvement": "Moderate Effizienzsteigerung",
+    "slight_improvement": "Leichte Effizienzsteigerung",
+    "significant_decline": "Erheblicher Effizienzverlust",
+    "moderate_decline": "Moderater Effizienzverlust",
+    "slight_decline": "Leichter Effizienzverlust",
+    "stable": "Stabile Leistung"
+  },
+  "cop_diagnostics": {
+    "no_power_measurement": "Keine Leistungsdaten",
+    "no_thermal_measurement": "Keine thermischen Daten",
+    "no_water_flow": "Keine Durchflussdaten",
+    "no_temperature_difference": "Kein Temperatur-Delta",
+    "no_compressor_data": "Keine Kompressordaten",
+    "insufficient_sensor_data": "Mehrere Ausfälle",
+    "enable_power_monitoring": "Leistungsüberwachung aktivieren",
+    "check_temperature_sensors": "Temperatursensoren prüfen",
+    "check_flow_sensor": "Durchflusssensor prüfen",
+    "check_compressor_communication": "Kompressor-Verbindung prüfen",
+    "check_multiple_sensors": "Alle Sensoren prüfen"
+  },
+  "COP calculation disabled": "COP-Berechnung deaktiviert",
+  "connection_status": {
+    "connected": "Verbunden",
+    "disconnected": "Getrennt",
+    "reconnecting": "Wiederverbinden",
+    "error": "Fehler"
+  },
+  "building_model": {
+    "thermal_mass_title": "ML Thermische Masse",
+    "heat_loss_title": "ML Wärmeverlust",
+    "time_constant_title": "ML Zeitkonstante",
+    "solar_gain_title": "ML Solarer Gewinnfaktor",
+    "internal_gains_title": "ML Interne Gewinne",
+    "status_learned": "LERNEND",
+    "status_default": "STANDARD",
+    "status_blocked": "BLOCKIERT",
+    "blocked_prefix": "Blocked",
+    "blocked_no_indoor_temp": "Keine Innentemp",
+    "blocked_no_outdoor_temp": "Keine Außentemp",
+    "blocked_no_power": "Keine Leistung",
+    "blocked_disabled": "Deaktiviert",
+    "blocked_dhw_mode": "Nicht im Heizmodus",
+    "blocked_defrost": "Abtauen aktiv",
+    "blocked_no_cop": "Keine COP-Messung",
+    "period_night": "Nacht",
+    "period_day": "Tag",
+    "period_evening": "Abend",
+    "blocked_dhw_active": "Warmwasserbereitung",
+    "blocked_aux_heating": "Auxiliary heating active"
+  },
+  "errors": {
+    "zone_onoff_disabled": "Ein/Aus über das Zonenregister 2101 ist experimentell. Aktivieren Sie 'Ein/Aus über Zonensteuerung (experimentell)' in den Geräteeinstellungen, um dies zu nutzen.",
+    "silent_level2_r290_only": "Leisemodus Stufe 2 ist nur bei R290-Wärmepumpen verfügbar."
+  },
+  "widget": {
+    "live_operation": {
+      "locale": "de-DE",
+      "loading": "Live-Betrieb wird geladen...",
+      "no_data": "Keine Live-Daten verfügbar.",
+      "no_device": "Keine Adlar-Wärmepumpe gekoppelt.",
+      "load_failed": "Live-Daten konnten nicht geladen werden.",
+      "default_device_name": "Adlar-Wärmepumpe",
+      "unknown": "Unbekannt",
+      "status": {
+        "fault": "Störung",
+        "defrost": "Abtauen",
+        "active": "Aktiv",
+        "standby": "Standby"
+      },
+      "connection": {
+        "online": "Online",
+        "offline": "Offline",
+        "degraded": "Eingeschränkt"
+      },
+      "delta": "Vorlauf - Rücklauf",
+      "regulation": "Regelung",
+      "regulation_summary": "__mode__ auf __sensor__",
+      "regulation_unknown": "Regelung unbekannt",
+      "regulation_sensor": {
+        "return": "Rücklauf T6",
+        "supply": "Vorlauf T7",
+        "unknown": "Regelfühler unbekannt"
+      },
+      "setpoint_deviation": "Sollwertabweichung __value__ C",
+      "hysteresis_unknown": "Hysterese unbekannt",
+      "hysteresis_unread": "__source__ noch nicht gelesen",
+      "hysteresis_value": "__source__ Hysterese __value__C",
+      "metric": {
+        "input": "Aufnahme",
+        "output": "Abgabe",
+        "flow": "Durchfluss",
+        "compressor": "Verdichter",
+        "cop_live": "COP live",
+        "defrost": "Abtauen"
+      },
+      "yes": "Ja",
+      "no": "Nein",
+      "label": {
+        "supply": "Vorlauf",
+        "return": "Rücklauf",
+        "outdoor": "Außen",
+        "setpoint": "Sollwert",
+        "last_poll": "Letzte Abfrage"
+      },
+      "age": {
+        "now": "jetzt",
+        "seconds": "s",
+        "minutes": "m",
+        "hours": "h"
+      }
+    }
+  }
+}

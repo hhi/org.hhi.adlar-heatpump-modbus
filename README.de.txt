@@ -1,4 +1,4 @@
-Diese App verbindet die Adlar Castra oder Aurora II Wärmepumpe über ein
+Diese App verbindet die Adlar Castra oder Aurora I/II Wärmepumpe über ein
 kabelgebundenes Modbus RS485-Gateway im lokalen Netzwerk mit Homey Pro. Für
 den täglichen Betrieb ist keine Cloud-Verbindung erforderlich, was die
 Integration schnell, zuverlässig und unabhängig von externen Diensten macht.
