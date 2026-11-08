@@ -78,6 +78,12 @@ The default dashboard port is `8090`; if you changed the Dashboard port setting,
 - Superfast, fast, medium and slow polling intervals
 - Log level
 
+### Emitter system and buffer tank (v3.7.0+)
+
+The building model accounts for the time between the heat the heat pump delivers and the heat that reaches the room. Under **Building Model Learning**, set **Emitter System** (radiators or floor heating) and **Buffer Tank** (litres) as the start value; the model then learns the delay itself and shows it as **ML Emitter Delay**. Example: radiators with a 120-litre buffer tank start at 150 minutes. With a buffer tank or floor heating, set both before changing the building profile: without them, the thermal mass and time constant appear too large.
+
+Full explanation: [Configuration guide (EN)](https://github.com/hhi/org.hhi.adlar-heatpump/blob/main/docs/setup/advanced-settings/CONFIGURATION_GUIDE.en.md#emitter-system-and-buffer-tank-v370) · [Configuratiegids (NL)](https://github.com/hhi/org.hhi.adlar-heatpump/blob/main/docs/setup/advanced-settings/CONFIGURATION_GUIDE.nl.md#afgiftesysteem-en-buffervat-v370).
+
 ## Practical Notes
 
 - Recommended defaults: port `502`, Unit ID `1`.
