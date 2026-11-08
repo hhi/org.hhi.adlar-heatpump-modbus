@@ -3,9 +3,10 @@
 /* eslint-disable import/extensions */
 import os from 'os';
 import Homey from 'homey';
-import { DataSnapshot } from '../../lib/modbus/adlar2-modbus-service';
-import { Logger, LogLevel } from '../../lib/logger';
-import { ServiceCoordinator } from '../../lib/services/service-coordinator';
+import { DataSnapshot } from '../../lib/modbus/protocol/adlar2-modbus-service';
+import { Logger, LogLevel } from '../../lib/shared/logger';
+import { BuildingModelLearner } from '../../lib/shared/adaptive/building-model-learner';
+import { ServiceCoordinator } from '../../lib/modbus/services/service-coordinator';
 import {
   heatingCurveToEnumId,
   enumIdToHeatingCurve,
@@ -14,16 +15,17 @@ import {
   hotWaterCurveToEnumId,
   enumIdToHotWaterCurve,
   backwaterModeToEnumId,
-} from '../../lib/modbus/adlar-enum-mappers';
-import { RegisterChangeEntry } from '../../lib/modbus/modbus-tcp-service';
-import { FAULT_DESCRIPTIONS } from '../../lib/modbus/adlar-fault-descriptions';
-import { ModbusCOPService } from '../../lib/services/modbus-cop-service';
-import { RollingCOPCalculator } from '../../lib/services/rolling-cop-calculator';
-import { DeviceConstants } from '../../lib/constants';
+} from '../../lib/modbus/protocol/adlar-enum-mappers';
+import { RegisterChangeEntry } from '../../lib/modbus/protocol/modbus-tcp-service';
+import { FAULT_DESCRIPTIONS } from '../../lib/modbus/protocol/adlar-fault-descriptions';
+import { ModbusCOPService } from '../../lib/modbus/services/modbus-cop-service';
+import { RollingCOPCalculator } from '../../lib/shared/services/rolling-cop-calculator';
+import { DeviceConstants } from '../../lib/modbus/constants';
+import { isSetpointRangeValid, resolveMaxSetpoint, SETPOINT_RANGE_MIN_GAP } from '../../lib/shared/adaptive/setpoint-range';
 import {
   LiveOperationWidgetState,
   buildLiveOperationWidgetState,
-} from '../../lib/services/widget-state-service';
+} from '../../lib/modbus/services/widget-state-service';
 
 // ============================================================================
 // CONSTANTS
@@ -175,6 +177,9 @@ interface DeviceSettings {
   dashboard_port: number;
   log_level: string;
   enable_power_measurements: boolean;
+  adaptive_min_setpoint: number;
+  adaptive_max_setpoint: number;
+  adaptive_curve_fixed: string;
 }
 /* eslint-enable camelcase */
 
@@ -212,6 +217,9 @@ class AdlarModbusDevice extends Homey.Device {
     );
 
     this.logger.info('Device initializing:', this.getName());
+
+    // Migration v3.6.2 (R25): before the services start, so the learner gets the new value
+    await this._migrateForgettingFactor();
 
     await this._applyDashboardPort(settings.dashboard_port ?? 8090);
     await this._ensureCapabilities();
@@ -273,6 +281,25 @@ class AdlarModbusDevice extends Homey.Device {
 
   async onSettings({ newSettings, changedKeys }: { newSettings: Partial<DeviceSettings>; changedKeys: string[] }) {
     this.logger.info('Settings changed:', changedKeys);
+
+    // Reject a maximum water temperature that is not at least SETPOINT_RANGE_MIN_GAP above the minimum
+    if (changedKeys.includes('adaptive_min_setpoint') || changedKeys.includes('adaptive_max_setpoint')) {
+      const minSetpoint = (newSettings.adaptive_min_setpoint as number | null | undefined) ?? 18;
+      const maxSetpoint = resolveMaxSetpoint(
+        newSettings.adaptive_max_setpoint as number | null | undefined,
+        DeviceConstants.ADAPTIVE_MAX_SETPOINT,
+      );
+      if (!isSetpointRangeValid(minSetpoint, maxSetpoint)) {
+        throw new Error(this.homey.__('errors.adaptive_setpoint_range', { gap: SETPOINT_RANGE_MIN_GAP }));
+      }
+    }
+
+    // G16: the DIY curve must have been read and fit the app curve before it can fill the two fields
+    if (changedKeys.includes('adaptive_curve_fixed') && newSettings.adaptive_curve_fixed === 'diy') {
+      const diyCurve = this.coordinator ? this.coordinator.getDiyAppCurve() : 'pending';
+      if (diyCurve === 'pending') throw new Error(this.homey.__('errors.diy_curve_not_read'));
+      if (!diyCurve) throw new Error(this.homey.__('errors.diy_curve_unusable'));
+    }
 
     if (changedKeys.includes('log_level')) {
       const logLevelMap: Record<string, LogLevel> = {
@@ -345,6 +372,19 @@ class AdlarModbusDevice extends Homey.Device {
     };
     if (!app.setDashboardPort) return;
     await app.setDashboardPort(port);
+  }
+
+  /** Migration v3.6.2 (R25): a forgetting factor outside 0.9985–0.9995 (minimum raised in 3.4.2) blocks every settings save. */
+  private async _migrateForgettingFactor(): Promise<void> {
+    const stored: unknown = this.getSetting('building_model_forgetting_factor');
+    const replacement = BuildingModelLearner.forgettingFactorMigration(stored);
+    if (replacement === null) return;
+    try {
+      await this.setSettings({ building_model_forgetting_factor: replacement });
+      this.logger.info(`Migration v3.6.2: forgetting factor ${String(stored)} set to ${replacement}`);
+    } catch (error) {
+      this.logger.warn('Migration v3.6.2: failed to update the forgetting factor:', error);
+    }
   }
 
   private async _ensureCapabilities(): Promise<void> {
@@ -428,8 +468,8 @@ class AdlarModbusDevice extends Homey.Device {
         setReadRegisterCallback(fn: (addr: number, isCoil: boolean) => Promise<number>): void;
         setWriteExpertCallback(fn: (addr: number, rawValue: number, isCoil: boolean) => Promise<void>): void;
         setDiyHeatingCurveCallback(fn: (k: number, b: number) => Promise<void>): void;
-        setGetTemperatureScaleCallback(fn: () => import('../../lib/modbus/adlar-modbus-registers').TemperatureRegisterScale): void;
-        setGetChangeLogCallback(fn: (mode?: import('../../lib/modbus/modbus-tcp-service').RegisterChangeLogMode) => Map<number, RegisterChangeEntry>): void;
+        setGetTemperatureScaleCallback(fn: () => import('../../lib/modbus/protocol/adlar-modbus-registers').TemperatureRegisterScale): void;
+        setGetChangeLogCallback(fn: (mode?: import('../../lib/modbus/protocol/modbus-tcp-service').RegisterChangeLogMode) => Map<number, RegisterChangeEntry>): void;
         setGetSnapshotCallback(fn: () => DataSnapshot | null): void;
         setGetRegisterCacheCallback(fn: () => Map<number, number>): void;
         setGetCapabilityValuesCallback(fn: () => Record<string, unknown>): void;
@@ -602,7 +642,7 @@ class AdlarModbusDevice extends Homey.Device {
     if (from('fast') && this.hasCapability('adlar_external_ambient')) {
       const extAmbient = this.getCapabilityValue('adlar_external_ambient');
       if (extAmbient !== null && extAmbient !== undefined) {
-        const ts = this.externalDataTimestamps.get('adlar_external_ambient') ?? 0;
+        const ts = this.getExternalDataTimestamp('adlar_external_ambient');
         if (Date.now() - ts > DeviceConstants.EXTERNAL_DATA_TTL_MS) {
           this.setCapabilityValue('adlar_external_ambient', null).catch(() => {});
           this.externalDataTimestamps.delete('adlar_external_ambient');
@@ -711,6 +751,20 @@ class AdlarModbusDevice extends Homey.Device {
 
   public getRollingCOPCalculator(): RollingCOPCalculator | null {
     return this.copService?.getRollingCOPCalculator() ?? null;
+  }
+
+  /**
+   * Tijdstempel van de laatste flowwaarde voor externalCap. Na een herstart is de map leeg; voor de
+   * buitentemperatuur staat het tijdstempel dan nog in de store, zodat de TTL doortelt over de herstart.
+   */
+  private getExternalDataTimestamp(externalCap: string): number {
+    const ts = this.externalDataTimestamps.get(externalCap);
+    if (ts !== undefined) return ts;
+    if (externalCap === 'adlar_external_ambient') {
+      const stored = this.getStoreValue('external_outdoor_temp_timestamp');
+      if (typeof stored === 'number' && Number.isFinite(stored)) return stored;
+    }
+    return 0;
   }
 
   public registerExternalDataReceived(externalCap: string): void {

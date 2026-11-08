@@ -1,4 +1,4 @@
-This app connects the Adlar Castra or Aurora II heat pump to Homey Pro using
+This app connects the Adlar Castra or Aurora I/II heat pump to Homey Pro using
 a wired Modbus RS485 gateway on your local network. No cloud connection is
 needed for daily operation, which makes the integration fast, reliable and
 independent of external services.

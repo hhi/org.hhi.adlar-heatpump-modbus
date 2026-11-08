@@ -1,4 +1,4 @@
-Deze app koppelt de Adlar Castra of Aurora II warmtepomp aan Homey Pro via
+Deze app koppelt de Adlar Castra of Aurora I/II warmtepomp aan Homey Pro via
 een bedrade Modbus RS485-gateway op je lokale netwerk. Voor de dagelijkse
 werking is geen cloudverbinding nodig, waardoor de koppeling snel,
 betrouwbaar en onafhankelijk van externe diensten is.

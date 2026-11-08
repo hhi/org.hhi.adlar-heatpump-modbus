@@ -1,4 +1,4 @@
-Cette application connecte la pompe à chaleur Adlar Castra ou Aurora II à
+Cette application connecte la pompe à chaleur Adlar Castra ou Aurora I/II à
 Homey Pro via une passerelle Modbus RS485 filaire sur votre réseau local. Le
 fonctionnement quotidien ne nécessite aucune connexion cloud, ce qui rend
 l'intégration rapide, fiable et indépendante de tout service externe.
