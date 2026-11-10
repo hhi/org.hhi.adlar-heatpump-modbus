@@ -1,4 +1,10 @@
 {
+  "3.8.0": {
+    "en": "Same as the main Adlar app 3.8.0: COP settings and the maximum preheat setting are now applied at startup and when changed.",
+    "nl": "Gelijk aan de hoofdapp Adlar 3.8.0: de COP-instellingen en de instelling voor maximale voorverwarming worden nu bij het starten en bij wijzigingen toegepast.",
+    "de": "Wie in der Haupt-App Adlar 3.8.0: Die COP-Einstellungen und die Einstellung für die maximale Vorheizung werden jetzt beim Start und bei Änderungen angewendet.",
+    "fr": "Comme dans l'application principale Adlar 3.8.0 : les réglages du COP et du préchauffage maximal sont désormais appliqués au démarrage et lors des modifications."
+  },
   "3.7.1": {
     "en": "Same as the main Adlar app 3.7.1: 'Set desired indoor temperature' now limits a value outside 15–25 °C (e.g. 7 °C becomes 15 °C), and 'Calculate pre-heat start time' gives 'Now' when the start time has passed. Without your own location under 'Weather Forecast', adaptive control uses the heat pump's outdoor sensor; 'Defrost cycles (24h)' and 'Defrost duration (24h)' are now filled, and the adaptive control diagnostics show why a cycle is skipped (e.g. 'no_desired_indoor_temperature').",
     "nl": "Gelijk aan de hoofdapp Adlar 3.7.1: 'Gewenste binnentemperatuur instellen' begrenst nu een waarde buiten 15–25 °C (bijv. 7 °C wordt 15 °C), en 'Bereken voorverwarm starttijd' geeft 'Now' als de starttijd al voorbij is. Zonder eigen locatie onder 'Weerprognose' gebruikt de adaptieve regeling de buitensensor van de warmtepomp; 'Ontdooicycli (24u)' en 'Ontdooitijd (24u)' worden nu gevuld, en de diagnose van de adaptieve regeling noemt waarom een cyclus wordt overgeslagen (bijv. 'no_desired_indoor_temperature').",
