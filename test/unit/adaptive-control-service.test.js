@@ -85,7 +85,7 @@ function createService(device, adjustments = []) {
   });
   service.__testLogs = logs;
   service.isEnabled = true;
-  service.externalTemperature = { getIndoorTemperature: () => 20 };
+  service.externalTemperature = { getIndoorTemperature: () => 20, getIndoorStaleness: () => 'fresh' };
   service.weatherForecast = {
     getTempAt: () => null,
     isLocationUserSet: () => false, // v3.7.1 (R21)
