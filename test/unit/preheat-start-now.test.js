@@ -48,7 +48,7 @@ async function getPreHeatListener() {
         getBuildingModelService: () => ({
           getLearner: () => ({ getModel: () => ({ C: 15, UA: 1, confidence: 80 }) }),
         }),
-        getExternalTemperatureService: () => ({ getIndoorTemperature: () => 19 }),
+        getExternalTemperatureService: () => ({ getIndoorTemperature: () => 19, getIndoorStaleness: () => 'fresh' }),
       }),
     },
   };
