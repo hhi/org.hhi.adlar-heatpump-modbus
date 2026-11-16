@@ -22,6 +22,8 @@
     "jsmodbus": "^4.0.10"
   },
   "overrides": {
-    "minimatch": "^9.0.7"
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "9.0.7"
+    }
   }
 }

@@ -49,4 +49,3 @@ export function resolveCopOptimizerSettings(getSetting: (key: string) => unknown
     strategy: resolveCopStrategy(getSetting('cop_strategy')),
   };
 }
-
