@@ -41,10 +41,14 @@ function createDevice(settings = {}) {
     },
     getSetting: (key) => settings[key],
     getStoreValue: (key) => store[key],
-    setStoreValue: async (key, value) => { store[key] = value; },
+    setStoreValue: async (key, value) => {
+      store[key] = value;
+    },
     getCapabilityValue: (key) => capabilities[key] ?? null,
     hasCapability: (key) => Object.prototype.hasOwnProperty.call(capabilities, key),
-    setCapabilityValue: async (key, value) => { capabilities[key] = value; },
+    setCapabilityValue: async (key, value) => {
+      capabilities[key] = value;
+    },
     setCapabilityOptions: async () => {},
     getOutdoorTemperatureWithFallback: () => 5,
     error: () => {},

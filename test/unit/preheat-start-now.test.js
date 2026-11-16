@@ -20,7 +20,9 @@ const { FlowCardManagerService } = require('../../.homeybuild/lib/modbus/service
 async function getPreHeatListener() {
   const listeners = {};
   const card = (id) => ({
-    registerRunListener: (fn) => { listeners[id] = fn; return card(id); },
+    registerRunListener: (fn) => {
+      listeners[id] = fn; return card(id);
+    },
     registerArgumentAutocompleteListener: () => card(id),
     trigger: async () => {},
   });
