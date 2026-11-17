@@ -1,4 +1,10 @@
 {
+  "3.12.3": {
+    "en": "Pre-heating estimates use the building model averaged over the past 24 hours. Classic control applies Kp, Ki and the deadband at startup; the configured deadband applies when building-model learning is disabled.",
+    "nl": "De voorverwarmtijd wordt berekend met het gebouwmodel gemiddeld over de laatste 24 uur. De regeling Klassiek past Kp, Ki en de dode zone bij het starten toe; de ingestelde dode zone telt wanneer gebouwmodel-leren uit staat.",
+    "de": "Die Vorheizzeit wird mit dem über die letzten 24 Stunden gemittelten Gebäudemodell berechnet. Die klassische Regelung übernimmt Kp, Ki und Totzone beim Start; die eingestellte Totzone gilt bei deaktiviertem Gebäudemodell-Lernen.",
+    "fr": "La durée de préchauffage utilise le modèle du bâtiment moyenné sur les dernières 24 heures. La régulation classique applique Kp, Ki et la zone morte au démarrage ; la zone morte configurée s’applique lorsque l’apprentissage du modèle est désactivé."
+  },
   "3.12.0": {
     "en": "The local Modbus dashboard now includes a 'Process schema' page (/processchema) with the refrigerant cycle, water circuit, building model, 24-hour temperature and compressor history, and active heating curve in dark and light mode.",
     "nl": "Het lokale Modbus-dashboard heeft nu een pagina 'Processchema' (/processchema) met de koudemiddelcyclus, het watercircuit, het gebouwmodel, het 24-uurs temperatuur- en compressorverloop en de actieve stooklijn in donkere en lichte weergave.",
