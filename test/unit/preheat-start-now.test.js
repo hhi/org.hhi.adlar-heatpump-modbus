@@ -49,6 +49,7 @@ async function getPreHeatListener() {
         // tau = C / UA = 15 h → 4 h per 1 °C
         getBuildingModelService: () => ({
           getLearner: () => ({ getModel: () => ({ C: 15, UA: 1, confidence: 80 }) }),
+          getPreHeatModel: () => ({ C: 15, UA: 1, confidence: 80 }),
         }),
         getExternalTemperatureService: () => ({ getIndoorTemperature: () => 19, getIndoorStaleness: () => 'fresh' }),
       }),
