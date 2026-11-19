@@ -161,8 +161,19 @@ When updating `.homeychangelog.json`, write for end users — not developers.
 - ❌ Do not explain *why* (no "for better user experience").
 - ❌ Do not explain *how* (no implementation details).
 - ❌ No marketing language or justifications.
+- ✅ Every entry in all four languages (en, nl, de, fr).
+- ❌ No technical terms (DPS, registers), no developer prefixes such as "Fixed:",
+  no file paths, and no references to dashboards or local web pages (call it
+  "live monitoring").
 
 ```text
 ✅ "Connection status now shows month abbreviations (e.g., '3-Oct 14:25')."
 ❌ "Improved connection status display for better readability."
 ```
+
+**Per version or cleaned up**: during development, each version gets its own
+short entry (1-2 sentences). At certification, the owner may decide to clean up
+the changelog to a summary since the last published version plus a few
+milestones; that summary may be a short paragraph. Propose this when a
+certification is coming up; never do it on your own. Details per version belong
+in the GitHub release.
