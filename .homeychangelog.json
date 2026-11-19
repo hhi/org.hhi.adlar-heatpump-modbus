@@ -1,4 +1,10 @@
 {
+  "3.13.0": {
+    "en": "The device settings now show the address of live monitoring. Live monitoring shows the same COP and power as Homey, and energy use only counts measured values.",
+    "nl": "De apparaatinstellingen tonen nu het adres van live monitoring. Live monitoring toont dezelfde COP en hetzelfde vermogen als Homey, en het energieverbruik telt alleen nog gemeten waarden.",
+    "de": "Die Geräteeinstellungen zeigen jetzt die Adresse des Live-Monitorings. Das Live-Monitoring zeigt dieselbe COP und dieselbe Leistung wie Homey, und der Energieverbrauch zählt nur noch gemessene Werte.",
+    "fr": "Les réglages de l'appareil affichent désormais l'adresse de la surveillance en direct. La surveillance en direct affiche le même COP et la même puissance que Homey, et la consommation d'énergie ne compte plus que des valeurs mesurées."
+  },
   "3.12.3": {
     "en": "Pre-heating estimates use the building model averaged over the past 24 hours. Classic control applies Kp, Ki and the deadband at startup; the configured deadband applies when building-model learning is disabled.",
     "nl": "De voorverwarmtijd wordt berekend met het gebouwmodel gemiddeld over de laatste 24 uur. De regeling Klassiek past Kp, Ki en de dode zone bij het starten toe; de ingestelde dode zone telt wanneer gebouwmodel-leren uit staat.",
